@@ -56,7 +56,7 @@ A group that runs competitions. Fully isolated (multi-tenant).
 |--------|------|-------|
 | id | uuid | PK |
 | name | text | e.g., "Kody's Book Club" |
-| invite_code | text | Unique, shareable join code |
+| invite_code | text | Unique, shareable join code. 8 chars, alphanumeric (uppercase + digits, no ambiguous chars like O/0/I/1). Generated on org creation; regeneratable by admin. |
 | created_at | timestamptz | |
 
 ### `org_members`
@@ -101,7 +101,7 @@ Shared reference table of book metadata. Populated via Open Library API lookup. 
 | author | text | |
 | pages | integer | |
 | year_published | integer | |
-| country | text | Author's country of origin |
+| country | text | Author's country of origin. Auto-filled from Open Library when available; user can edit/override manually. |
 | cover_url | text | Nullable, from Open Library |
 | created_at | timestamptz | |
 
@@ -120,19 +120,54 @@ One row per player-per-book-per-season. The core of the app.
 | completed | boolean | Whether the book was finished |
 | fiction | boolean | true = Fiction, false = Nonfiction |
 | series_name | text | Nullable, name of the series |
-| genre | text | From org's genre list |
+| genre_id | uuid | FK to genres table |
 | date_finished | date | Nullable if not completed |
-| rating | decimal | 0-10 scale, supports half points |
-| hometown_bonus | text | Nullable. One of: 'state_setting', 'state_name', 'city_name' |
-| bonus_1 | text | Nullable. Bonus type key |
-| bonus_2 | text | Nullable. Bonus type key |
-| bonus_3 | text | Nullable. Bonus type key |
-| deduction | text | Nullable. Deduction type key |
+| rating | numeric(3,1) | 0-10 scale, supports half points (e.g., 7.5) |
+| hometown_bonus | text | Nullable. One of: `state_setting`, `state_name`, `city_name` |
+| bonus_1 | text | Nullable. One of the bonus keys (see Bonus/Deduction Keys below) |
+| bonus_2 | text | Nullable. One of the bonus keys |
+| bonus_3 | text | Nullable. One of the bonus keys |
+| deduction | text | Nullable. One of the deduction keys (see Bonus/Deduction Keys below) |
 | points | decimal | Computed and stored on save |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
 RLS policy: users can only read entries within their org's seasons, and only write their own entries.
+
+#### Bonus/Deduction Keys
+
+Valid values for `bonus_1`, `bonus_2`, `bonus_3`:
+
+| Key | Label | Bonus % |
+|-----|-------|---------|
+| `classics_1900` | Classics (1900-Present) | +7.2% |
+| `classics_1750` | 1750-1900 | +14.3% |
+| `classics_pre1750` | Before 1750 | +28.6% |
+| `series` | Series | +14.3% |
+| `translation` | Translation | +5.7% |
+| `birth_year` | Birth Year | +2.9% |
+| `current_year` | Current Year | +5.7% |
+| `holiday_event` | Relatable Holiday/Event | +2.9% |
+| `award_winner` | Award Winner | +5.7% |
+| `new_country` | New (Unique) Country | +5.7% |
+
+Valid values for `deduction`:
+
+| Key | Label | Multiplier |
+|-----|-------|-----------|
+| `graphic_novel` | Graphic Novel | ×0.3 |
+| `comics_manga` | Comics / Manga | ×0.2 |
+| `audiobook` | Audiobook | ×0.75 |
+| `reread` | Re-read | ×0.5 |
+| `audiobook_reread` | Audiobook Re-read | ×0.25 |
+
+Valid values for `hometown_bonus`:
+
+| Key | Label | Bonus % |
+|-----|-------|---------|
+| `state_setting` | Set in Florida / My State | +2.9% |
+| `state_name` | "Florida" / "Hometown State" in title | +0.29% |
+| `city_name` | "Tampa" / "Hometown City" in title | +0.58% |
 
 ### `genres`
 
@@ -145,17 +180,37 @@ Configurable per-org. Defines the genre challenge list.
 | name | text | e.g., "Mystery/Thriller" |
 | sort_order | integer | Display ordering |
 
-Default genres seeded on org creation: Mystery/Thriller, Afrofuturism, Fantasy, Romance, Folklore/Mythology, Historical Fiction, Memoir, Weird Fiction.
+Default genres seeded on org creation via application code (in the "create organization" server action): Mystery/Thriller, Afrofuturism, Fantasy, Romance, Folklore/Mythology, Historical Fiction, Memoir, Weird Fiction.
 
 ### `scoring_rules`
 
-Single row storing all scoring constants. Later becomes per-org.
+Stores all scoring constants. Currently one global row. Includes an `org_id` column (nullable) to support future per-org customization without migration.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | id | uuid | PK |
+| org_id | uuid | Nullable FK to organizations. NULL = global default. |
 | config | jsonb | All point values, bonus %, deduction multipliers |
 | updated_at | timestamptz | |
+
+Resolution order: org-specific row if exists, otherwise the global (NULL org_id) row. For now, only the global row is created and edited via the admin panel.
+
+### `flagged_entries`
+
+Stores entries flagged for admin review.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| book_entry_id | uuid | FK to book_entries |
+| reason | text | e.g., 'high_points', 'duplicate_book' |
+| resolved | boolean | Default false |
+| resolved_by | uuid | Nullable FK to auth.users |
+| created_at | timestamptz | |
+
+Flagging is triggered automatically on book entry save. Initial criteria:
+- `high_points`: entry score exceeds 2 standard deviations above the season mean
+- `duplicate_book`: same book_id already exists for the same user in the same season
 
 ---
 
@@ -188,7 +243,8 @@ A pure function shared between client (live preview) and server (validation on s
    - Hometown — State name in title: +0.29%
    - Hometown — City name in title: +0.58%
 
-5. **Deduction Multipliers** (multiply the running total):
+5. **Deduction Multipliers** (applied last, multiply the post-bonus total):
+   - Formula: `finalScore = (preBonusTotal + sumOfAllBonusAmounts) × deductionMultiplier`
    - Graphic Novel: ×0.3
    - Comics/Manga: ×0.2
    - Audiobook: ×0.75
@@ -202,13 +258,21 @@ A pure function shared between client (live preview) and server (validation on s
    - Alphabet challenge 13+ letters: +6%
    - Alphabet challenge all 26 letters: +14%
 
-7. **"Longest Road" Bonuses** (flat points, top 3 across all players):
-   - Most unique countries: 10 / 7 / 4 pts
-   - Longest series read: 8 / 5 / 3 pts
+7. **"Longest Road" Bonuses** (flat points, top 3 across all players in the season):
+   - Most unique countries read: 10 / 7 / 4 pts (count of distinct `country` values across a player's entries)
+   - Longest series read: 8 / 5 / 3 pts (most books with the same `series_name` value; ties broken by total pages in that series)
+
+### "New Country" Bonus — Cross-Entry Dependency
+
+The `new_country` bonus (+5.7%) depends on whether any previous entry in the season already used that country. This bonus is **user-declared**: the player selects it as one of their 3 bonus slots when they believe the country is new to them for the season. The live score preview can show a warning if the country has already been used in a prior entry, but the bonus is ultimately applied based on what the player selects (honor system, consistent with the spreadsheet).
+
+### Alphabet Challenge Definition
+
+The alphabet challenge tracks the **first letter of the book title** (ignoring leading articles "The", "A", "An"). Each unique starting letter counts toward the challenge. 13+ unique letters = +6% bonus, all 26 = +14% bonus.
 
 ### Implementation
 
-- `calculateBookScore(entry, scoringRules)` — pure function, returns per-book points
+- `calculateBookScore(entry, scoringRules)` — pure function, returns per-book points. All inputs are from the entry itself (including user-declared bonuses like `new_country`).
 - `calculateSeasonBonuses(allEntries, scoringRules)` — computes completion and longest-road bonuses per player
 - `calculateLeaderboard(allEntries, scoringRules)` — combines per-book scores + season bonuses, returns ranked list
 
@@ -286,7 +350,7 @@ A persistent "+" / "Add Book" button accessible from any screen. Opens a **slide
 
 - **Search bar** at top: search by title or ISBN
 - **Auto-filled book details** from Open Library API: pages, year published, country, fiction/nonfiction
-- **Competition fields** filled by user: completed status, series name, genre (from org's list), date finished, rating (0-10)
+- **Competition fields** filled by user: completed status, series name, genre (dropdown from org's genre list), date finished, rating (0-10)
 - **Bonuses section:** selectable bonus chips (up to 3), hometown bonus dropdown
 - **Deductions section:** selectable deduction chip (one)
 - **Live score card** (sticky, always visible): shows estimated points with breakdown (base, pages, bonuses, deductions). Updates in real-time as the user toggles options.
