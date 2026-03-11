@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/kody/.claude/plugins/cache/superpowers-marketplace/superpowers/5.0.1/skills/brainstorming/scripts/start-server.sh --project-dir \"/Users/kody/reading app\")",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Read(//Users/kody/.nvm/versions/**)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/Cellar/node@24/24.14.0/bin/**)",
+      "Read(//usr/local/**)",
+      "Read(//opt/**)",
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")"
+    ]
+  }
+}
