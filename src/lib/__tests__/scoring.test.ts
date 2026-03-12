@@ -1,4 +1,4 @@
-import { calculateBookScore } from "../scoring";
+import { calculateBookScore, calculateSeasonBonuses } from "../scoring";
 import type { ScoringRulesConfig } from "@/types/database";
 import type { ScoreInput } from "../scoring-types";
 
@@ -128,5 +128,77 @@ describe("calculateBookScore", () => {
     // PostBonus: 3.99 + 1.14114 = 5.13114
     // Deduction: 5.13114 * 0.5 = 2.56557
     expect(result.finalScore).toBeCloseTo(2.5656, 2);
+  });
+});
+
+// Helper to create minimal entries for season bonus testing
+function makeSeasonEntry(overrides: {
+  genre_id?: string | null;
+  book_title?: string;
+  preBonusTotal?: number;
+}) {
+  return {
+    preBonusTotal: overrides.preBonusTotal ?? 2.0,
+    genre_id: overrides.genre_id ?? null,
+    book: { title: overrides.book_title ?? "Test Book" },
+  };
+}
+
+describe("calculateSeasonBonuses", () => {
+  it("returns genre complete bonus when all genres covered", () => {
+    const genres = ["g1", "g2", "g3"];
+    const entries = genres.map((gid) =>
+      makeSeasonEntry({ genre_id: gid, preBonusTotal: 2 })
+    );
+    const result = calculateSeasonBonuses(entries, genres, DEFAULT_CONFIG);
+    // Sum of preBonusTotal = 6, genre complete = 6 * 0.10 = 0.6
+    expect(result.genreCompleteBonus).toBeCloseTo(0.6, 2);
+  });
+
+  it("returns zero genre bonus when incomplete", () => {
+    const genres = ["g1", "g2", "g3"];
+    const entries = [makeSeasonEntry({ genre_id: "g1", preBonusTotal: 2 })];
+    const result = calculateSeasonBonuses(entries, genres, DEFAULT_CONFIG);
+    expect(result.genreCompleteBonus).toBe(0);
+  });
+
+  it("calculates alphabet challenge 13+ letters", () => {
+    // Use titles like "Bat", "Cat", etc. to avoid article stripping on "A"
+    const letters = "BCDEFGHIJKLMN";
+    const entries = letters.split("").map((letter) =>
+      makeSeasonEntry({ book_title: `${letter}ook`, preBonusTotal: 1 })
+    );
+    const result = calculateSeasonBonuses(entries, [], DEFAULT_CONFIG);
+    // 13 entries, each preBonusTotal=1, total=13. 13 letters = +6%: 13 * 0.06 = 0.78
+    expect(result.alphabetBonus).toBeCloseTo(0.78, 2);
+    expect(result.uniqueLetters).toBe(13);
+  });
+
+  it("calculates alphabet challenge all 26 letters", () => {
+    // Avoid "A <word>" being stripped as article; use "Alpha", "Bravo", etc.
+    const titles = [
+      "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot",
+      "Golf", "Hotel", "India", "Juliet", "Kilo", "Lima", "Mike",
+      "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra",
+      "Tango", "Uniform", "Victor", "Whiskey", "Xray", "Yankee", "Zulu",
+    ];
+    const entries = titles.map((t) =>
+      makeSeasonEntry({ book_title: t, preBonusTotal: 1 })
+    );
+    const result = calculateSeasonBonuses(entries, [], DEFAULT_CONFIG);
+    // 26 entries, each preBonusTotal=1, total=26. 26 letters = +14%: 26 * 0.14 = 3.64
+    expect(result.alphabetBonus).toBeCloseTo(3.64, 2);
+    expect(result.uniqueLetters).toBe(26);
+  });
+
+  it("strips leading articles for alphabet challenge", () => {
+    const entries = [
+      makeSeasonEntry({ book_title: "The Amazing Race", preBonusTotal: 1 }),
+      makeSeasonEntry({ book_title: "A Bright Day", preBonusTotal: 1 }),
+      makeSeasonEntry({ book_title: "An Elephant", preBonusTotal: 1 }),
+    ];
+    const result = calculateSeasonBonuses(entries, [], DEFAULT_CONFIG);
+    // "The Amazing" -> A, "A Bright" -> B, "An Elephant" -> E = 3 letters
+    expect(result.uniqueLetters).toBe(3);
   });
 });
