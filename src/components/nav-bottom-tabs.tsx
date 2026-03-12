@@ -5,18 +5,23 @@ import { usePathname } from "next/navigation";
 import { Trophy, BookOpen, BarChart3, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrg } from "./providers";
+import type { LucideIcon } from "lucide-react";
+
+type NavTab = { href: string; label: string; icon: LucideIcon };
+type ActionTab = { label: string; icon: LucideIcon; isAction: true };
+type Tab = NavTab | ActionTab;
 
 export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
   const pathname = usePathname();
   const { currentRole } = useOrg();
 
-  const tabs = [
+  const tabs: Tab[] = [
     { href: "/leaderboard", label: "Board", icon: Trophy },
     { href: "/my-books", label: "Books", icon: BookOpen },
-    { label: "Add", icon: Plus, isAction: true as const },
+    { label: "Add", icon: Plus, isAction: true },
     { href: "/progress", label: "Progress", icon: BarChart3 },
     ...(currentRole === "admin"
-      ? [{ href: "/admin/settings", label: "Admin", icon: Settings }]
+      ? [{ href: "/admin/settings", label: "Admin", icon: Settings } as NavTab]
       : []),
   ];
 
@@ -24,7 +29,7 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white md:hidden">
       <div className="flex items-center justify-around py-1">
         {tabs.map((tab) =>
-          "isAction" in tab && tab.isAction ? (
+          "isAction" in tab ? (
             <button
               key="add"
               onClick={onAddBook}
@@ -36,13 +41,12 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
             </button>
           ) : (
             <Link
-              key={"href" in tab ? tab.href : tab.label}
-              href={"href" in tab ? tab.href! : "/"}
+              key={tab.href}
+              href={tab.href}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-3 py-2 text-xs",
-                "href" in tab &&
-                  (pathname === tab.href ||
-                    pathname.startsWith(tab.href + "/"))
+                pathname === tab.href ||
+                  pathname.startsWith(tab.href + "/")
                   ? "text-indigo-600"
                   : "text-gray-500"
               )}

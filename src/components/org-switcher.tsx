@@ -15,7 +15,12 @@ export function OrgSwitcher() {
   if (orgs.length <= 1) return null;
 
   return (
-    <Select value={currentOrgId ?? undefined} onValueChange={setCurrentOrg}>
+    <Select
+      value={currentOrgId ?? undefined}
+      onValueChange={(value) => {
+        if (value) setCurrentOrg(value);
+      }}
+    >
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select competition" />
       </SelectTrigger>
