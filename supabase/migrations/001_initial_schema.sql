@@ -193,6 +193,17 @@ create policy "Admins can update their organizations"
     )
   );
 
+-- Helper function to get user's org IDs without triggering RLS recursion
+create or replace function public.get_user_org_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select org_id from public.org_members where user_id = auth.uid();
+$$;
+
 -- Org members: members can see other members in their orgs
 alter table public.org_members enable row level security;
 
@@ -200,7 +211,7 @@ create policy "Members can view members of their orgs"
   on public.org_members for select
   to authenticated
   using (
-    org_id in (select org_id from public.org_members where user_id = auth.uid())
+    org_id in (select public.get_user_org_ids())
   );
 
 create policy "Authenticated users can join orgs"
@@ -212,9 +223,12 @@ create policy "Admins can manage org members"
   on public.org_members for delete
   to authenticated
   using (
-    org_id in (
-      select org_id from public.org_members
-      where user_id = auth.uid() and role = 'admin'
+    org_id in (select public.get_user_org_ids())
+    and exists (
+      select 1 from public.org_members
+      where org_id = org_members.org_id
+        and user_id = auth.uid()
+        and role = 'admin'
     )
   );
 
@@ -222,9 +236,12 @@ create policy "Admins can update org member roles"
   on public.org_members for update
   to authenticated
   using (
-    org_id in (
-      select org_id from public.org_members
-      where user_id = auth.uid() and role = 'admin'
+    org_id in (select public.get_user_org_ids())
+    and exists (
+      select 1 from public.org_members
+      where org_id = org_members.org_id
+        and user_id = auth.uid()
+        and role = 'admin'
     )
   );
 
