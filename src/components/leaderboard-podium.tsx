@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LeaderboardPlayer } from "@/types/database";
 
 const medals = ["\u{1F3C6}", "\u{1F948}", "\u{1F949}"];
@@ -35,11 +36,12 @@ export function LeaderboardPodium({
             <div className={`${isFirst ? "text-5xl" : "text-4xl"} mb-1`}>
               {medals[actualRank]}
             </div>
-            <div
-              className={`font-bold ${isFirst ? "text-xl" : "text-lg"} mt-1 text-gray-900`}
+            <Link
+              href={`/player/${player.user_id}`}
+              className={`font-bold ${isFirst ? "text-xl" : "text-lg"} mt-1 text-gray-900 hover:underline`}
             >
               {player.display_name}
-            </div>
+            </Link>
             <div
               className={`text-indigo-600 font-extrabold ${isFirst ? "text-3xl" : "text-2xl"} mt-1`}
             >

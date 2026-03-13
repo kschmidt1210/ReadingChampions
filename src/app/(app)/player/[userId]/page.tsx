@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserBookEntries } from "@/lib/queries/books";
 import {
@@ -8,7 +9,12 @@ import {
 import { PlayerBooksView } from "@/components/player-books-view";
 import type { BookEntryWithBook } from "@/types/database";
 
-export default async function MyBooksPage() {
+export default async function PlayerPage({
+  params,
+}: {
+  params: Promise<{ userId: string }>;
+}) {
+  const { userId } = await params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,10 +24,26 @@ export default async function MyBooksPage() {
 
   const orgs = await getUserOrganizations();
   const currentOrg = orgs[0];
-  if (!currentOrg)
-    return (
-      <div className="p-8 text-center">Join a competition to get started!</div>
-    );
+  if (!currentOrg) return notFound();
+
+  // Verify the target player belongs to the same org
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("user_id")
+    .eq("org_id", currentOrg.id)
+    .eq("user_id", userId)
+    .single();
+
+  if (!membership) return notFound();
+
+  // Get the player's display name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .single();
+
+  const playerName = profile?.display_name ?? "Unknown Player";
 
   const season = await getActiveSeason(currentOrg.id);
   if (!season)
@@ -29,18 +51,18 @@ export default async function MyBooksPage() {
 
   const entries = (await getUserBookEntries(
     season.id,
-    user.id
+    userId
   )) as BookEntryWithBook[];
   const genres = await getOrgGenres(currentOrg.id);
   const genreMap = new Map(genres.map((g) => [g.id, g.name]));
 
   return (
     <PlayerBooksView
-      playerName=""
+      playerName={playerName}
       entries={entries}
       genres={genres}
       genreMap={genreMap}
-      isCurrentUser={true}
+      isCurrentUser={user.id === userId}
     />
   );
 }

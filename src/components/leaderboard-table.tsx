@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LeaderboardPlayer } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -66,16 +67,17 @@ export function LeaderboardTable({
             >
               {medal ?? player.rank}
             </span>
-            <span
+            <Link
+              href={isCurrentUser ? "/my-books" : `/player/${player.user_id}`}
               className={cn(
-                "flex-1 font-semibold text-base",
+                "flex-1 font-semibold text-base hover:underline",
                 isCurrentUser ? "text-indigo-600" : "text-gray-900"
               )}
             >
               {isCurrentUser
                 ? `You (${player.display_name})`
                 : player.display_name}
-            </span>
+            </Link>
             <span
               className={cn(
                 "w-16 text-center text-sm",
