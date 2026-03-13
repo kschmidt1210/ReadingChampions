@@ -21,7 +21,7 @@ export function NavSidebar({ onAddBook }: { onAddBook: () => void }) {
   const { currentRole } = useOrg();
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:bg-white">
+    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-64 md:flex-col md:border-r md:bg-white md:z-40">
       <div className="flex h-14 items-center border-b px-4">
         <span className="text-lg font-bold">Super Reader</span>
       </div>

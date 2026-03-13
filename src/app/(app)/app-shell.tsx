@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <NavSidebar onAddBook={() => setAddBookOpen(true)} />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 md:pb-0 md:ml-64">{children}</main>
       <NavBottomTabs onAddBook={() => setAddBookOpen(true)} />
       <AddBookPanel
         open={addBookOpen}
