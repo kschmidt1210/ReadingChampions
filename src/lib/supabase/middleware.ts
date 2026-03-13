@@ -10,8 +10,6 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    // If env vars aren't set, skip auth and let the page render
-    // (it will show errors on pages that need Supabase)
     return supabaseResponse;
   }
 
@@ -38,33 +36,9 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Check if this is an auth page FIRST to avoid redirect loops
-  const isAuthPage =
-    request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/signup") ||
-    request.nextUrl.pathname.startsWith("/join");
-
-  let user = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  } catch {
-    // If Supabase auth fails, don't block the request
-    return supabaseResponse;
-  }
-
-  if (!user && !isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  if (user && isAuthPage && !request.nextUrl.pathname.startsWith("/join")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/leaderboard";
-    return NextResponse.redirect(url);
-  }
+  // Refresh the session — this is the only job of the proxy.
+  // Auth redirects are handled by page/layout components.
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }
