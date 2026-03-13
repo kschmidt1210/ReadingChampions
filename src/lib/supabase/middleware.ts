@@ -38,15 +38,21 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Redirect unauthenticated users to login (except auth pages)
+  // Check if this is an auth page FIRST to avoid redirect loops
   const isAuthPage =
+    request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||
     request.nextUrl.pathname.startsWith("/join");
+
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // If Supabase auth fails, don't block the request
+    return supabaseResponse;
+  }
 
   if (!user && !isAuthPage) {
     const url = request.nextUrl.clone();
@@ -54,7 +60,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth pages
   if (user && isAuthPage && !request.nextUrl.pathname.startsWith("/join")) {
     const url = request.nextUrl.clone();
     url.pathname = "/leaderboard";
