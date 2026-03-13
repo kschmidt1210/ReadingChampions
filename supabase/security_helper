@@ -1,0 +1,46 @@
+-- Helper function to break RLS recursion
+CREATE OR REPLACE FUNCTION public.get_user_org_ids()
+RETURNS setof uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT org_id FROM public.org_members WHERE user_id = auth.uid();
+$$;
+
+-- Fix the recursive policies
+DROP POLICY IF EXISTS "Members can view members of their orgs" ON public.org_members;
+DROP POLICY IF EXISTS "Admins can manage org members" ON public.org_members;
+DROP POLICY IF EXISTS "Admins can update org member roles" ON public.org_members;
+
+CREATE POLICY "Members can view members of their orgs"
+  ON public.org_members FOR SELECT
+  TO authenticated
+  USING (org_id IN (SELECT public.get_user_org_ids()));
+
+CREATE POLICY "Admins can manage org members"
+  ON public.org_members FOR DELETE
+  TO authenticated
+  USING (
+    org_id IN (SELECT public.get_user_org_ids())
+    AND EXISTS (
+      SELECT 1 FROM public.org_members
+      WHERE org_id = org_members.org_id
+        AND user_id = auth.uid()
+        AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Admins can update org member roles"
+  ON public.org_members FOR UPDATE
+  TO authenticated
+  USING (
+    org_id IN (SELECT public.get_user_org_ids())
+    AND EXISTS (
+      SELECT 1 FROM public.org_members
+      WHERE org_id = org_members.org_id
+        AND user_id = auth.uid()
+        AND role = 'admin'
+    )
+  );
