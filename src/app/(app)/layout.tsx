@@ -23,7 +23,7 @@ export default async function AppLayout({
   const orgs = await getUserOrganizations();
 
   if (orgs.length === 0) {
-    redirect("/signup");
+    redirect("/welcome");
   }
 
   const initialOrgId = orgs[0]?.id ?? null;
