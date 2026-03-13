@@ -55,7 +55,7 @@ $$ language plpgsql;
 create table public.org_members (
   id uuid primary key default uuid_generate_v4(),
   org_id uuid not null references public.organizations on delete cascade,
-  user_id uuid not null references auth.users on delete cascade,
+  user_id uuid not null references auth.users on delete cascade references public.profiles on delete cascade,
   role text not null default 'player' check (role in ('admin', 'player')),
   joined_at timestamptz not null default now(),
   unique (org_id, user_id)
@@ -110,7 +110,7 @@ create unique index books_isbn_unique on public.books (isbn) where isbn is not n
 create table public.book_entries (
   id uuid primary key default uuid_generate_v4(),
   season_id uuid not null references public.seasons on delete cascade,
-  user_id uuid not null references auth.users on delete cascade,
+  user_id uuid not null references auth.users on delete cascade references public.profiles on delete cascade,
   book_id uuid not null references public.books on delete cascade,
   completed boolean not null default true,
   fiction boolean not null default true,
