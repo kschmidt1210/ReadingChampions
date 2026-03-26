@@ -9,22 +9,7 @@
       "Read(//opt/homebrew/Cellar/node@24/24.14.0/bin/**)",
       "Read(//usr/local/**)",
       "Read(//opt/**)",
-      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
-      "Bash(gh auth:*)",
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --yes)",
-      "Bash(mv .claude /tmp/_claude_backup)",
-      "Bash(ls \"/Users/kody/reading app/.worktrees/implement/tailwind.config\"*)",
-      "Bash(npm install:*)",
-      "Bash(npx shadcn@latest init -y -d)",
-      "Bash(npx shadcn@latest add button input label card dialog sheet dropdown-menu table badge tabs separator avatar select command popover form toast -y)",
-      "Bash(npx shadcn@latest add button input label card dialog sheet dropdown-menu table badge tabs separator avatar select command popover form sonner -y)",
-      "Bash(npx shadcn@latest add form -y)",
-      "Bash(npx tsc:*)",
-      "Bash(npm run:*)",
-      "Bash(npx jest:*)",
-      "Bash(ls \"/Users/kody/reading app/.worktrees/implement/src/app/\\(auth\\)/\")",
-      "WebFetch(domain:docs.google.com)",
-      "WebFetch(domain:doc-08-c8-sheets.googleusercontent.com)"
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")"
     ]
   }
 }
