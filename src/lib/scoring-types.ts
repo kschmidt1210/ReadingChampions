@@ -46,6 +46,7 @@ export interface SeasonBonusResult {
 }
 
 export interface ScoreBreakdown {
+  roundedPages: number;
   basePoints: number;
   pagePoints: number;
   preBonusTotal: number;
@@ -54,5 +55,6 @@ export interface ScoreBreakdown {
   postBonusTotal: number;
   deductionMultiplier: number;
   deductionLabel: string | null;
+  newCountryMultiplier: number;
   finalScore: number;
 }
