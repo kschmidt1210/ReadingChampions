@@ -1,12 +1,13 @@
 import {
   getUserOrganizations,
+  getCurrentOrg,
   getActiveSeason,
 } from "@/lib/queries/organizations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AdminSettingsPage() {
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg) return null;
 
   const season = await getActiveSeason(currentOrg.id);

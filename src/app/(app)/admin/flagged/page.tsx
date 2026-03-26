@@ -1,10 +1,13 @@
-import { getUserOrganizations } from "@/lib/queries/organizations";
+import {
+  getUserOrganizations,
+  getCurrentOrg,
+} from "@/lib/queries/organizations";
 import { getFlaggedEntries } from "@/lib/queries/admin";
-import { Badge } from "@/components/ui/badge";
+import { FlaggedEntryCard } from "@/components/flagged-entry-card";
 
 export default async function AdminFlaggedPage() {
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg) return null;
 
   const flagged = await getFlaggedEntries(currentOrg.id);
@@ -19,27 +22,7 @@ export default async function AdminFlaggedPage() {
       ) : (
         <div className="space-y-3">
           {flagged.map((flag: any) => (
-            <div
-              key={flag.id}
-              className="bg-white rounded-xl p-4 shadow-sm border border-yellow-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium">
-                    {flag.book_entry?.book?.title ?? "Unknown"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    by {flag.book_entry?.profile?.display_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Points: {Number(flag.book_entry?.points ?? 0).toFixed(2)}
-                  </p>
-                </div>
-                <Badge variant="destructive">
-                  {flag.reason.replace("_", " ")}
-                </Badge>
-              </div>
-            </div>
+            <FlaggedEntryCard key={flag.id} flag={flag} />
           ))}
         </div>
       )}

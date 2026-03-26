@@ -4,6 +4,7 @@ import { getUserBookEntries } from "@/lib/queries/books";
 import {
   getActiveSeason,
   getUserOrganizations,
+  getCurrentOrg,
   getOrgGenres,
 } from "@/lib/queries/organizations";
 import { PlayerBooksView } from "@/components/player-books-view";
@@ -23,10 +24,9 @@ export default async function PlayerPage({
   if (!user) return null;
 
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg) return notFound();
 
-  // Verify the target player belongs to the same org
   const { data: membership } = await supabase
     .from("org_members")
     .select("user_id")
@@ -36,7 +36,6 @@ export default async function PlayerPage({
 
   if (!membership) return notFound();
 
-  // Get the player's display name
   const { data: profile } = await supabase
     .from("profiles")
     .select("display_name")

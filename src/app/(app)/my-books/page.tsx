@@ -3,6 +3,7 @@ import { getUserBookEntries } from "@/lib/queries/books";
 import {
   getActiveSeason,
   getUserOrganizations,
+  getCurrentOrg,
   getOrgGenres,
 } from "@/lib/queries/organizations";
 import { PlayerBooksView } from "@/components/player-books-view";
@@ -17,7 +18,7 @@ export default async function MyBooksPage() {
   if (!user) return null;
 
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg)
     return (
       <div className="p-8 text-center">Join a competition to get started!</div>

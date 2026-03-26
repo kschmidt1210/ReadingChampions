@@ -8,7 +8,6 @@ import type { ScoringRulesConfig, BonusKey, DeductionKey, HometownBonusKey } fro
 async function getScoringConfig(orgId: string): Promise<ScoringRulesConfig> {
   const supabase = await createClient();
 
-  // Try org-specific first, then fall back to global
   const { data: orgRules } = await supabase
     .from("scoring_rules")
     .select("config")
@@ -38,7 +37,6 @@ export async function findOrCreateBook(bookData: {
 }) {
   const supabase = await createClient();
 
-  // Check if book with this ISBN already exists
   if (bookData.isbn) {
     const { data: existing } = await supabase
       .from("books")
@@ -49,14 +47,24 @@ export async function findOrCreateBook(bookData: {
     if (existing) return existing.id;
   }
 
-  // Create new book
   const { data, error } = await supabase
     .from("books")
     .insert(bookData)
     .select("id")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === "23505" && bookData.isbn) {
+      const { data: existing } = await supabase
+        .from("books")
+        .select("id")
+        .eq("isbn", bookData.isbn)
+        .single();
+      if (existing) return existing.id;
+    }
+    throw error;
+  }
+
   return data.id;
 }
 
@@ -84,7 +92,6 @@ export async function createBookEntry(input: {
 
   if (!user) throw new Error("Not authenticated");
 
-  // Calculate score
   const config = await getScoringConfig(input.orgId);
   const score = calculateBookScore(
     {
@@ -123,7 +130,6 @@ export async function createBookEntry(input: {
 
   if (error) throw error;
 
-  // Check for flagged entry conditions
   await checkAndFlagEntry(data.id, input.seasonId, score.finalScore);
 
   revalidatePath("/", "layout");
@@ -137,7 +143,6 @@ async function checkAndFlagEntry(
 ) {
   const supabase = await createClient();
 
-  // Check high_points: 2 standard deviations above the mean
   const { data: allEntries } = await supabase
     .from("book_entries")
     .select("points")
@@ -159,7 +164,6 @@ async function checkAndFlagEntry(
     }
   }
 
-  // Check duplicate_book: same book by same user in same season
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -207,6 +211,11 @@ export async function updateBookEntry(
   }
 ) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
 
   const config = await getScoringConfig(orgId);
   const score = calculateBookScore(

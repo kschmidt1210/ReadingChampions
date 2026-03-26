@@ -14,10 +14,10 @@ import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
 import { findOrCreateBook, createBookEntry } from "@/lib/actions/books";
+import { toast } from "sonner";
 import type { ParsedBook } from "@/lib/books-api";
 import type { BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
 
-// Default config for client-side preview (matches seed data)
 const DEFAULT_SCORING_CONFIG: ScoringRulesConfig = {
   base_points: { fiction: 0.71, nonfiction: 1.26 },
   page_points: { first_100_rate: 0.0028, beyond_100_rate: 0.01 },
@@ -66,7 +66,6 @@ export function AddBookPanel({
   const [deduction, setDeduction] = useState<DeductionKey | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Live score preview
   const scoreBreakdown = useMemo(() => {
     if (pages === 0 && !selectedBook) return null;
     return calculateBookScore(
@@ -106,13 +105,26 @@ export function AddBookPanel({
 
   async function handleSave() {
     if (!selectedBook || !seasonId || !currentOrgId) return;
+
+    const finalPages = pages || selectedBook.pages;
+    if (finalPages <= 0) {
+      toast.error("Please enter a valid page count.");
+      return;
+    }
+
+    const parsedRating = rating ? parseFloat(rating) : null;
+    if (parsedRating !== null && (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 10)) {
+      toast.error("Rating must be between 0 and 10.");
+      return;
+    }
+
     setSaving(true);
     try {
       const bookId = await findOrCreateBook({
         isbn: selectedBook.isbn,
         title: selectedBook.title,
         author: selectedBook.author,
-        pages: pages || selectedBook.pages,
+        pages: finalPages,
         year_published: selectedBook.year_published,
         country: country || null,
         cover_url: selectedBook.cover_url,
@@ -127,18 +139,20 @@ export function AddBookPanel({
         seriesName: seriesName || null,
         genreId: genreId || null,
         dateFinished: completed ? dateFinished : null,
-        rating: rating ? parseFloat(rating) : null,
+        rating: parsedRating,
         hometownBonus,
         bonus1: bonuses[0],
         bonus2: bonuses[1],
         bonus3: bonuses[2],
         deduction,
-        pages: pages || selectedBook.pages,
+        pages: finalPages,
       });
 
+      toast.success("Book entry saved!");
       resetForm();
       onClose();
     } catch (err) {
+      toast.error("Failed to save book entry. Please try again.");
       console.error("Failed to save book entry:", err);
     } finally {
       setSaving(false);
@@ -152,10 +166,8 @@ export function AddBookPanel({
           <SheetTitle>Add a Book</SheetTitle>
         </SheetHeader>
         <div className="space-y-6 py-4">
-          {/* Search */}
           <BookSearch onSelect={handleBookSelect} />
 
-          {/* Book details */}
           {selectedBook && (
             <>
               <div className="rounded-lg bg-gray-50 p-3">
@@ -166,7 +178,7 @@ export function AddBookPanel({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Pages</Label>
-                  <Input type="number" value={pages} onChange={(e) => setPages(parseInt(e.target.value) || 0)} />
+                  <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Type</Label>
@@ -212,10 +224,8 @@ export function AddBookPanel({
                 <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g., United States" />
               </div>
 
-              {/* Bonuses */}
               <BonusChips selected={bonuses} onChange={setBonuses} />
 
-              {/* Hometown bonus */}
               <div className="space-y-1.5">
                 <Label>Hometown Bonus</Label>
                 <Select value={hometownBonus ?? "none"} onValueChange={(v) => setHometownBonus(v === "none" ? null : v as HometownBonusKey)}>
@@ -229,10 +239,8 @@ export function AddBookPanel({
                 </Select>
               </div>
 
-              {/* Deductions */}
               <DeductionChips selected={deduction} onChange={setDeduction} />
 
-              {/* Live score */}
               <div className="sticky bottom-0 bg-white pt-2">
                 <ScorePreview breakdown={scoreBreakdown} />
                 <Button onClick={handleSave} className="w-full mt-3" disabled={saving}>

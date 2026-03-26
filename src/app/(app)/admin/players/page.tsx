@@ -1,10 +1,13 @@
-import { getUserOrganizations } from "@/lib/queries/organizations";
+import {
+  getUserOrganizations,
+  getCurrentOrg,
+} from "@/lib/queries/organizations";
 import { getOrgMembers } from "@/lib/queries/admin";
 import { Badge } from "@/components/ui/badge";
 
 export default async function AdminPlayersPage() {
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg) return null;
 
   const members = await getOrgMembers(currentOrg.id);

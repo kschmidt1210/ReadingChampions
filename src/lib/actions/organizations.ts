@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { getActiveSeason, getOrgGenres } from "@/lib/queries/organizations";
 
 const DEFAULT_GENRES = [
   "Mystery/Thriller",
@@ -25,10 +27,8 @@ export async function createOrganization(formData: FormData) {
 
   const name = formData.get("name") as string;
 
-  // Generate unique invite code
   const { data: inviteCode } = await supabase.rpc("generate_invite_code");
 
-  // Create org
   const { data: org, error: orgError } = await supabase
     .from("organizations")
     .insert({ name, invite_code: inviteCode })
@@ -37,7 +37,6 @@ export async function createOrganization(formData: FormData) {
 
   if (orgError) return { error: orgError.message };
 
-  // Add creator as admin
   const { error: memberError } = await supabase.from("org_members").insert({
     org_id: org.id,
     user_id: user.id,
@@ -46,7 +45,6 @@ export async function createOrganization(formData: FormData) {
 
   if (memberError) return { error: memberError.message };
 
-  // Create first season
   const currentYear = new Date().getFullYear();
   const { error: seasonError } = await supabase.from("seasons").insert({
     org_id: org.id,
@@ -57,7 +55,6 @@ export async function createOrganization(formData: FormData) {
 
   if (seasonError) return { error: seasonError.message };
 
-  // Seed default genres
   const genreRows = DEFAULT_GENRES.map((name, i) => ({
     org_id: org.id,
     name,
@@ -75,6 +72,10 @@ export async function createOrganization(formData: FormData) {
 }
 
 export async function joinOrganization(inviteCode: string) {
+  if (!inviteCode || typeof inviteCode !== "string") {
+    return { error: "Invite code is required" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -82,7 +83,6 @@ export async function joinOrganization(inviteCode: string) {
 
   if (!user) return { error: "Not authenticated" };
 
-  // Look up org by invite code
   const { data: org, error: orgError } = await supabase
     .from("organizations")
     .select("id")
@@ -91,7 +91,6 @@ export async function joinOrganization(inviteCode: string) {
 
   if (orgError || !org) return { error: "Invalid invite code" };
 
-  // Check if already a member
   const { data: existing } = await supabase
     .from("org_members")
     .select("id")
@@ -103,7 +102,6 @@ export async function joinOrganization(inviteCode: string) {
     redirect("/leaderboard");
   }
 
-  // Join as player
   const { error: joinError } = await supabase.from("org_members").insert({
     org_id: org.id,
     user_id: user.id,
@@ -116,6 +114,25 @@ export async function joinOrganization(inviteCode: string) {
   redirect("/leaderboard");
 }
 
+export async function switchOrg(orgId: string) {
+  const cookieStore = await cookies();
+  cookieStore.set("currentOrgId", orgId, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+
+  const season = await getActiveSeason(orgId);
+  const genres = await getOrgGenres(orgId);
+
+  revalidatePath("/", "layout");
+
+  return {
+    seasonId: season?.id ?? null,
+    genres: genres.map((g) => ({ id: g.id, name: g.name })),
+  };
+}
+
 export async function regenerateInviteCode(orgId: string) {
   const supabase = await createClient();
   const {
@@ -124,7 +141,6 @@ export async function regenerateInviteCode(orgId: string) {
 
   if (!user) return { error: "Not authenticated" };
 
-  // Verify caller is an admin of this org
   const { data: membership } = await supabase
     .from("org_members")
     .select("role")

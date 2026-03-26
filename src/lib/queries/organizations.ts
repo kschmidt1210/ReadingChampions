@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export async function getUserOrganizations() {
   const supabase = await createClient();
@@ -19,6 +20,18 @@ export async function getUserOrganizations() {
     invite_code: m.organizations.invite_code,
     role: m.role,
   }));
+}
+
+export async function getCurrentOrg(
+  orgs: Array<{ id: string; name: string; role: string; invite_code: string }>
+) {
+  const cookieStore = await cookies();
+  const savedOrgId = cookieStore.get("currentOrgId")?.value;
+  if (savedOrgId) {
+    const match = orgs.find((o) => o.id === savedOrgId);
+    if (match) return match;
+  }
+  return orgs[0] ?? null;
 }
 
 export async function getActiveSeason(orgId: string) {

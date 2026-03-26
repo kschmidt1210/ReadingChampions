@@ -3,6 +3,7 @@ import { getLeaderboardData } from "@/lib/queries/leaderboard";
 import {
   getActiveSeason,
   getUserOrganizations,
+  getCurrentOrg,
 } from "@/lib/queries/organizations";
 import { LeaderboardPodium } from "@/components/leaderboard-podium";
 import { LeaderboardTable } from "@/components/leaderboard-table";
@@ -16,7 +17,7 @@ export default async function LeaderboardPage() {
   if (!user) return null;
 
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0]; // Will use org context in future
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg)
     return (
       <div className="p-8 text-center">Join a competition to get started!</div>

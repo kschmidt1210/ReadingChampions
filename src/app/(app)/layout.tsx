@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
   getUserOrganizations,
+  getCurrentOrg,
   getActiveSeason,
   getOrgGenres,
 } from "@/lib/queries/organizations";
@@ -26,9 +27,9 @@ export default async function AppLayout({
     redirect("/welcome");
   }
 
-  const initialOrgId = orgs[0]?.id ?? null;
+  const currentOrg = await getCurrentOrg(orgs);
+  const initialOrgId = currentOrg?.id ?? null;
 
-  // Fetch season and genres for the initial org
   const season = initialOrgId ? await getActiveSeason(initialOrgId) : null;
   const genres = initialOrgId ? await getOrgGenres(initialOrgId) : [];
 

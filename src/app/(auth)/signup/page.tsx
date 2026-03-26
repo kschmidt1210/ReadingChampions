@@ -18,6 +18,7 @@ import {
 
 function SignupForm() {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
@@ -25,9 +26,13 @@ function SignupForm() {
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
+    setSuccess(null);
     const result = await signup(formData);
     if (result?.error) {
       setError(result.error);
+      setLoading(false);
+    } else if (result?.success) {
+      setSuccess(result.success);
       setLoading(false);
     }
   }
@@ -48,6 +53,11 @@ function SignupForm() {
           {error && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+              {success}
             </div>
           )}
           <div className="space-y-2">
@@ -80,7 +90,7 @@ function SignupForm() {
               placeholder="At least 6 characters"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !!success}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
         </form>
@@ -88,7 +98,10 @@ function SignupForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="text-indigo-600 hover:underline">
+          <Link
+            href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
+            className="text-indigo-600 hover:underline"
+          >
             Sign in
           </Link>
         </p>

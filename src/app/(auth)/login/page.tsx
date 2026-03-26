@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { login } from "@/lib/actions/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,11 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-export default function LoginPage() {
+function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -37,6 +40,9 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-4">
+          {redirectTo && (
+            <input type="hidden" name="redirectTo" value={redirectTo} />
+          )}
           {error && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
               {error}
@@ -70,11 +76,22 @@ export default function LoginPage() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-indigo-600 hover:underline">
+          <Link
+            href={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : "/signup"}
+            className="text-indigo-600 hover:underline"
+          >
             Sign up
           </Link>
         </p>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

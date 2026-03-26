@@ -1,11 +1,14 @@
-import { getUserOrganizations } from "@/lib/queries/organizations";
+import {
+  getUserOrganizations,
+  getCurrentOrg,
+} from "@/lib/queries/organizations";
 import { getScoringRules } from "@/lib/queries/admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ScoringRulesConfig } from "@/types/database";
 
 export default async function AdminScoringPage() {
   const orgs = await getUserOrganizations();
-  const currentOrg = orgs[0];
+  const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg) return null;
 
   const rules = await getScoringRules(currentOrg.id);
@@ -72,10 +75,6 @@ export default async function AdminScoringPage() {
           ))}
         </CardContent>
       </Card>
-      <p className="text-xs text-gray-400">
-        Editing scoring rules will be enabled through inline forms calling
-        updateScoringRules action.
-      </p>
     </div>
   );
 }

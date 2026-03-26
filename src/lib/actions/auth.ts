@@ -16,8 +16,11 @@ export async function login(formData: FormData) {
     return { error: error.message };
   }
 
+  const redirectTo = formData.get("redirectTo") as string | null;
+  const destination = redirectTo?.startsWith("/") ? redirectTo : "/leaderboard";
+
   revalidatePath("/", "layout");
-  redirect("/leaderboard");
+  redirect(destination);
 }
 
 export async function signup(formData: FormData) {
@@ -26,9 +29,10 @@ export async function signup(formData: FormData) {
   const displayName = formData.get("displayName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const redirectTo = (formData.get("redirectTo") as string) || "/leaderboard";
+  const rawRedirect = (formData.get("redirectTo") as string) || "/leaderboard";
+  const redirectTo = rawRedirect.startsWith("/") ? rawRedirect : "/leaderboard";
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -38,6 +42,10 @@ export async function signup(formData: FormData) {
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (data.user && !data.session) {
+    return { success: "Check your email to confirm your account before signing in." };
   }
 
   revalidatePath("/", "layout");

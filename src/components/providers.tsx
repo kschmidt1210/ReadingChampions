@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useTransition,
+  useCallback,
+  ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
+import { switchOrg } from "@/lib/actions/organizations";
 
 interface OrgContextValue {
   currentOrgId: string | null;
@@ -10,6 +19,7 @@ interface OrgContextValue {
   orgs: Array<{ id: string; name: string; role: string; invite_code: string }>;
   seasonId: string | null;
   genres: Array<{ id: string; name: string }>;
+  isSwitching: boolean;
 }
 
 const OrgContext = createContext<OrgContextValue>({
@@ -20,6 +30,7 @@ const OrgContext = createContext<OrgContextValue>({
   orgs: [],
   seasonId: null,
   genres: [],
+  isSwitching: false,
 });
 
 export function useOrg() {
@@ -30,8 +41,8 @@ export function OrgProvider({
   children,
   orgs,
   initialOrgId,
-  seasonId,
-  genres,
+  seasonId: initialSeasonId,
+  genres: initialGenres,
 }: {
   children: ReactNode;
   orgs: Array<{ id: string; name: string; role: string; invite_code: string }>;
@@ -42,16 +53,27 @@ export function OrgProvider({
   const [currentOrgId, setCurrentOrgId] = useState(
     initialOrgId ?? orgs[0]?.id ?? null
   );
+  const [seasonId, setSeasonId] = useState(initialSeasonId);
+  const [genres, setGenres] = useState(initialGenres);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const currentOrg = orgs.find((o) => o.id === currentOrgId) ?? null;
 
-  function setCurrentOrg(orgId: string) {
-    setCurrentOrgId(orgId);
-    // Persist selection in localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("currentOrgId", orgId);
-    }
-  }
+  const setCurrentOrg = useCallback(
+    (orgId: string) => {
+      setCurrentOrgId(orgId);
+      startTransition(async () => {
+        const result = await switchOrg(orgId);
+        if (result) {
+          setSeasonId(result.seasonId);
+          setGenres(result.genres);
+        }
+        router.refresh();
+      });
+    },
+    [router]
+  );
 
   return (
     <OrgContext.Provider
@@ -63,6 +85,7 @@ export function OrgProvider({
         orgs,
         seasonId,
         genres,
+        isSwitching: isPending,
       }}
     >
       {children}

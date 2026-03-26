@@ -15,9 +15,10 @@ export async function getFlaggedEntries(orgId: string) {
   const { data } = await supabase
     .from("flagged_entries")
     .select(
-      "*, book_entry:book_entries(*, book:books(*), profile:profiles(display_name))"
+      "*, book_entry:book_entries!inner(*, book:books(*), profile:profiles(display_name), season:seasons!inner(org_id))"
     )
-    .eq("resolved", false);
+    .eq("resolved", false)
+    .eq("book_entry.season.org_id", orgId);
   return data ?? [];
 }
 
