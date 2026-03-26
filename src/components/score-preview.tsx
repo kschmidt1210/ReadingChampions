@@ -46,6 +46,12 @@ export function ScorePreview({ breakdown }: { breakdown: ScoreBreakdown | null }
             <span>×{breakdown.deductionMultiplier}</span>
           </div>
         )}
+        {breakdown.newCountryMultiplier > 1 && (
+          <div className="flex justify-between text-green-700">
+            <span>New Country</span>
+            <span>×{breakdown.newCountryMultiplier.toFixed(3)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

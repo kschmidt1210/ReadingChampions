@@ -6,33 +6,39 @@ export function calculateBookScore(
   input: ScoreInput,
   config: ScoringRulesConfig
 ): ScoreBreakdown {
-  // 1. Base points
+  // 1. Round pages to nearest 50 (matches spreadsheet MROUND)
+  const roundedPages = Math.round(input.pages / 50) * 50;
+
+  // 2. Base points (fiction / nonfiction)
   const basePoints = input.fiction
     ? config.base_points.fiction
     : config.base_points.nonfiction;
 
-  // 2. Page points
-  const firstPages = Math.min(input.pages, 100) * config.page_points.first_100_rate;
-  const extraPages = Math.max(input.pages - 100, 0) * config.page_points.beyond_100_rate;
+  // 3. Page points using rounded pages
+  const firstPages = Math.min(roundedPages, 100) * config.page_points.first_100_rate;
+  const extraPages = Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
   const pagePoints = firstPages + extraPages;
 
-  // 3. Pre-bonus total
   const preBonusTotal = basePoints + pagePoints;
 
-  // 4. Bonus multipliers
-  const bonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
+  // 4. Separate new_country from regular bonuses (it's applied post-deduction)
+  const allBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
     (k): k is BonusKey => k !== null
   );
+  const hasNewCountry = allBonusKeys.includes("new_country");
+  const regularBonusKeys = allBonusKeys.filter((k) => k !== "new_country");
 
-  const bonusAmounts = bonusKeys.map((key) => ({
+  // 5. Bonuses are zeroed when a deduction is present
+  const hasDeduction = input.deduction !== null;
+
+  const bonusAmounts = regularBonusKeys.map((key) => ({
     key,
     label: BONUS_LABELS[key],
-    amount: preBonusTotal * config.bonuses[key],
+    amount: hasDeduction ? 0 : preBonusTotal * config.bonuses[key],
   }));
 
-  // Hometown bonus
   let hometownBonusAmount = 0;
-  if (input.hometown_bonus) {
+  if (input.hometown_bonus && !hasDeduction) {
     hometownBonusAmount =
       preBonusTotal * config.hometown_bonuses[input.hometown_bonus];
   }
@@ -41,7 +47,7 @@ export function calculateBookScore(
     bonusAmounts.reduce((sum, b) => sum + b.amount, 0) + hometownBonusAmount;
   const postBonusTotal = preBonusTotal + totalBonuses;
 
-  // 5. Deduction multiplier
+  // 6. Deduction multiplier
   let deductionMultiplier = 1;
   let deductionLabel: string | null = null;
   if (input.deduction) {
@@ -49,9 +55,16 @@ export function calculateBookScore(
     deductionLabel = DEDUCTION_LABELS[input.deduction];
   }
 
-  const finalScore = postBonusTotal * deductionMultiplier;
+  const afterDeduction = postBonusTotal * deductionMultiplier;
+
+  // 7. New country multiplier (applied AFTER deduction, not zeroed by deduction)
+  const newCountryMultiplier = hasNewCountry
+    ? 1 + config.bonuses.new_country
+    : 1;
+  const finalScore = afterDeduction * newCountryMultiplier;
 
   return {
+    roundedPages,
     basePoints,
     pagePoints,
     preBonusTotal,
@@ -60,6 +73,7 @@ export function calculateBookScore(
     postBonusTotal,
     deductionMultiplier,
     deductionLabel,
+    newCountryMultiplier,
     finalScore,
   };
 }

@@ -52,12 +52,47 @@ describe("calculateBookScore", () => {
       deduction: null,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(300, 50) = 300
     // Base: 0.71
     // Pages: min(300,100)*0.0028 + max(300-100,0)*0.01 = 0.28 + 2.0 = 2.28
     // Total: 0.71 + 2.28 = 2.99
+    expect(result.roundedPages).toBe(300);
     expect(result.finalScore).toBeCloseTo(2.99, 2);
     expect(result.basePoints).toBeCloseTo(0.71, 2);
     expect(result.pagePoints).toBeCloseTo(2.28, 2);
+  });
+
+  it("rounds pages to nearest 50", () => {
+    const input: ScoreInput = {
+      pages: 320,
+      fiction: true,
+      bonus_1: null,
+      bonus_2: null,
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: null,
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(320, 50) = 300
+    expect(result.roundedPages).toBe(300);
+    expect(result.pagePoints).toBeCloseTo(2.28, 2);
+  });
+
+  it("rounds 75 pages up to 100", () => {
+    const input: ScoreInput = {
+      pages: 75,
+      fiction: true,
+      bonus_1: null,
+      bonus_2: null,
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: null,
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(75, 50) = 100
+    // Pages: min(100,100)*0.0028 = 0.28
+    expect(result.roundedPages).toBe(100);
+    expect(result.pagePoints).toBeCloseTo(0.28, 2);
   });
 
   it("calculates base score for nonfiction", () => {
@@ -71,7 +106,7 @@ describe("calculateBookScore", () => {
       deduction: null,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
-    // Base: 1.26, Pages: 50*0.0028 = 0.14, Total: 1.40
+    // MROUND(50, 50) = 50, Base: 1.26, Pages: 50*0.0028 = 0.14, Total: 1.40
     expect(result.finalScore).toBeCloseTo(1.40, 2);
   });
 
@@ -86,6 +121,7 @@ describe("calculateBookScore", () => {
       deduction: null,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(200, 50) = 200
     // Base: 0.71, Pages: 0.28 + 1.0 = 1.28, PreBonus: 1.99
     // Series: 1.99 * 0.143 = 0.28457
     // Award: 1.99 * 0.057 = 0.11343
@@ -95,7 +131,7 @@ describe("calculateBookScore", () => {
     expect(result.bonusAmounts.length).toBe(2);
   });
 
-  it("applies deduction multiplier", () => {
+  it("applies deduction multiplier and zeroes bonuses", () => {
     const input: ScoreInput = {
       pages: 100,
       fiction: true,
@@ -106,13 +142,14 @@ describe("calculateBookScore", () => {
       deduction: "audiobook",
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(100, 50) = 100
     // Base: 0.71, Pages: 0.28, PreBonus: 0.99
-    // Deduction: 0.99 * 0.75 = 0.7425
+    // No bonuses, deduction: 0.99 * 0.75 = 0.7425
     expect(result.finalScore).toBeCloseTo(0.7425, 2);
     expect(result.deductionMultiplier).toBe(0.75);
   });
 
-  it("applies bonuses then deduction", () => {
+  it("zeroes bonuses when deduction is present", () => {
     const input: ScoreInput = {
       pages: 400,
       fiction: true,
@@ -123,11 +160,56 @@ describe("calculateBookScore", () => {
       deduction: "reread",
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(400, 50) = 400
     // Base: 0.71, Pages: 0.28 + 3.0 = 3.28, PreBonus: 3.99
-    // Classics bonus: 3.99 * 0.286 = 1.14114
-    // PostBonus: 3.99 + 1.14114 = 5.13114
-    // Deduction: 5.13114 * 0.5 = 2.56557
-    expect(result.finalScore).toBeCloseTo(2.5656, 2);
+    // Bonuses zeroed because deduction present
+    // PostBonus: 3.99
+    // Deduction: 3.99 * 0.5 = 1.995
+    expect(result.bonusAmounts[0].amount).toBe(0);
+    expect(result.finalScore).toBeCloseTo(1.995, 2);
+  });
+
+  it("applies new_country as post-deduction multiplier", () => {
+    const input: ScoreInput = {
+      pages: 200,
+      fiction: true,
+      bonus_1: "new_country",
+      bonus_2: null,
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: "audiobook",
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(200, 50) = 200
+    // Base: 0.71, Pages: 1.28, PreBonus: 1.99
+    // Bonuses zeroed (deduction present), but new_country is separate
+    // PostBonus: 1.99 * 0.75 = 1.4925
+    // New country multiplier: 1.4925 * 1.057 = 1.577...
+    expect(result.newCountryMultiplier).toBeCloseTo(1.057, 3);
+    expect(result.finalScore).toBeCloseTo(1.4925 * 1.057, 2);
+    expect(result.bonusAmounts.length).toBe(0);
+  });
+
+  it("applies new_country without deduction", () => {
+    const input: ScoreInput = {
+      pages: 200,
+      fiction: true,
+      bonus_1: "series",
+      bonus_2: "new_country",
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: null,
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(200, 50) = 200
+    // Base: 0.71, Pages: 1.28, PreBonus: 1.99
+    // Series: 1.99 * 0.143 = 0.28457
+    // PostBonus: 1.99 + 0.28457 = 2.27457
+    // No deduction (×1), then new country: 2.27457 * 1.057 = 2.40422...
+    expect(result.bonusAmounts.length).toBe(1);
+    expect(result.bonusAmounts[0].key).toBe("series");
+    expect(result.newCountryMultiplier).toBeCloseTo(1.057, 3);
+    expect(result.finalScore).toBeCloseTo(2.27457 * 1.057, 2);
   });
 });
 

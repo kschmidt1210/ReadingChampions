@@ -73,15 +73,15 @@ export async function getLeaderboardData(
     let seasonBonus = 0;
     if (config) {
       const enriched = data.entries.map((e) => {
-        // Re-derive preBonusTotal from the entry's stored data
         const pages = (e as any).book?.pages ?? 0;
+        const roundedPages = Math.round(pages / 50) * 50;
         const fiction = e.fiction;
         const base = fiction
           ? config.base_points.fiction
           : config.base_points.nonfiction;
         const pagePoints =
-          Math.min(pages, 100) * config.page_points.first_100_rate +
-          Math.max(pages - 100, 0) * config.page_points.beyond_100_rate;
+          Math.min(roundedPages, 100) * config.page_points.first_100_rate +
+          Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
         return {
           preBonusTotal: base + pagePoints,
           genre_id: e.genre_id,

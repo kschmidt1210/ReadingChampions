@@ -40,14 +40,19 @@ const DEFAULT_SCORING_CONFIG: ScoringRulesConfig = {
 
 // --- Scoring ---
 function calculateBookScore(input: { pages: number; fiction: boolean; bonus_1: BonusKey | null; bonus_2: BonusKey | null; bonus_3: BonusKey | null; hometown_bonus: HometownBonusKey | null; deduction: DeductionKey | null }, config: ScoringRulesConfig): number {
+  const roundedPages = Math.round(input.pages / 50) * 50;
   const basePoints = input.fiction ? config.base_points.fiction : config.base_points.nonfiction;
-  const pagePoints = Math.min(input.pages, 100) * config.page_points.first_100_rate + Math.max(input.pages - 100, 0) * config.page_points.beyond_100_rate;
+  const pagePoints = Math.min(roundedPages, 100) * config.page_points.first_100_rate + Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
   const preBonusTotal = basePoints + pagePoints;
-  const bonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter((k): k is BonusKey => k !== null);
-  let totalBonuses = bonusKeys.reduce((sum, key) => sum + preBonusTotal * config.bonuses[key], 0);
-  if (input.hometown_bonus) totalBonuses += preBonusTotal * config.hometown_bonuses[input.hometown_bonus];
+  const allBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter((k): k is BonusKey => k !== null);
+  const hasNewCountry = allBonusKeys.includes("new_country");
+  const regularBonusKeys = allBonusKeys.filter((k) => k !== "new_country");
+  const hasDeduction = input.deduction !== null;
+  let totalBonuses = hasDeduction ? 0 : regularBonusKeys.reduce((sum, key) => sum + preBonusTotal * config.bonuses[key], 0);
+  if (input.hometown_bonus && !hasDeduction) totalBonuses += preBonusTotal * config.hometown_bonuses[input.hometown_bonus];
   const postBonusTotal = preBonusTotal + totalBonuses;
-  return postBonusTotal * (input.deduction ? config.deductions[input.deduction] : 1);
+  const afterDeduction = postBonusTotal * (input.deduction ? config.deductions[input.deduction] : 1);
+  return afterDeduction * (hasNewCountry ? 1 + config.bonuses.new_country : 1);
 }
 
 // --- CSV parser ---
