@@ -35,6 +35,7 @@ export interface ScoreInput {
   bonus_3: BonusKey | null;
   hometown_bonus: HometownBonusKey | null;
   deduction: DeductionKey | null;
+  isNewCountry: boolean;
 }
 
 export interface SeasonBonusResult {

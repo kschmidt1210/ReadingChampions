@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { DeductionChips } from "./deduction-chips";
 import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
-import { findOrCreateBook, createBookEntry } from "@/lib/actions/books";
+import { findOrCreateBook, createBookEntry, getUserSeasonCountries } from "@/lib/actions/books";
 import { toast } from "sonner";
 import type { ParsedBook } from "@/lib/books-api";
 import type { BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
@@ -65,6 +65,18 @@ export function AddBookPanel({
   const [hometownBonus, setHometownBonus] = useState<HometownBonusKey | null>(null);
   const [deduction, setDeduction] = useState<DeductionKey | null>(null);
   const [saving, setSaving] = useState(false);
+  const [existingCountries, setExistingCountries] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open && seasonId) {
+      getUserSeasonCountries(seasonId).then(setExistingCountries);
+    }
+  }, [open, seasonId]);
+
+  const isNewCountry = useMemo(
+    () => !!country && !existingCountries.includes(country),
+    [country, existingCountries]
+  );
 
   const scoreBreakdown = useMemo(() => {
     if (pages === 0 && !selectedBook) return null;
@@ -77,10 +89,11 @@ export function AddBookPanel({
         bonus_3: bonuses[2],
         hometown_bonus: hometownBonus,
         deduction,
+        isNewCountry,
       },
       scoringConfig
     );
-  }, [pages, fiction, bonuses, hometownBonus, deduction, selectedBook, scoringConfig]);
+  }, [pages, fiction, bonuses, hometownBonus, deduction, isNewCountry, selectedBook, scoringConfig]);
 
   function handleBookSelect(book: ParsedBook) {
     setSelectedBook(book);
@@ -146,6 +159,7 @@ export function AddBookPanel({
         bonus3: bonuses[2],
         deduction,
         pages: finalPages,
+        country: country || null,
       });
 
       toast.success("Book entry saved!");
@@ -169,86 +183,84 @@ export function AddBookPanel({
           <BookSearch onSelect={handleBookSelect} />
 
           {selectedBook && (
-            <>
-              <div className="rounded-lg bg-gray-50 p-3">
-                <p className="font-semibold">{selectedBook.title}</p>
-                <p className="text-sm text-gray-500">{selectedBook.author}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Pages</Label>
-                  <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Type</Label>
-                  <Select value={fiction ? "fiction" : "nonfiction"} onValueChange={(v) => setFiction(v === "fiction")}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fiction">Fiction</SelectItem>
-                      <SelectItem value="nonfiction">Nonfiction</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Date Finished</Label>
-                  <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Rating (0-10)</Label>
-                  <Input type="number" min="0" max="10" step="0.5" value={rating} onChange={(e) => setRating(e.target.value)} />
-                </div>
-              </div>
-
-              {genres.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label>Genre</Label>
-                  <Select value={genreId} onValueChange={(v) => setGenreId(v ?? "")}>
-                    <SelectTrigger><SelectValue placeholder="Select genre..." /></SelectTrigger>
-                    <SelectContent>
-                      {genres.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <Label>Series Name (optional)</Label>
-                <Input value={seriesName} onChange={(e) => setSeriesName(e.target.value)} placeholder="e.g., Lord of the Rings" />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Country (author origin)</Label>
-                <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g., United States" />
-              </div>
-
-              <BonusChips selected={bonuses} onChange={setBonuses} />
-
-              <div className="space-y-1.5">
-                <Label>Hometown Bonus</Label>
-                <Select value={hometownBonus ?? "none"} onValueChange={(v) => setHometownBonus(v === "none" ? null : v as HometownBonusKey)}>
-                  <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {Object.entries(HOMETOWN_BONUS_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <DeductionChips selected={deduction} onChange={setDeduction} />
-
-              <div className="sticky bottom-0 bg-background pt-2">
-                <ScorePreview breakdown={scoreBreakdown} />
-                <Button onClick={handleSave} className="w-full mt-3" disabled={saving}>
-                  {saving ? "Saving..." : "Save Book Entry"}
-                </Button>
-              </div>
-            </>
+            <div className="rounded-lg bg-muted p-3">
+              <p className="font-semibold">{selectedBook.title}</p>
+              <p className="text-sm text-muted-foreground">{selectedBook.author}</p>
+            </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Pages</Label>
+              <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Type</Label>
+              <Select value={fiction ? "fiction" : "nonfiction"} onValueChange={(v) => setFiction(v === "fiction")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fiction">Fiction</SelectItem>
+                  <SelectItem value="nonfiction">Nonfiction</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Date Finished</Label>
+              <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Rating (0-10)</Label>
+              <Input type="number" min="0" max="10" step="0.5" value={rating} onChange={(e) => setRating(e.target.value)} />
+            </div>
+          </div>
+
+          {genres.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Genre</Label>
+              <Select value={genreId} onValueChange={(v) => setGenreId(v ?? "")}>
+                <SelectTrigger><SelectValue placeholder="Select genre..." /></SelectTrigger>
+                <SelectContent>
+                  {genres.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Series Name (optional)</Label>
+            <Input value={seriesName} onChange={(e) => setSeriesName(e.target.value)} placeholder="e.g., Lord of the Rings" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Country (author origin)</Label>
+            <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g., United States" />
+          </div>
+
+          <BonusChips selected={bonuses} onChange={setBonuses} />
+
+          <div className="space-y-1.5">
+            <Label>Hometown Bonus</Label>
+            <Select value={hometownBonus ?? "none"} onValueChange={(v) => setHometownBonus(v === "none" ? null : v as HometownBonusKey)}>
+              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {Object.entries(HOMETOWN_BONUS_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DeductionChips selected={deduction} onChange={setDeduction} />
+
+          <div className="sticky bottom-0 bg-background pt-2">
+            <ScorePreview breakdown={scoreBreakdown} />
+            <Button onClick={handleSave} className="w-full mt-3" disabled={saving || !selectedBook}>
+              {saving ? "Saving..." : "Save Book Entry"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

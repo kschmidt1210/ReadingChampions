@@ -113,6 +113,7 @@ function calculateBookScore(
     bonus_3: BonusKey | null;
     hometown_bonus: HometownBonusKey | null;
     deduction: DeductionKey | null;
+    isNewCountry: boolean;
   },
   config: ScoringRulesConfig
 ): number {
@@ -127,11 +128,9 @@ function calculateBookScore(
   const pagePoints = firstPages + extraPages;
   const preBonusTotal = basePoints + pagePoints;
 
-  const allBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
-    (k): k is BonusKey => k !== null
+  const regularBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
+    (k): k is BonusKey => k !== null && k !== "new_country"
   );
-  const hasNewCountry = allBonusKeys.includes("new_country");
-  const regularBonusKeys = allBonusKeys.filter((k) => k !== "new_country");
   const hasDeduction = input.deduction !== null;
 
   let totalBonuses = hasDeduction
@@ -145,14 +144,9 @@ function calculateBookScore(
   }
 
   const postBonusTotal = preBonusTotal + totalBonuses;
-
-  let deductionMultiplier = 1;
-  if (input.deduction) {
-    deductionMultiplier = config.deductions[input.deduction];
-  }
-
-  const afterDeduction = postBonusTotal * deductionMultiplier;
-  const newCountryMultiplier = hasNewCountry ? 1 + config.bonuses.new_country : 1;
+  const afterDeduction =
+    postBonusTotal * (input.deduction ? config.deductions[input.deduction] : 1);
+  const newCountryMultiplier = input.isNewCountry ? 1 + config.bonuses.new_country : 1;
 
   return afterDeduction * newCountryMultiplier;
 }
@@ -536,6 +530,7 @@ async function main() {
         bonus_3: bonus3,
         hometown_bonus: hometownBonus,
         deduction,
+        isNewCountry: false,
       },
       config
     );

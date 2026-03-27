@@ -50,6 +50,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: null,
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(300, 50) = 300
@@ -71,6 +72,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: null,
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(320, 50) = 300
@@ -87,6 +89,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: null,
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(75, 50) = 100
@@ -104,6 +107,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: null,
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(50, 50) = 50, Base: 1.26, Pages: 50*0.0028 = 0.14, Total: 1.40
@@ -119,6 +123,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: "state_setting",
       deduction: null,
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(200, 50) = 200
@@ -140,6 +145,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: "audiobook",
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(100, 50) = 100
@@ -158,6 +164,7 @@ describe("calculateBookScore", () => {
       bonus_3: null,
       hometown_bonus: null,
       deduction: "reread",
+      isNewCountry: false,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(400, 50) = 400
@@ -173,11 +180,12 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 200,
       fiction: true,
-      bonus_1: "new_country",
+      bonus_1: null,
       bonus_2: null,
       bonus_3: null,
       hometown_bonus: null,
       deduction: "audiobook",
+      isNewCountry: true,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(200, 50) = 200
@@ -187,7 +195,6 @@ describe("calculateBookScore", () => {
     // New country multiplier: 1.4925 * 1.057 = 1.577...
     expect(result.newCountryMultiplier).toBeCloseTo(1.057, 3);
     expect(result.finalScore).toBeCloseTo(1.4925 * 1.057, 2);
-    expect(result.bonusAmounts.length).toBe(0);
   });
 
   it("applies new_country without deduction", () => {
@@ -195,10 +202,11 @@ describe("calculateBookScore", () => {
       pages: 200,
       fiction: true,
       bonus_1: "series",
-      bonus_2: "new_country",
+      bonus_2: null,
       bonus_3: null,
       hometown_bonus: null,
       deduction: null,
+      isNewCountry: true,
     };
     const result = calculateBookScore(input, DEFAULT_CONFIG);
     // MROUND(200, 50) = 200

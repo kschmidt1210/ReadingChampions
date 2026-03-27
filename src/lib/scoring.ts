@@ -22,11 +22,9 @@ export function calculateBookScore(
   const preBonusTotal = basePoints + pagePoints;
 
   // 4. Separate new_country from regular bonuses (it's applied post-deduction)
-  const allBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
-    (k): k is BonusKey => k !== null
+  const regularBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
+    (k): k is BonusKey => k !== null && k !== "new_country"
   );
-  const hasNewCountry = allBonusKeys.includes("new_country");
-  const regularBonusKeys = allBonusKeys.filter((k) => k !== "new_country");
 
   // 5. Bonuses are zeroed when a deduction is present
   const hasDeduction = input.deduction !== null;
@@ -57,8 +55,8 @@ export function calculateBookScore(
 
   const afterDeduction = postBonusTotal * deductionMultiplier;
 
-  // 7. New country multiplier (applied AFTER deduction, not zeroed by deduction)
-  const newCountryMultiplier = hasNewCountry
+  // 7. New country multiplier (auto-detected, applied AFTER deduction)
+  const newCountryMultiplier = input.isNewCountry
     ? 1 + config.bonuses.new_country
     : 1;
   const finalScore = afterDeduction * newCountryMultiplier;
