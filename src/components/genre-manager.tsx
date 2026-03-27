@@ -49,7 +49,7 @@ export function GenreManager({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold">Genre Challenge List</h2>
+      <h2 className="font-semibold text-gray-900">Genre Challenge List</h2>
       <p className="text-sm text-gray-500">
         Players earn a bonus for covering all genres. Customize the list for
         your competition.
@@ -59,18 +59,21 @@ export function GenreManager({
           <Badge
             key={genre.id}
             variant="secondary"
-            className="text-sm py-1.5 px-3 gap-1.5"
+            className="text-sm py-1.5 px-3 gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200/60 hover:bg-indigo-100"
           >
             {genre.name}
             <button
               onClick={() => handleRemove(genre.id, genre.name)}
               disabled={isPending}
-              className="ml-1 rounded-full hover:bg-gray-300/50 p-0.5"
+              className="ml-1 rounded-full hover:bg-indigo-200/60 p-0.5 transition-colors"
             >
               <X className="h-3 w-3" />
             </button>
           </Badge>
         ))}
+        {genres.length === 0 && (
+          <p className="text-sm text-gray-400">No genres added yet.</p>
+        )}
       </div>
       <div className="flex gap-2">
         <Input
@@ -79,7 +82,7 @@ export function GenreManager({
           placeholder="New genre name..."
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAdd())}
         />
-        <Button onClick={handleAdd} disabled={isPending || !newName.trim()} size="sm">
+        <Button onClick={handleAdd} disabled={isPending || !newName.trim()} size="sm" className="shrink-0">
           <Plus className="h-4 w-4 mr-1" />
           Add
         </Button>

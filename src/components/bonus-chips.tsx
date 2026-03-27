@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import type { BonusKey } from "@/types/database";
 import { BONUS_LABELS } from "@/lib/scoring-types";
 import { Badge } from "@/components/ui/badge";
@@ -44,13 +45,14 @@ export function BonusChips({
               key={key}
               variant={isActive ? "default" : "outline"}
               className={cn(
-                "cursor-pointer transition-colors",
+                "cursor-pointer transition-all duration-200",
                 isActive
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "hover:bg-green-50 text-gray-600"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent shadow-sm"
+                  : "hover:bg-emerald-50 hover:border-emerald-300 text-gray-600"
               )}
               onClick={() => toggle(key)}
             >
+              {isActive && <Check className="h-3 w-3 mr-1" />}
               {BONUS_LABELS[key]}
             </Badge>
           );

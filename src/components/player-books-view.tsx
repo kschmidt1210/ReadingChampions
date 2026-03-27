@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BookOpen, FileText, Star, Heart, Globe, Library, BookA, ChevronRight } from "lucide-react";
 import { BookEntryCard } from "@/components/book-entry-card";
 import { BookEntryPanel } from "@/components/book-entry-panel";
 import { GenreGrid } from "@/components/genre-grid";
@@ -14,6 +15,13 @@ function getFirstLetter(title: string): string {
     .charAt(0)
     .toUpperCase();
 }
+
+const statConfig = [
+  { key: "Books", icon: BookOpen, gradient: "from-indigo-500 to-violet-500", bg: "bg-indigo-50", text: "text-indigo-700" },
+  { key: "Pages", icon: FileText, gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-50", text: "text-emerald-700" },
+  { key: "Points", icon: Star, gradient: "from-amber-500 to-orange-500", bg: "bg-amber-50", text: "text-amber-700" },
+  { key: "Avg Rating", icon: Heart, gradient: "from-rose-500 to-pink-500", bg: "bg-rose-50", text: "text-rose-700" },
+] as const;
 
 interface PlayerBooksViewProps {
   playerName: string;
@@ -40,9 +48,15 @@ export function PlayerBooksView({
   const totalPages = entries.reduce((sum, e) => sum + (e.book?.pages ?? 0), 0);
   const avgRating =
     totalBooks > 0
-      ? entries.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) /
-        totalBooks
+      ? entries.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) / totalBooks
       : 0;
+
+  const statValues = [
+    totalBooks,
+    totalPages.toLocaleString(),
+    totalPoints.toFixed(1),
+    avgRating.toFixed(1),
+  ];
 
   const coveredGenreIds = new Set(
     entries.map((e) => e.genre_id).filter((g): g is string => g !== null)
@@ -72,44 +86,45 @@ export function PlayerBooksView({
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-      <h1 className="text-lg font-bold text-gray-900">{title}</h1>
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Books", value: totalBooks },
-          { label: "Pages", value: totalPages.toLocaleString() },
-          { label: "Points", value: totalPoints.toFixed(1) },
-          { label: "Avg Rating", value: avgRating.toFixed(1) },
-        ].map((stat) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {statConfig.map((stat, i) => (
           <div
-            key={stat.label}
-            className="bg-white rounded-xl p-4 text-center shadow-sm"
+            key={stat.key}
+            className="relative overflow-hidden bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
           >
-            <div className="text-2xl font-bold text-indigo-600">
-              {stat.value}
+            <div className={`absolute top-3 right-3 ${stat.bg} rounded-lg p-1.5`}>
+              <stat.icon className={`h-4 w-4 ${stat.text}`} />
             </div>
-            <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+            <div className={`text-2xl font-bold ${stat.text}`}>
+              {statValues[i]}
+            </div>
+            <div className="text-xs font-medium text-gray-500 mt-1">{stat.key}</div>
           </div>
         ))}
       </div>
 
       {/* Genre Challenge */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <GenreGrid genres={genres} coveredGenreIds={coveredGenreIds} />
       </div>
 
       {/* Alphabet Challenge */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <AlphabetGrid coveredLetters={coveredLetters} />
       </div>
 
       {/* Countries */}
-      <div className="bg-white rounded-xl p-5 shadow-sm space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h3 className="font-semibold text-gray-900">Countries Read</h3>
-          <span className="text-sm text-gray-500">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4.5 w-4.5 text-violet-500" />
+            <h3 className="font-semibold text-gray-900">Countries Read</h3>
+          </div>
+          <span className="text-sm font-medium text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">
             {countries.length} unique
           </span>
         </div>
@@ -117,7 +132,7 @@ export function PlayerBooksView({
           {countries.map((c) => (
             <span
               key={c}
-              className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm"
+              className="px-2.5 py-1 bg-gradient-to-r from-violet-50 to-indigo-50 text-violet-700 rounded-full text-sm font-medium border border-violet-200/50"
             >
               {c}
             </span>
@@ -132,14 +147,25 @@ export function PlayerBooksView({
 
       {/* Book list */}
       <div>
-        <h2 className="font-semibold text-gray-900 mb-3">
-          Logged Books ({totalBooks})
-        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <Library className="h-4.5 w-4.5 text-indigo-500" />
+          <h2 className="font-semibold text-gray-900">
+            Logged Books ({totalBooks})
+          </h2>
+        </div>
         {totalBooks === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            {isCurrentUser
-              ? 'No books logged yet. Tap \u201CAdd Book\u201D to get started!'
-              : `${playerName} hasn\u2019t logged any books yet.`}
+          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">
+              {isCurrentUser
+                ? "No books logged yet"
+                : `${playerName} hasn\u2019t logged any books yet`}
+            </p>
+            {isCurrentUser && (
+              <p className="text-sm text-gray-400 mt-1">
+                Tap &ldquo;Add Book&rdquo; to get started!
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

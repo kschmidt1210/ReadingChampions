@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import type { DeductionKey } from "@/types/database";
 import { DEDUCTION_LABELS } from "@/lib/scoring-types";
 import { Badge } from "@/components/ui/badge";
@@ -25,13 +26,14 @@ export function DeductionChips({
               key={key}
               variant={isActive ? "default" : "outline"}
               className={cn(
-                "cursor-pointer transition-colors",
+                "cursor-pointer transition-all duration-200",
                 isActive
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "hover:bg-red-50 text-gray-600"
+                  ? "bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white border-transparent shadow-sm"
+                  : "hover:bg-rose-50 hover:border-rose-300 text-gray-600"
               )}
               onClick={() => onChange(isActive ? null : key)}
             >
+              {isActive && <Check className="h-3 w-3 mr-1" />}
               {DEDUCTION_LABELS[key]}
             </Badge>
           );

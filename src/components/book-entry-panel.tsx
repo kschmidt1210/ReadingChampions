@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { BookOpen } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -255,28 +256,40 @@ export function BookEntryPanel({
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6 overflow-y-auto pr-1">
+        <div className="space-y-5 overflow-y-auto pr-1">
           {isEditMode ? (
-            <div className="flex items-start gap-3 rounded-lg bg-muted p-3">
-              {entry.book.cover_url && (
+            <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+              {entry.book.cover_url ? (
                 <img
                   src={entry.book.cover_url}
                   alt={entry.book.title}
-                  className="w-12 h-16 object-cover rounded"
+                  className="w-14 h-20 object-cover rounded-lg shadow-sm"
                 />
+              ) : (
+                <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
+                  <BookOpen className="h-6 w-6 text-indigo-400" />
+                </div>
               )}
-              <div className="min-w-0">
-                <p className="font-semibold">{entry.book.title}</p>
-                <p className="text-sm text-muted-foreground">{entry.book.author}</p>
+              <div className="min-w-0 pt-0.5">
+                <p className="font-semibold text-gray-900">{entry.book.title}</p>
+                <p className="text-sm text-gray-500">{entry.book.author}</p>
+                {entry.book.pages > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
+                )}
               </div>
             </div>
           ) : (
             <>
               <BookSearch onSelect={handleBookSelect} />
               {selectedBook && (
-                <div className="rounded-lg bg-muted p-3">
-                  <p className="font-semibold">{selectedBook.title}</p>
-                  <p className="text-sm text-muted-foreground">{selectedBook.author}</p>
+                <div className="flex items-start gap-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+                  {selectedBook.cover_url && (
+                    <img src={selectedBook.cover_url} alt="" className="w-10 h-14 object-cover rounded-lg shadow-sm" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900">{selectedBook.title}</p>
+                    <p className="text-sm text-gray-500">{selectedBook.author}</p>
+                  </div>
                 </div>
               )}
             </>
@@ -352,19 +365,19 @@ export function BookEntryPanel({
             </>
           )}
 
-          <div className="sticky bottom-0 bg-background pt-2 space-y-3">
+          <div className="sticky bottom-0 bg-background pt-3 space-y-3 border-t border-gray-100">
             <ScorePreview breakdown={scoreBreakdown} />
 
             {!readOnly && (
-              <Button
+              <button
                 onClick={handleSave}
-                className="w-full"
                 disabled={saving || (!isEditMode && !selectedBook)}
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving
                   ? (isEditMode ? "Updating..." : "Saving...")
                   : (isEditMode ? "Update Book Entry" : "Save Book Entry")}
-              </Button>
+              </button>
             )}
 
             {canDelete && isEditMode && (

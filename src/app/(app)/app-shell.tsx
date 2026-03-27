@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { seasonId, genres } = useOrg();
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
       <NavSidebar onAddBook={() => setAddBookOpen(true)} />
       <main className="flex-1 pb-20 md:pb-0 md:ml-64">{children}</main>
       <NavBottomTabs onAddBook={() => setAddBookOpen(true)} />
