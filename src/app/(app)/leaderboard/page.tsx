@@ -30,10 +30,15 @@ export default async function LeaderboardPage() {
   const players = await getLeaderboardData(season.id, currentOrg.id);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <h1 className="text-lg font-bold text-gray-900 mb-6">
-        Leaderboard &mdash; {currentOrg.name} {season.name}
-      </h1>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="flex items-center gap-2.5 mb-1">
+          <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+        </div>
+        <p className="text-sm font-medium text-gray-500">
+          {currentOrg.name} &middot; {season.name}
+        </p>
+      </div>
       <LeaderboardPodium players={players} />
       <LeaderboardTable players={players} currentUserId={user.id} />
     </div>
