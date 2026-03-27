@@ -3,7 +3,7 @@ import {
   getUserOrganizations,
   getCurrentOrg,
 } from "@/lib/queries/organizations";
-import { getOrgMembers } from "@/lib/queries/admin";
+import { getOrgMembersWithEmail } from "@/lib/queries/admin";
 import { PlayerManager } from "@/components/player-manager";
 
 export default async function AdminPlayersPage() {
@@ -16,7 +16,7 @@ export default async function AdminPlayersPage() {
   const currentOrg = await getCurrentOrg(orgs);
   if (!currentOrg || !user) return null;
 
-  const members = await getOrgMembers(currentOrg.id);
+  const members = await getOrgMembersWithEmail(currentOrg.id);
 
   return (
     <PlayerManager
