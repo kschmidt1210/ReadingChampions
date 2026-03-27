@@ -133,6 +133,39 @@ export async function switchOrg(orgId: string) {
   };
 }
 
+export async function renameOrganization(orgId: string, name: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("role")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!membership || membership.role !== "admin") {
+    return { error: "Only admins can rename the organization" };
+  }
+
+  const trimmed = name.trim();
+  if (!trimmed) return { error: "Name cannot be empty" };
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ name: trimmed })
+    .eq("id", orgId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/", "layout");
+  return { name: trimmed };
+}
+
 export async function regenerateInviteCode(orgId: string) {
   const supabase = await createClient();
   const {
