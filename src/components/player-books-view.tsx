@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { BookEntryCard } from "@/components/book-entry-card";
+import { BookEntryPanel } from "@/components/book-entry-panel";
 import { GenreGrid } from "@/components/genre-grid";
 import { AlphabetGrid } from "@/components/alphabet-grid";
 import type { BookEntryWithBook } from "@/types/database";
@@ -17,6 +21,7 @@ interface PlayerBooksViewProps {
   genres: Array<{ id: string; name: string }>;
   genreMap: Map<string, string>;
   isCurrentUser: boolean;
+  isAdmin?: boolean;
 }
 
 export function PlayerBooksView({
@@ -25,7 +30,11 @@ export function PlayerBooksView({
   genres,
   genreMap,
   isCurrentUser,
+  isAdmin = false,
 }: PlayerBooksViewProps) {
+  const [selectedEntry, setSelectedEntry] = useState<BookEntryWithBook | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+
   const totalBooks = entries.length;
   const totalPoints = entries.reduce((sum, e) => sum + Number(e.points), 0);
   const totalPages = entries.reduce((sum, e) => sum + (e.book?.pages ?? 0), 0);
@@ -49,7 +58,18 @@ export function PlayerBooksView({
     ),
   ];
 
+  const canModify = isCurrentUser || isAdmin;
   const title = isCurrentUser ? "My Books" : `${playerName}'s Books`;
+
+  function handleCardClick(entry: BookEntryWithBook) {
+    setSelectedEntry(entry);
+    setPanelOpen(true);
+  }
+
+  function handlePanelClose() {
+    setPanelOpen(false);
+    setSelectedEntry(null);
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -130,11 +150,21 @@ export function PlayerBooksView({
                 genreName={
                   entry.genre_id ? genreMap.get(entry.genre_id) : undefined
                 }
+                onClick={() => handleCardClick(entry)}
               />
             ))}
           </div>
         )}
       </div>
+
+      <BookEntryPanel
+        open={panelOpen}
+        onClose={handlePanelClose}
+        genres={genres}
+        entry={selectedEntry ?? undefined}
+        canEdit={canModify}
+        canDelete={canModify}
+      />
     </div>
   );
 }

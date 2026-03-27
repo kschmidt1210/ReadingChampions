@@ -235,6 +235,41 @@ async function checkAndFlagEntry(
   }
 }
 
+async function requireOwnerOrAdmin(
+  entryId: string,
+  orgId: string
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: entry } = await supabase
+    .from("book_entries")
+    .select("user_id")
+    .eq("id", entryId)
+    .single();
+
+  if (!entry) throw new Error("Entry not found");
+
+  if (entry.user_id !== user.id) {
+    const { data: membership } = await supabase
+      .from("org_members")
+      .select("role")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!membership || membership.role !== "admin") {
+      throw new Error("Not authorized to modify this entry");
+    }
+  }
+
+  return { supabase, user, entryOwnerId: entry.user_id };
+}
+
 export async function updateBookEntry(
   entryId: string,
   orgId: string,
@@ -255,16 +290,11 @@ export async function updateBookEntry(
     country: string | null;
   }
 ) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Not authenticated");
+  const { entryOwnerId } = await requireOwnerOrAdmin(entryId, orgId);
 
   const [config, existingCountries] = await Promise.all([
     getScoringConfig(orgId),
-    getExistingCountries(seasonId, user.id, entryId),
+    getExistingCountries(seasonId, entryOwnerId, entryId),
   ]);
 
   const isNewCountry = !!input.country && !existingCountries.has(input.country);
@@ -283,6 +313,7 @@ export async function updateBookEntry(
     config
   );
 
+  const supabase = await createClient();
   const { error } = await supabase
     .from("book_entries")
     .update({
@@ -300,6 +331,28 @@ export async function updateBookEntry(
       points: score.finalScore,
       updated_at: new Date().toISOString(),
     })
+    .eq("id", entryId);
+
+  if (error) throw error;
+
+  revalidatePath("/", "layout");
+}
+
+export async function deleteBookEntry(entryId: string, orgId: string) {
+  await requireOwnerOrAdmin(entryId, orgId);
+
+  const supabase = await createClient();
+
+  const { error: flagError } = await supabase
+    .from("flagged_entries")
+    .delete()
+    .eq("book_entry_id", entryId);
+
+  if (flagError) throw flagError;
+
+  const { error } = await supabase
+    .from("book_entries")
+    .delete()
     .eq("id", entryId);
 
   if (error) throw error;
