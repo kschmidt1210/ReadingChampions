@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import type { Role, ScoringRulesConfig } from "@/types/database";
 import { calculateBookScore } from "@/lib/scoring";
@@ -349,4 +350,67 @@ export async function createNewSeason(orgId: string, name: string) {
 
   if (error) return { error: error.message };
   revalidatePath("/", "layout");
+}
+
+export async function updatePlayerEmail(
+  orgId: string,
+  userId: string,
+  newEmail: string
+) {
+  const { error: authError } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  const trimmed = newEmail.trim().toLowerCase();
+  if (!trimmed || !trimmed.includes("@")) {
+    return { error: "Please enter a valid email address" };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: usersData } = await admin.auth.admin.listUsers();
+  const conflict = usersData?.users?.find(
+    (u) => u.email === trimmed && u.id !== userId
+  );
+  if (conflict) {
+    return { error: "That email is already used by another account" };
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    email: trimmed,
+    email_confirm: true,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/players");
+  return { email: trimmed };
+}
+
+export async function generatePlayerInvite(orgId: string, userId: string) {
+  const { error: authError } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  const admin = createAdminClient();
+
+  const { data: userData, error: userError } =
+    await admin.auth.admin.getUserById(userId);
+  if (userError || !userData?.user?.email) {
+    return { error: "Could not find user" };
+  }
+
+  const email = userData.user.email;
+  if (email.endsWith("@readingchampions.app")) {
+    return {
+      error: "Assign a real email address before generating an invite link",
+    };
+  }
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  });
+
+  if (error) return { error: error.message };
+
+  return { link: data.properties.action_link };
 }

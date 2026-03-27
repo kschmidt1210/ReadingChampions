@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function getOrgMembers(orgId: string) {
   const supabase = await createClient();
@@ -8,6 +9,31 @@ export async function getOrgMembers(orgId: string) {
     .eq("org_id", orgId)
     .order("joined_at");
   return data ?? [];
+}
+
+export async function getOrgMembersWithEmail(orgId: string) {
+  const supabase = await createClient();
+  const { data: members } = await supabase
+    .from("org_members")
+    .select("*, profile:profiles(display_name)")
+    .eq("org_id", orgId)
+    .order("joined_at");
+
+  if (!members || members.length === 0) return [];
+
+  const admin = createAdminClient();
+  const { data: usersData } = await admin.auth.admin.listUsers();
+  const allUsers = usersData?.users ?? [];
+
+  const emailMap = new Map<string, string>();
+  for (const u of allUsers) {
+    if (u.email) emailMap.set(u.id, u.email);
+  }
+
+  return members.map((m) => ({
+    ...m,
+    email: emailMap.get(m.user_id) ?? null,
+  }));
 }
 
 export async function getFlaggedEntries(
