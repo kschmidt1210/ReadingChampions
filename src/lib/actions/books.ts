@@ -5,6 +5,31 @@ import { revalidatePath } from "next/cache";
 import { calculateBookScore } from "@/lib/scoring";
 import type { ScoringRulesConfig, BonusKey, DeductionKey, HometownBonusKey } from "@/types/database";
 
+async function getExistingCountries(
+  seasonId: string,
+  userId: string,
+  excludeEntryId?: string
+): Promise<Set<string>> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("book_entries")
+    .select("book:books(country)")
+    .eq("season_id", seasonId)
+    .eq("user_id", userId);
+
+  if (excludeEntryId) {
+    query = query.neq("id", excludeEntryId);
+  }
+
+  const { data } = await query;
+  const countries = new Set<string>();
+  for (const entry of data ?? []) {
+    const country = (entry.book as any)?.country;
+    if (country) countries.add(country);
+  }
+  return countries;
+}
+
 async function getScoringConfig(orgId: string): Promise<ScoringRulesConfig> {
   const supabase = await createClient();
 
@@ -24,6 +49,16 @@ async function getScoringConfig(orgId: string): Promise<ScoringRulesConfig> {
 
   if (!globalRules) throw new Error("No scoring rules found");
   return globalRules.config as ScoringRulesConfig;
+}
+
+export async function getUserSeasonCountries(seasonId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const countries = await getExistingCountries(seasonId, user.id);
+  return [...countries];
 }
 
 export async function findOrCreateBook(bookData: {
@@ -84,6 +119,7 @@ export async function createBookEntry(input: {
   bonus3: BonusKey | null;
   deduction: DeductionKey | null;
   pages: number;
+  country: string | null;
 }) {
   const supabase = await createClient();
   const {
@@ -92,7 +128,13 @@ export async function createBookEntry(input: {
 
   if (!user) throw new Error("Not authenticated");
 
-  const config = await getScoringConfig(input.orgId);
+  const [config, existingCountries] = await Promise.all([
+    getScoringConfig(input.orgId),
+    getExistingCountries(input.seasonId, user.id),
+  ]);
+
+  const isNewCountry = !!input.country && !existingCountries.has(input.country);
+
   const score = calculateBookScore(
     {
       pages: input.pages,
@@ -102,6 +144,7 @@ export async function createBookEntry(input: {
       bonus_3: input.bonus3,
       hometown_bonus: input.hometownBonus,
       deduction: input.deduction,
+      isNewCountry,
     },
     config
   );
@@ -195,6 +238,7 @@ async function checkAndFlagEntry(
 export async function updateBookEntry(
   entryId: string,
   orgId: string,
+  seasonId: string,
   input: {
     completed: boolean;
     fiction: boolean;
@@ -208,6 +252,7 @@ export async function updateBookEntry(
     bonus3: BonusKey | null;
     deduction: DeductionKey | null;
     pages: number;
+    country: string | null;
   }
 ) {
   const supabase = await createClient();
@@ -217,7 +262,13 @@ export async function updateBookEntry(
 
   if (!user) throw new Error("Not authenticated");
 
-  const config = await getScoringConfig(orgId);
+  const [config, existingCountries] = await Promise.all([
+    getScoringConfig(orgId),
+    getExistingCountries(seasonId, user.id, entryId),
+  ]);
+
+  const isNewCountry = !!input.country && !existingCountries.has(input.country);
+
   const score = calculateBookScore(
     {
       pages: input.pages,
@@ -227,6 +278,7 @@ export async function updateBookEntry(
       bonus_3: input.bonus3,
       hometown_bonus: input.hometownBonus,
       deduction: input.deduction,
+      isNewCountry,
     },
     config
   );

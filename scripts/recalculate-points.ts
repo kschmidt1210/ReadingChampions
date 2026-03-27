@@ -1,6 +1,10 @@
 /**
  * Recalculate all book_entries.points using the updated scoring formula.
  *
+ * New country bonus is auto-detected: for each user+season, the first
+ * entry with a given country (by date_finished, then created_at) gets
+ * the ×1.057 multiplier.
+ *
  * Usage:
  *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npx tsx scripts/recalculate-points.ts
  *
@@ -34,6 +38,7 @@ function calculateBookScore(
     bonus_3: BonusKey | null;
     hometown_bonus: HometownBonusKey | null;
     deduction: DeductionKey | null;
+    isNewCountry: boolean;
   },
   config: ScoringRulesConfig
 ): number {
@@ -46,11 +51,9 @@ function calculateBookScore(
     Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
   const preBonusTotal = basePoints + pagePoints;
 
-  const allBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
-    (k): k is BonusKey => k !== null
+  const regularBonusKeys = [input.bonus_1, input.bonus_2, input.bonus_3].filter(
+    (k): k is BonusKey => k !== null && k !== "new_country"
   );
-  const hasNewCountry = allBonusKeys.includes("new_country");
-  const regularBonusKeys = allBonusKeys.filter((k) => k !== "new_country");
   const hasDeduction = input.deduction !== null;
 
   let totalBonuses = hasDeduction
@@ -66,7 +69,8 @@ function calculateBookScore(
   const postBonusTotal = preBonusTotal + totalBonuses;
   const afterDeduction =
     postBonusTotal * (input.deduction ? config.deductions[input.deduction] : 1);
-  return afterDeduction * (hasNewCountry ? 1 + config.bonuses.new_country : 1);
+  const newCountryMultiplier = input.isNewCountry ? 1 + config.bonuses.new_country : 1;
+  return afterDeduction * newCountryMultiplier;
 }
 
 async function main() {
@@ -95,10 +99,12 @@ async function main() {
   }
   const globalConfig = configByOrg.get(null);
 
-  // 2. Fetch all book entries with book pages
+  // 2. Fetch all book entries with book data
   const { data: entries, error } = await supabase
     .from("book_entries")
-    .select("id, fiction, bonus_1, bonus_2, bonus_3, hometown_bonus, deduction, points, book:books(title, pages), season:seasons(org_id)");
+    .select("id, user_id, season_id, fiction, bonus_1, bonus_2, bonus_3, hometown_bonus, deduction, points, date_finished, created_at, book:books(title, pages, country), season:seasons(org_id)")
+    .order("date_finished", { ascending: true, nullsFirst: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Failed to fetch entries:", error.message);
@@ -111,6 +117,24 @@ async function main() {
 
   console.log(`Found ${entries.length} book entries to recalculate.\n`);
 
+  // 3. Build per-user-per-season country sets to detect first occurrences
+  //    Entries are ordered by date_finished then created_at, so the first
+  //    time we see a country for a user+season, that entry gets the bonus.
+  const seenCountries = new Map<string, Set<string>>();
+
+  function isFirstCountry(userId: string, seasonId: string, country: string | null): boolean {
+    if (!country) return false;
+    const key = `${userId}:${seasonId}`;
+    let seen = seenCountries.get(key);
+    if (!seen) {
+      seen = new Set();
+      seenCountries.set(key, seen);
+    }
+    if (seen.has(country)) return false;
+    seen.add(country);
+    return true;
+  }
+
   let updated = 0;
   let unchanged = 0;
   let errors = 0;
@@ -120,6 +144,7 @@ async function main() {
     const season = entry.season as any;
     const pages: number = book?.pages ?? 0;
     const title: string = book?.title ?? "(unknown)";
+    const country: string | null = book?.country ?? null;
     const orgId: string | null = season?.org_id ?? null;
 
     const config = configByOrg.get(orgId) ?? globalConfig;
@@ -128,6 +153,8 @@ async function main() {
       errors++;
       continue;
     }
+
+    const isNew = isFirstCountry(entry.user_id, entry.season_id, country);
 
     const newPoints = calculateBookScore(
       {
@@ -138,6 +165,7 @@ async function main() {
         bonus_3: entry.bonus_3 as BonusKey | null,
         hometown_bonus: entry.hometown_bonus as HometownBonusKey | null,
         deduction: entry.deduction as DeductionKey | null,
+        isNewCountry: isNew,
       },
       config
     );
@@ -151,8 +179,9 @@ async function main() {
     }
 
     const sign = diff > 0 ? "+" : "";
+    const countryTag = isNew ? ` [NEW: ${country}]` : "";
     console.log(
-      `  "${title}" (${pages}pp): ${oldPoints.toFixed(4)} → ${newPoints.toFixed(4)} (${sign}${diff.toFixed(4)})`
+      `  "${title}" (${pages}pp): ${oldPoints.toFixed(4)} → ${newPoints.toFixed(4)} (${sign}${diff.toFixed(4)})${countryTag}`
     );
 
     if (!DRY_RUN) {

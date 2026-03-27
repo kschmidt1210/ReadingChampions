@@ -5,7 +5,9 @@ import { BONUS_LABELS } from "@/lib/scoring-types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const ALL_BONUS_KEYS = Object.keys(BONUS_LABELS) as BonusKey[];
+const ALL_BONUS_KEYS = (Object.keys(BONUS_LABELS) as BonusKey[]).filter(
+  (k) => k !== "new_country"
+);
 
 export function BonusChips({
   selected,
