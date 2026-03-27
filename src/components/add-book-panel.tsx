@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -160,12 +160,12 @@ export function AddBookPanel({
   }
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Add a Book</SheetTitle>
-        </SheetHeader>
-        <div className="space-y-6 py-4">
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Add a Book</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 overflow-y-auto pr-1">
           <BookSearch onSelect={handleBookSelect} />
 
           {selectedBook && (
@@ -241,7 +241,7 @@ export function AddBookPanel({
 
               <DeductionChips selected={deduction} onChange={setDeduction} />
 
-              <div className="sticky bottom-0 bg-white pt-2">
+              <div className="sticky bottom-0 bg-background pt-2">
                 <ScorePreview breakdown={scoreBreakdown} />
                 <Button onClick={handleSave} className="w-full mt-3" disabled={saving}>
                   {saving ? "Saving..." : "Save Book Entry"}
@@ -250,7 +250,7 @@ export function AddBookPanel({
             </>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
