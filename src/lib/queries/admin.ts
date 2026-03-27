@@ -22,6 +22,10 @@ export async function getOrgMembersWithEmail(orgId: string) {
   if (!members || members.length === 0) return [];
 
   const admin = createAdminClient();
+  if (!admin) {
+    return members.map((m) => ({ ...m, email: null }));
+  }
+
   const { data: usersData } = await admin.auth.admin.listUsers();
   const allUsers = usersData?.users ?? [];
 
