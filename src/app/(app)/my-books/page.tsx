@@ -42,6 +42,7 @@ export default async function MyBooksPage() {
       genres={genres}
       genreMap={genreMap}
       isCurrentUser={true}
+      isAdmin={currentOrg.role === "admin"}
     />
   );
 }
