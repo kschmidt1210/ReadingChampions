@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { Role, ScoringRulesConfig } from "@/types/database";
+import { calculateBookScore } from "@/lib/scoring";
 
 async function requireAdmin(orgId: string) {
   const supabase = await createClient();
@@ -25,6 +27,84 @@ async function requireAdmin(orgId: string) {
   return { error: null, supabase, user };
 }
 
+export async function updateMemberRole(
+  orgId: string,
+  memberId: string,
+  newRole: Role
+) {
+  const { error: authError, supabase, user } = await requireAdmin(orgId);
+  if (authError || !user) return { error: authError ?? "Not authenticated" };
+
+  const { data: target } = await supabase
+    .from("org_members")
+    .select("user_id, role")
+    .eq("id", memberId)
+    .eq("org_id", orgId)
+    .single();
+
+  if (!target) return { error: "Member not found" };
+
+  if (target.role === "admin" && newRole === "player") {
+    const { count } = await supabase
+      .from("org_members")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("role", "admin");
+
+    if ((count ?? 0) <= 1) {
+      return { error: "Cannot demote the last admin" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("org_members")
+    .update({ role: newRole })
+    .eq("id", memberId)
+    .eq("org_id", orgId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/admin/players");
+}
+
+export async function removeMember(orgId: string, memberId: string) {
+  const { error: authError, supabase, user } = await requireAdmin(orgId);
+  if (authError || !user) return { error: authError ?? "Not authenticated" };
+
+  const { data: target } = await supabase
+    .from("org_members")
+    .select("user_id, role")
+    .eq("id", memberId)
+    .eq("org_id", orgId)
+    .single();
+
+  if (!target) return { error: "Member not found" };
+
+  if (target.user_id === user.id) {
+    return { error: "You cannot remove yourself" };
+  }
+
+  if (target.role === "admin") {
+    const { count } = await supabase
+      .from("org_members")
+      .select("*", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("role", "admin");
+
+    if ((count ?? 0) <= 1) {
+      return { error: "Cannot remove the last admin" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("org_members")
+    .delete()
+    .eq("id", memberId)
+    .eq("org_id", orgId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/admin/players");
+}
+
 export async function addGenre(orgId: string, name: string) {
   const { error: authError, supabase } = await requireAdmin(orgId);
   if (authError) return { error: authError };
@@ -44,6 +124,23 @@ export async function addGenre(orgId: string, name: string) {
     .insert({ org_id: orgId, name, sort_order: nextOrder });
 
   if (error) return { error: error.message };
+  revalidatePath("/admin/genres");
+}
+
+export async function reorderGenres(orgId: string, genreIds: string[]) {
+  const { error: authError, supabase } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  for (let i = 0; i < genreIds.length; i++) {
+    const { error } = await supabase
+      .from("genres")
+      .update({ sort_order: i })
+      .eq("id", genreIds[i])
+      .eq("org_id", orgId);
+
+    if (error) return { error: error.message };
+  }
+
   revalidatePath("/admin/genres");
 }
 
@@ -85,6 +182,132 @@ export async function resolveFlaggedEntry(orgId: string, flagId: string) {
 
   if (error) return { error: error.message };
   revalidatePath("/admin/flagged");
+}
+
+export async function recalculateSeasonPoints(orgId: string, seasonId: string) {
+  const { error: authError, supabase } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  const { data: rules } = await supabase
+    .from("scoring_rules")
+    .select("config")
+    .eq("org_id", orgId)
+    .single();
+
+  let config: ScoringRulesConfig;
+  if (rules) {
+    config = rules.config as ScoringRulesConfig;
+  } else {
+    const { data: globalRules } = await supabase
+      .from("scoring_rules")
+      .select("config")
+      .is("org_id", null)
+      .single();
+    if (!globalRules) return { error: "No scoring rules found" };
+    config = globalRules.config as ScoringRulesConfig;
+  }
+
+  const { data: entries } = await supabase
+    .from("book_entries")
+    .select("*, book:books(country)")
+    .eq("season_id", seasonId);
+
+  if (!entries || entries.length === 0) return { updated: 0 };
+
+  const entriesByUser = new Map<string, typeof entries>();
+  for (const entry of entries) {
+    const list = entriesByUser.get(entry.user_id) ?? [];
+    list.push(entry);
+    entriesByUser.set(entry.user_id, list);
+  }
+
+  let updated = 0;
+  for (const [userId, userEntries] of entriesByUser) {
+    const sortedEntries = userEntries.sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+
+    const seenCountries = new Set<string>();
+    for (const entry of sortedEntries) {
+      const country = (entry.book as any)?.country;
+      const isNewCountry = !!country && !seenCountries.has(country);
+      if (country) seenCountries.add(country);
+
+      const score = calculateBookScore(
+        {
+          pages: (entry.book as any)?.pages ?? 0,
+          fiction: entry.fiction,
+          bonus_1: entry.bonus_1,
+          bonus_2: entry.bonus_2,
+          bonus_3: entry.bonus_3,
+          hometown_bonus: entry.hometown_bonus,
+          deduction: entry.deduction,
+          isNewCountry,
+        },
+        config
+      );
+
+      if (Math.abs(score.finalScore - Number(entry.points)) > 0.01) {
+        await supabase
+          .from("book_entries")
+          .update({ points: score.finalScore, updated_at: new Date().toISOString() })
+          .eq("id", entry.id);
+        updated++;
+      }
+    }
+  }
+
+  revalidatePath("/", "layout");
+  return { updated };
+}
+
+export async function deleteOrganization(orgId: string) {
+  const { error: authError, supabase, user } = await requireAdmin(orgId);
+  if (authError || !user) return { error: authError ?? "Not authenticated" };
+
+  // Delete in dependency order: flagged_entries → book_entries → books (orphaned handled by app) → genres → seasons → scoring_rules → org_members → organizations
+  const { data: seasons } = await supabase
+    .from("seasons")
+    .select("id")
+    .eq("org_id", orgId);
+
+  if (seasons) {
+    for (const season of seasons) {
+      const { data: entries } = await supabase
+        .from("book_entries")
+        .select("id")
+        .eq("season_id", season.id);
+
+      if (entries) {
+        for (const entry of entries) {
+          await supabase
+            .from("flagged_entries")
+            .delete()
+            .eq("book_entry_id", entry.id);
+        }
+      }
+
+      await supabase
+        .from("book_entries")
+        .delete()
+        .eq("season_id", season.id);
+    }
+  }
+
+  await supabase.from("genres").delete().eq("org_id", orgId);
+  await supabase.from("seasons").delete().eq("org_id", orgId);
+  await supabase.from("scoring_rules").delete().eq("org_id", orgId);
+  await supabase.from("org_members").delete().eq("org_id", orgId);
+
+  const { error } = await supabase
+    .from("organizations")
+    .delete()
+    .eq("id", orgId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/", "layout");
+  return { deleted: true };
 }
 
 export async function archiveSeason(orgId: string, seasonId: string) {

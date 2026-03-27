@@ -47,6 +47,30 @@ export async function getActiveSeason(orgId: string) {
   return data;
 }
 
+export async function getArchivedSeasons(orgId: string) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("seasons")
+    .select("*")
+    .eq("org_id", orgId)
+    .eq("status", "archived")
+    .order("end_date", { ascending: false });
+
+  return data ?? [];
+}
+
+export async function getSeasonEntryCount(seasonId: string) {
+  const supabase = await createClient();
+
+  const { count } = await supabase
+    .from("book_entries")
+    .select("*", { count: "exact", head: true })
+    .eq("season_id", seasonId);
+
+  return count ?? 0;
+}
+
 export async function getOrgGenres(orgId: string) {
   const supabase = await createClient();
 

@@ -10,15 +10,26 @@ export async function getOrgMembers(orgId: string) {
   return data ?? [];
 }
 
-export async function getFlaggedEntries(orgId: string) {
+export async function getFlaggedEntries(
+  orgId: string,
+  filter: "unresolved" | "resolved" | "all" = "unresolved"
+) {
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("flagged_entries")
     .select(
       "*, book_entry:book_entries!inner(*, book:books(*), profile:profiles(display_name), season:seasons!inner(org_id))"
     )
-    .eq("resolved", false)
-    .eq("book_entry.season.org_id", orgId);
+    .eq("book_entry.season.org_id", orgId)
+    .order("created_at", { ascending: false });
+
+  if (filter === "unresolved") {
+    query = query.eq("resolved", false);
+  } else if (filter === "resolved") {
+    query = query.eq("resolved", true);
+  }
+
+  const { data } = await query;
   return data ?? [];
 }
 
