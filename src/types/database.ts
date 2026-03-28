@@ -32,6 +32,7 @@ export interface Organization {
   id: string;
   name: string;
   invite_code: string;
+  spreadsheet_url: string | null;
   created_at: string;
 }
 

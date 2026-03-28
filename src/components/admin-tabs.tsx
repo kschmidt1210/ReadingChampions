@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, Users, BookOpen, Calculator, Flag } from "lucide-react";
+import { Settings, Users, BookOpen, Calculator, Flag, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -12,6 +12,7 @@ const tabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/admin/genres", label: "Genres", icon: BookOpen },
   { href: "/admin/scoring", label: "Scoring", icon: Calculator },
   { href: "/admin/flagged", label: "Flagged", icon: Flag },
+  { href: "/admin/import", label: "Import", icon: Upload },
 ];
 
 export function AdminTabs() {

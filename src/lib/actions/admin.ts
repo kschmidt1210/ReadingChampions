@@ -366,6 +366,7 @@ export async function updatePlayerEmail(
   }
 
   const admin = createAdminClient();
+  if (!admin) return { error: "Service role key not configured" };
 
   const { data: usersData } = await admin.auth.admin.listUsers();
   const conflict = usersData?.users?.find(
@@ -391,6 +392,7 @@ export async function generatePlayerInvite(orgId: string, userId: string) {
   if (authError) return { error: authError };
 
   const admin = createAdminClient();
+  if (!admin) return { error: "Service role key not configured" };
 
   const { data: userData, error: userError } =
     await admin.auth.admin.getUserById(userId);
