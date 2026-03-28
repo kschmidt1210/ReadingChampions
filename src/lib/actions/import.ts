@@ -98,12 +98,18 @@ export async function saveSheetUrl(orgId: string, sheetUrl: string) {
     return { error: "Could not parse a Google Sheet ID from that URL" };
   }
 
-  const { error } = await supabase
+  const { error, data } = await supabase
     .from("organizations")
     .update({ spreadsheet_url: trimmed || null })
-    .eq("id", orgId);
+    .eq("id", orgId)
+    .select("id");
 
-  if (error) return { error: error.message };
+  if (error) {
+    return { error: error.message };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Failed to update — check that the database migration has been applied" };
+  }
   revalidatePath("/admin/import");
   return { success: true };
 }

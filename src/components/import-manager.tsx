@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Upload,
   ExternalLink,
@@ -61,7 +62,9 @@ export function ImportManager({
   savedSheetUrl,
   members,
 }: ImportManagerProps) {
+  const router = useRouter();
   const [sheetUrl, setSheetUrl] = useState(savedSheetUrl ?? "");
+  const [confirmedUrl, setConfirmedUrl] = useState(savedSheetUrl);
   const [isSaving, startSaving] = useTransition();
   const [isPreviewing, startPreviewing] = useTransition();
   const [isImporting, startImporting] = useTransition();
@@ -73,7 +76,8 @@ export function ImportManager({
   const [wipePlayerOpen, setWipePlayerOpen] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
 
-  const urlIsSaved = !!(savedSheetUrl && savedSheetUrl === sheetUrl.trim());
+  const hasUrl = !!confirmedUrl;
+  const urlIsSaved = !!(confirmedUrl && confirmedUrl === sheetUrl.trim());
 
   function handleSaveUrl() {
     startSaving(async () => {
@@ -81,7 +85,9 @@ export function ImportManager({
       if (result.error) {
         toast.error(result.error);
       } else {
+        setConfirmedUrl(sheetUrl.trim());
         toast.success("Sheet URL saved");
+        router.refresh();
       }
     });
   }
@@ -187,7 +193,7 @@ export function ImportManager({
               </Button>
             </div>
           </div>
-          {savedSheetUrl && (
+          {hasUrl && (
             <p className="text-xs text-muted-foreground">
               Each player&apos;s tab name in the sheet must match their display name in the app.
             </p>
@@ -196,7 +202,7 @@ export function ImportManager({
       </Card>
 
       {/* 2. Preview & Compare */}
-      {savedSheetUrl && (
+      {hasUrl && (
         <Card>
           <CardHeader>
             <CardTitle>Preview &amp; Compare</CardTitle>
@@ -230,7 +236,7 @@ export function ImportManager({
       )}
 
       {/* 3. Import Actions */}
-      {savedSheetUrl && (
+      {hasUrl && (
         <Card>
           <CardHeader>
             <CardTitle>Import</CardTitle>
