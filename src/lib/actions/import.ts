@@ -213,6 +213,7 @@ export async function previewSheetImport(
 
     const pointsCol = detectPointsColumn(tabData.header);
     let rowCount = 0;
+    const seenCountries = new Set<string>();
 
     for (let i = 0; i < tabData.rows.length; i++) {
       const row = tabData.rows[i];
@@ -226,6 +227,10 @@ export async function previewSheetImport(
 
       rowCount++;
       const p = result.parsed;
+      const country = p.country;
+      const isNewCountry = !!country && !seenCountries.has(country);
+      if (country) seenCountries.add(country);
+
       const score = calculateBookScore(
         {
           pages: p.pages,
@@ -235,7 +240,7 @@ export async function previewSheetImport(
           bonus_3: p.bonus3,
           hometown_bonus: p.hometownBonus,
           deduction: p.deduction,
-          isNewCountry: false,
+          isNewCountry,
         },
         config
       );
@@ -374,6 +379,7 @@ export async function importFromSheet(
     }
 
     const pointsCol = detectPointsColumn(tabData.header);
+    const seenCountries = new Set<string>();
 
     for (let i = 0; i < tabData.rows.length; i++) {
       const row = tabData.rows[i];
@@ -387,6 +393,9 @@ export async function importFromSheet(
       }
 
       const p = result.parsed;
+      const country = p.country;
+      const isNewCountry = !!country && !seenCountries.has(country);
+      if (country) seenCountries.add(country);
 
       const score = calculateBookScore(
         {
@@ -397,7 +406,7 @@ export async function importFromSheet(
           bonus_3: p.bonus3,
           hometown_bonus: p.hometownBonus,
           deduction: p.deduction,
-          isNewCountry: false,
+          isNewCountry,
         },
         config
       );
