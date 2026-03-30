@@ -214,11 +214,12 @@ export function parseSheetRow(
   row: string[],
   genreMap: Map<string, string>,
   pointsColIndex: number | null
-): { parsed: ParsedSheetRow } | { error: string } {
+): { parsed: ParsedSheetRow } | { skip: true } | { error: string } {
   const title = row[COL.title]?.trim();
   const pagesStr = row[COL.pages]?.trim();
   const pages = parseInt(pagesStr, 10);
 
+  if (!title && (!pagesStr || isNaN(parseInt(pagesStr, 10)))) return { skip: true };
   if (!title) return { error: "Missing title" };
   if (isNaN(pages) || pages <= 0) return { error: `Invalid page count "${pagesStr}" for "${title}"` };
 

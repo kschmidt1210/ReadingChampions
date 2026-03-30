@@ -59,6 +59,15 @@ async function getOrgScoringConfig(
   return globalRules ? (globalRules.config as ScoringRulesConfig) : null;
 }
 
+const EXPECTED_HEADERS = ["title", "pages", "genre", "country", "rating"];
+
+function looksLikeBookEntryTab(header: string[]): boolean {
+  const lowerHeaders = header.map((h) => h.trim().toLowerCase());
+  return EXPECTED_HEADERS.every((expected) =>
+    lowerHeaders.some((h) => h.includes(expected))
+  );
+}
+
 async function fetchPlayerTab(
   sheetId: string,
   playerName: string
@@ -71,6 +80,7 @@ async function fetchPlayerTab(
     const rows = parseCSV(text);
     if (rows.length < 2) return null;
     const header = rows.shift()!;
+    if (!looksLikeBookEntryTab(header)) return null;
     return { rows, header };
   } catch {
     return null;
@@ -208,6 +218,7 @@ export async function previewSheetImport(
       const row = tabData.rows[i];
       const result = parseSheetRow(row, genreMap, pointsCol);
 
+      if ("skip" in result) continue;
       if ("error" in result) {
         parseErrors.push({ player: displayName, rowIndex: i + 2, reason: result.error });
         continue;
@@ -368,6 +379,7 @@ export async function importFromSheet(
       const row = tabData.rows[i];
       const result = parseSheetRow(row, genreMap, pointsCol);
 
+      if ("skip" in result) continue;
       if ("error" in result) {
         skipped++;
         details.push(`${member.displayName} row ${i + 2}: ${result.error}`);
