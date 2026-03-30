@@ -352,6 +352,33 @@ export async function createNewSeason(orgId: string, name: string) {
   revalidatePath("/", "layout");
 }
 
+export async function updatePlayerName(
+  orgId: string,
+  userId: string,
+  newName: string
+) {
+  const { error: authError } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    return { error: "Name cannot be empty" };
+  }
+
+  const admin = createAdminClient();
+  if (!admin) return { error: "Service role key not configured" };
+
+  const { error } = await admin
+    .from("profiles")
+    .update({ display_name: trimmed })
+    .eq("id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/players");
+  return { name: trimmed };
+}
+
 export async function updatePlayerEmail(
   orgId: string,
   userId: string,

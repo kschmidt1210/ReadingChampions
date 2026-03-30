@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Copy,
   Check,
+  Pencil,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import { toast } from "sonner";
 import {
   updateMemberRole,
   removeMember,
+  updatePlayerName,
   updatePlayerEmail,
   generatePlayerInvite,
 } from "@/lib/actions/admin";
@@ -88,6 +90,8 @@ export function PlayerManager({
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [nameTarget, setNameTarget] = useState<Member | null>(null);
+  const [newName, setNewName] = useState("");
   const [emailTarget, setEmailTarget] = useState<Member | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
@@ -131,6 +135,33 @@ export function PlayerManager({
         toast.success(`${target.profile?.display_name ?? "Member"} removed`);
       }
       setRemoveTarget(null);
+    });
+  }
+
+  function openNameDialog(member: Member) {
+    setNameTarget(member);
+    setNewName(member.profile?.display_name ?? "");
+  }
+
+  function handleNameUpdate() {
+    if (!nameTarget) return;
+    const target = nameTarget;
+    startTransition(async () => {
+      const result = await updatePlayerName(orgId, target.user_id, newName);
+      if (result?.error) {
+        toast.error(typeof result.error === "string" ? result.error : "Failed to update name");
+      } else if (result?.name) {
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.id === target.id
+              ? { ...m, profile: { display_name: result.name! } }
+              : m
+          )
+        );
+        toast.success(`Name updated to ${result.name}`);
+        setNameTarget(null);
+        setNewName("");
+      }
     });
   }
 
@@ -249,6 +280,13 @@ export function PlayerManager({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       disabled={isPending}
+                      onClick={() => openNameDialog(member)}
+                    >
+                      <Pencil className="h-4 w-4 mr-1.5" />
+                      Edit Name
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={isPending}
                       onClick={() => openEmailDialog(member)}
                     >
                       <Mail className="h-4 w-4 mr-1.5" />
@@ -313,6 +351,58 @@ export function PlayerManager({
           </p>
         )}
       </div>
+
+      {/* Edit Name Dialog */}
+      <Dialog
+        open={!!nameTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setNameTarget(null);
+            setNewName("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Name</DialogTitle>
+            <DialogDescription>
+              Update the name for {nameTarget?.profile?.display_name ?? "this player"}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="player-name">Name</Label>
+              <Input
+                id="player-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Player name"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newName.trim()) {
+                    e.preventDefault();
+                    handleNameUpdate();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button variant="outline" onClick={() => setNewName("")} />
+              }
+            >
+              Cancel
+            </DialogClose>
+            <Button
+              onClick={handleNameUpdate}
+              disabled={isPending || !newName.trim()}
+            >
+              {isPending ? "Saving..." : "Save Name"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Email Dialog */}
       <Dialog
