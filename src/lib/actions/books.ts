@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { calculateBookScore } from "@/lib/scoring";
 import type { ScoringRulesConfig, BonusKey, DeductionKey, HometownBonusKey } from "@/types/database";
@@ -268,7 +269,8 @@ async function requireOwnerOrAdmin(
     }
   }
 
-  return { supabase, user, entryOwnerId: entry.user_id };
+  const isOwner = entry.user_id === user.id;
+  return { supabase, user, entryOwnerId: entry.user_id, isOwner };
 }
 
 export async function updateBookEntry(
@@ -291,7 +293,7 @@ export async function updateBookEntry(
     country: string | null;
   }
 ) {
-  const { entryOwnerId } = await requireOwnerOrAdmin(entryId, orgId);
+  const { entryOwnerId, isOwner } = await requireOwnerOrAdmin(entryId, orgId);
 
   const [config, existingCountries] = await Promise.all([
     getScoringConfig(orgId),
@@ -315,7 +317,8 @@ export async function updateBookEntry(
     config
   );
 
-  const supabase = await createClient();
+  const supabase = isOwner ? await createClient() : createAdminClient();
+  if (!supabase) throw new Error("Admin client not configured");
   const { error } = await supabase
     .from("book_entries")
     .update({
@@ -341,9 +344,10 @@ export async function updateBookEntry(
 }
 
 export async function deleteBookEntry(entryId: string, orgId: string) {
-  await requireOwnerOrAdmin(entryId, orgId);
+  const { isOwner } = await requireOwnerOrAdmin(entryId, orgId);
 
-  const supabase = await createClient();
+  const supabase = isOwner ? await createClient() : createAdminClient();
+  if (!supabase) throw new Error("Admin client not configured");
 
   const { error: flagError } = await supabase
     .from("flagged_entries")

@@ -69,6 +69,9 @@ export function LeaderboardTable({
             </Link>
             <span className={cn("w-16 text-center text-sm font-medium", isCurrentUser ? "text-indigo-600/80" : "text-gray-500")}>
               {player.book_count}
+              {player.reading_count > 0 && (
+                <span className="text-amber-500 text-xs"> +{player.reading_count}</span>
+              )}
             </span>
             <span className={cn("w-20 text-center text-sm font-medium", isCurrentUser ? "text-indigo-600/80" : "text-gray-500")}>
               {player.page_count.toLocaleString()}
