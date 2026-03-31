@@ -95,6 +95,7 @@ export function PlayerManager({
   const [emailTarget, setEmailTarget] = useState<Member | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<{ link: string; name: string } | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return members;
@@ -112,13 +113,15 @@ export function PlayerManager({
       const result = await updateMemberRole(orgId, member.id, newRole as any);
       if (result?.error) {
         toast.error(typeof result.error === "string" ? result.error : "Failed to update role");
-      } else {
+      } else if (result?.role) {
         setMembers((prev) =>
-          prev.map((m) => (m.id === member.id ? { ...m, role: newRole } : m))
+          prev.map((m) => (m.id === member.id ? { ...m, role: result.role! } : m))
         );
         toast.success(
-          `${member.profile?.display_name ?? "Member"} is now ${newRole === "admin" ? "an admin" : "a player"}`
+          `${member.profile?.display_name ?? "Member"} is now ${result.role === "admin" ? "an admin" : "a player"}`
         );
+      } else {
+        toast.error("Unexpected response — role may not have updated");
       }
     });
   }
@@ -198,14 +201,24 @@ export function PlayerManager({
       if (result?.error) {
         toast.error(typeof result.error === "string" ? result.error : "Failed to generate invite");
       } else if (result?.link) {
-        await navigator.clipboard.writeText(result.link);
-        setCopiedUserId(member.user_id);
-        toast.success(
-          `Invite link for ${member.profile?.display_name ?? "player"} copied to clipboard`
-        );
-        setTimeout(() => setCopiedUserId(null), 2000);
+        setInviteLink({
+          link: result.link,
+          name: member.profile?.display_name ?? "player",
+        });
       }
     });
+  }
+
+  async function handleCopyInviteLink() {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink.link);
+      setCopiedUserId(inviteLink.name);
+      toast.success(`Invite link copied to clipboard`);
+      setTimeout(() => setCopiedUserId(null), 2000);
+    } catch {
+      toast.error("Failed to copy — please select and copy the link manually");
+    }
   }
 
   const adminCount = members.filter((m) => m.role === "admin").length;
@@ -464,6 +477,50 @@ export function PlayerManager({
             >
               {isPending ? "Saving..." : "Save Email"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite Link Dialog */}
+      <Dialog
+        open={!!inviteLink}
+        onOpenChange={(open) => !open && setInviteLink(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite Link for {inviteLink?.name}</DialogTitle>
+            <DialogDescription>
+              Send this link to {inviteLink?.name}. It will log them in
+              automatically — no password needed. The link expires after a short
+              time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={inviteLink?.link ?? ""}
+                className="font-mono text-xs"
+                onFocus={(e) => e.target.select()}
+              />
+              <Button
+                size="icon"
+                variant="outline"
+                className="shrink-0"
+                onClick={handleCopyInviteLink}
+              >
+                {copiedUserId === inviteLink?.name ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              Done
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
