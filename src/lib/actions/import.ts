@@ -228,13 +228,14 @@ export async function previewSheetImport(
       rowCount++;
       const p = result.parsed;
       const country = p.country;
-      const isNewCountry = !!country && !seenCountries.has(country);
-      if (country) seenCountries.add(country);
+      const isNewCountry = p.completed && !!country && !seenCountries.has(country);
+      if (p.completed && country) seenCountries.add(country);
 
       const score = calculateBookScore(
         {
           pages: p.pages,
           fiction: p.fiction,
+          completed: p.completed,
           bonus_1: p.bonus1,
           bonus_2: p.bonus2,
           bonus_3: p.bonus3,
@@ -394,13 +395,14 @@ export async function importFromSheet(
 
       const p = result.parsed;
       const country = p.country;
-      const isNewCountry = !!country && !seenCountries.has(country);
-      if (country) seenCountries.add(country);
+      const isNewCountry = p.completed && !!country && !seenCountries.has(country);
+      if (p.completed && country) seenCountries.add(country);
 
       const score = calculateBookScore(
         {
           pages: p.pages,
           fiction: p.fiction,
+          completed: p.completed,
           bonus_1: p.bonus1,
           bonus_2: p.bonus2,
           bonus_3: p.bonus3,
