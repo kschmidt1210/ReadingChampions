@@ -70,8 +70,11 @@ export function LeaderboardPodium({
               {player.total_points.toFixed(1)}
             </div>
             <div className="text-xs font-medium text-gray-400 mt-1">
-              {player.book_count} {player.book_count === 1 ? "book" : "books"} &middot;{" "}
-              {player.page_count.toLocaleString()} pages
+              {player.book_count} {player.book_count === 1 ? "book" : "books"}
+              {player.reading_count > 0 && (
+                <span className="text-amber-500"> + {player.reading_count} reading</span>
+              )}
+              {" "}&middot; {player.page_count.toLocaleString()} pages
             </div>
           </div>
         );

@@ -99,6 +99,7 @@ export async function getLeaderboardData(
       display_name: data.display_name,
       total_points: allPoints + seasonBonus,
       book_count: completedEntries.length,
+      reading_count: data.entries.length - completedEntries.length,
       page_count: pageCount,
       rank: 0,
     });

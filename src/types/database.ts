@@ -137,6 +137,7 @@ export interface LeaderboardPlayer {
   display_name: string;
   total_points: number;
   book_count: number;
+  reading_count: number;
   page_count: number;
   rank: number;
 }
