@@ -57,7 +57,10 @@ export async function updateMemberRole(
     }
   }
 
-  const { error, data } = await supabase
+  const admin = createAdminClient();
+  if (!admin) return { error: "Service role key not configured" };
+
+  const { error, data } = await admin
     .from("org_members")
     .update({ role: newRole })
     .eq("id", memberId)
@@ -65,7 +68,7 @@ export async function updateMemberRole(
     .select("id");
 
   if (error) return { error: error.message };
-  if (!data?.length) return { error: "Member not found or update blocked" };
+  if (!data?.length) return { error: "Member not found" };
 
   revalidatePath("/admin/players");
   return { role: newRole };
@@ -100,7 +103,10 @@ export async function removeMember(orgId: string, memberId: string) {
     }
   }
 
-  const { error } = await supabase
+  const adminClient = createAdminClient();
+  if (!adminClient) return { error: "Service role key not configured" };
+
+  const { error } = await adminClient
     .from("org_members")
     .delete()
     .eq("id", memberId)
