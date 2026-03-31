@@ -57,15 +57,15 @@ export async function updateMemberRole(
     }
   }
 
-  const { error, count } = await supabase
+  const { error, data } = await supabase
     .from("org_members")
     .update({ role: newRole })
     .eq("id", memberId)
     .eq("org_id", orgId)
-    .select("id", { count: "exact", head: true });
+    .select("id");
 
   if (error) return { error: error.message };
-  if (count === 0) return { error: "Member not found or update blocked" };
+  if (!data?.length) return { error: "Member not found or update blocked" };
 
   revalidatePath("/admin/players");
   return { role: newRole };
