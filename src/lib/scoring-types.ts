@@ -30,6 +30,7 @@ export const HOMETOWN_BONUS_LABELS: Record<HometownBonusKey, string> = {
 export interface ScoreInput {
   pages: number;
   fiction: boolean;
+  completed: boolean;
   bonus_1: BonusKey | null;
   bonus_2: BonusKey | null;
   bonus_3: BonusKey | null;

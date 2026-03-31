@@ -9,10 +9,10 @@ export function calculateBookScore(
   // 1. Round pages to nearest 50 (matches spreadsheet MROUND)
   const roundedPages = Math.round(input.pages / 50) * 50;
 
-  // 2. Base points (fiction / nonfiction)
-  const basePoints = input.fiction
-    ? config.base_points.fiction
-    : config.base_points.nonfiction;
+  // 2. Base points (fiction / nonfiction) — skipped for incomplete books
+  const basePoints = input.completed
+    ? (input.fiction ? config.base_points.fiction : config.base_points.nonfiction)
+    : 0;
 
   // 3. Page points using rounded pages
   const firstPages = Math.min(roundedPages, 100) * config.page_points.first_100_rate;

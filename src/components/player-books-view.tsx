@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, FileText, Star, Heart, Globe, Library, BookA, ChevronRight } from "lucide-react";
+import { BookOpen, FileText, Star, Heart, Globe, Library, BookMarked } from "lucide-react";
 import { BookEntryCard } from "@/components/book-entry-card";
 import { BookEntryPanel } from "@/components/book-entry-panel";
 import { GenreGrid } from "@/components/genre-grid";
@@ -43,12 +43,15 @@ export function PlayerBooksView({
   const [selectedEntry, setSelectedEntry] = useState<BookEntryWithBook | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
 
-  const totalBooks = entries.length;
+  const currentlyReading = entries.filter((e) => !e.completed);
+  const completedEntries = entries.filter((e) => e.completed);
+
+  const totalBooks = completedEntries.length;
   const totalPoints = entries.reduce((sum, e) => sum + Number(e.points), 0);
-  const totalPages = entries.reduce((sum, e) => sum + (e.book?.pages ?? 0), 0);
+  const totalPages = completedEntries.reduce((sum, e) => sum + (e.book?.pages ?? 0), 0);
   const avgRating =
     totalBooks > 0
-      ? entries.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) / totalBooks
+      ? completedEntries.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) / totalBooks
       : 0;
 
   const statValues = [
@@ -59,14 +62,14 @@ export function PlayerBooksView({
   ];
 
   const coveredGenreIds = new Set(
-    entries.map((e) => e.genre_id).filter((g): g is string => g !== null)
+    completedEntries.map((e) => e.genre_id).filter((g): g is string => g !== null)
   );
   const coveredLetters = new Set(
-    entries.map((e) => getFirstLetter(e.book?.title ?? ""))
+    completedEntries.map((e) => getFirstLetter(e.book?.title ?? ""))
   );
   const countries = [
     ...new Set(
-      entries
+      completedEntries
         .map((e) => e.book?.country)
         .filter((c): c is string => c !== null && c !== undefined && c !== "")
     ),
@@ -88,6 +91,30 @@ export function PlayerBooksView({
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+
+      {/* Currently Reading */}
+      {currentlyReading.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <BookMarked className="h-4.5 w-4.5 text-amber-500" />
+            <h2 className="font-semibold text-gray-900">
+              Currently Reading ({currentlyReading.length})
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {currentlyReading.map((entry) => (
+              <BookEntryCard
+                key={entry.id}
+                entry={entry}
+                genreName={
+                  entry.genre_id ? genreMap.get(entry.genre_id) : undefined
+                }
+                onClick={() => handleCardClick(entry)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -145,15 +172,15 @@ export function PlayerBooksView({
         </div>
       </div>
 
-      {/* Book list */}
+      {/* Completed book list */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Library className="h-4.5 w-4.5 text-indigo-500" />
           <h2 className="font-semibold text-gray-900">
-            Logged Books ({totalBooks})
+            Completed Books ({totalBooks})
           </h2>
         </div>
-        {totalBooks === 0 ? (
+        {totalBooks === 0 && currentlyReading.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
             <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">
@@ -167,9 +194,15 @@ export function PlayerBooksView({
               </p>
             )}
           </div>
+        ) : totalBooks === 0 ? (
+          <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">
+            <p className="text-sm text-gray-400">
+              No completed books yet.
+            </p>
+          </div>
         ) : (
           <div className="space-y-3">
-            {entries.map((entry) => (
+            {completedEntries.map((entry) => (
               <BookEntryCard
                 key={entry.id}
                 entry={entry}

@@ -11,6 +11,7 @@ import { BookSearch } from "./book-search";
 import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
+import { Switch } from "@/components/ui/switch";
 import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
@@ -116,6 +117,7 @@ export function BookEntryPanel({
       {
         pages: pages || selectedBook?.pages || 0,
         fiction,
+        completed,
         bonus_1: bonuses[0],
         bonus_2: bonuses[1],
         bonus_3: bonuses[2],
@@ -125,7 +127,7 @@ export function BookEntryPanel({
       },
       scoringConfig
     );
-  }, [pages, fiction, bonuses, hometownBonus, deduction, isNewCountry, selectedBook, entry, scoringConfig]);
+  }, [pages, fiction, completed, bonuses, hometownBonus, deduction, isNewCountry, selectedBook, entry, scoringConfig]);
 
   function handleBookSelect(book: ParsedBook) {
     setSelectedBook(book);
@@ -295,9 +297,25 @@ export function BookEntryPanel({
             </>
           )}
 
+          {!readOnly && (
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 border border-gray-100">
+              <div>
+                <Label htmlFor="completed-toggle" className="text-sm font-medium text-gray-700">Finished reading?</Label>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {completed ? "Full points with base score" : "Page points only until completed"}
+                </p>
+              </div>
+              <Switch
+                id="completed-toggle"
+                checked={completed}
+                onCheckedChange={setCompleted}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Pages</Label>
+              <Label>{completed ? "Pages" : "Pages Read"}</Label>
               <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} disabled={readOnly} />
             </div>
             <div className="space-y-1.5">
@@ -310,10 +328,12 @@ export function BookEntryPanel({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Date Finished</Label>
-              <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
-            </div>
+            {completed && (
+              <div className="space-y-1.5">
+                <Label>Date Finished</Label>
+                <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>Rating (0-10)</Label>
               <Input type="number" min="0" max="10" step="0.5" value={rating} onChange={(e) => setRating(e.target.value)} disabled={readOnly} />
@@ -366,7 +386,7 @@ export function BookEntryPanel({
           )}
 
           <div className="sticky bottom-0 bg-background pt-3 space-y-3 border-t border-gray-100">
-            <ScorePreview breakdown={scoreBreakdown} />
+            <ScorePreview breakdown={scoreBreakdown} completed={completed} />
 
             {!readOnly && (
               <button

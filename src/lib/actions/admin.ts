@@ -231,13 +231,14 @@ export async function recalculateSeasonPoints(orgId: string, seasonId: string) {
     const seenCountries = new Set<string>();
     for (const entry of sortedEntries) {
       const country = (entry.book as any)?.country;
-      const isNewCountry = !!country && !seenCountries.has(country);
-      if (country) seenCountries.add(country);
+      const isNewCountry = entry.completed && !!country && !seenCountries.has(country);
+      if (entry.completed && country) seenCountries.add(country);
 
       const score = calculateBookScore(
         {
           pages: (entry.book as any)?.pages ?? 0,
           fiction: entry.fiction,
+          completed: entry.completed,
           bonus_1: entry.bonus_1,
           bonus_2: entry.bonus_2,
           bonus_3: entry.bonus_3,

@@ -12,10 +12,17 @@ export function BookEntryCard({
   genreName?: string;
   onClick?: () => void;
 }) {
+  const isInProgress = !entry.completed;
+  const points = Number(entry.points);
+
   return (
     <div
       onClick={onClick}
-      className="group flex items-start gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border border-gray-100"
+      className={`group flex items-start gap-4 p-4 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border ${
+        isInProgress
+          ? "bg-amber-50/40 border-amber-200/60"
+          : "bg-white border-gray-100"
+      }`}
     >
       {entry.book.cover_url ? (
         <img
@@ -24,8 +31,12 @@ export function BookEntryCard({
           className="w-14 h-20 object-cover rounded-lg shadow-sm"
         />
       ) : (
-        <div className="w-14 h-20 rounded-lg bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-sm">
-          <BookOpen className="h-6 w-6 text-indigo-400" />
+        <div className={`w-14 h-20 rounded-lg flex items-center justify-center shadow-sm ${
+          isInProgress
+            ? "bg-gradient-to-br from-amber-100 to-orange-100"
+            : "bg-gradient-to-br from-indigo-100 to-violet-100"
+        }`}>
+          <BookOpen className={`h-6 w-6 ${isInProgress ? "text-amber-400" : "text-indigo-400"}`} />
         </div>
       )}
       <div className="flex-1 min-w-0">
@@ -37,6 +48,11 @@ export function BookEntryCard({
           <span className="text-xs text-gray-400 font-medium">
             {entry.book.pages} pages
           </span>
+          {isInProgress && (
+            <Badge variant="outline" className="text-xs font-medium text-amber-700 border-amber-300 bg-amber-50">
+              In Progress
+            </Badge>
+          )}
           {genreName && (
             <Badge variant="secondary" className="text-xs font-medium">
               {genreName}
@@ -51,8 +67,12 @@ export function BookEntryCard({
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="text-right">
-          <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-sm font-bold text-indigo-700">
-            {Number(entry.points).toFixed(2)}
+          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-bold ${
+            isInProgress
+              ? "bg-amber-50 text-amber-700"
+              : "bg-indigo-50 text-indigo-700"
+          }`}>
+            {points.toFixed(2)}
           </span>
           <div className="text-[0.65rem] text-gray-400 mt-1 text-center">pts</div>
           {entry.rating !== null && (

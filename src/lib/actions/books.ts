@@ -139,6 +139,7 @@ export async function createBookEntry(input: {
     {
       pages: input.pages,
       fiction: input.fiction,
+      completed: input.completed,
       bonus_1: input.bonus1,
       bonus_2: input.bonus2,
       bonus_3: input.bonus3,
@@ -303,6 +304,7 @@ export async function updateBookEntry(
     {
       pages: input.pages,
       fiction: input.fiction,
+      completed: input.completed,
       bonus_1: input.bonus1,
       bonus_2: input.bonus2,
       bonus_3: input.bonus3,

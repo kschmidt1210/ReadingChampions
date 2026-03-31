@@ -45,6 +45,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 300,
       fiction: true,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -67,6 +68,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 320,
       fiction: true,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -84,6 +86,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 75,
       fiction: true,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -102,6 +105,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 50,
       fiction: false,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -118,6 +122,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 200,
       fiction: true,
+      completed: true,
       bonus_1: "series",
       bonus_2: "award_winner",
       bonus_3: null,
@@ -140,6 +145,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 100,
       fiction: true,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -159,6 +165,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 400,
       fiction: true,
+      completed: true,
       bonus_1: "classics_pre1750",
       bonus_2: null,
       bonus_3: null,
@@ -180,6 +187,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 200,
       fiction: true,
+      completed: true,
       bonus_1: null,
       bonus_2: null,
       bonus_3: null,
@@ -201,6 +209,7 @@ describe("calculateBookScore", () => {
     const input: ScoreInput = {
       pages: 200,
       fiction: true,
+      completed: true,
       bonus_1: "series",
       bonus_2: null,
       bonus_3: null,
@@ -218,6 +227,50 @@ describe("calculateBookScore", () => {
     expect(result.bonusAmounts[0].key).toBe("series");
     expect(result.newCountryMultiplier).toBeCloseTo(1.057, 3);
     expect(result.finalScore).toBeCloseTo(2.27457 * 1.057, 2);
+  });
+
+  it("skips base points for incomplete books", () => {
+    const input: ScoreInput = {
+      pages: 300,
+      fiction: true,
+      completed: false,
+      bonus_1: null,
+      bonus_2: null,
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: null,
+      isNewCountry: false,
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(300, 50) = 300
+    // Base: 0 (not completed)
+    // Pages: min(300,100)*0.0028 + max(300-100,0)*0.01 = 0.28 + 2.0 = 2.28
+    // Total: 0 + 2.28 = 2.28
+    expect(result.basePoints).toBe(0);
+    expect(result.pagePoints).toBeCloseTo(2.28, 2);
+    expect(result.finalScore).toBeCloseTo(2.28, 2);
+  });
+
+  it("applies bonuses to page-only total for incomplete books", () => {
+    const input: ScoreInput = {
+      pages: 200,
+      fiction: true,
+      completed: false,
+      bonus_1: "series",
+      bonus_2: null,
+      bonus_3: null,
+      hometown_bonus: null,
+      deduction: null,
+      isNewCountry: false,
+    };
+    const result = calculateBookScore(input, DEFAULT_CONFIG);
+    // MROUND(200, 50) = 200
+    // Base: 0 (not completed), Pages: 1.28, PreBonus: 1.28
+    // Series: 1.28 * 0.143 = 0.18304
+    // Total: 1.28 + 0.18304 = 1.46304
+    expect(result.basePoints).toBe(0);
+    expect(result.preBonusTotal).toBeCloseTo(1.28, 2);
+    expect(result.finalScore).toBeCloseTo(1.46304, 2);
   });
 });
 

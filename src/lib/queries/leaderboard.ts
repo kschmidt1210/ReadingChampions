@@ -60,19 +60,21 @@ export async function getLeaderboardData(
   const players: LeaderboardPlayer[] = [];
 
   for (const [userId, data] of byUser) {
-    const bookPoints = data.entries.reduce(
+    const allPoints = data.entries.reduce(
       (sum, e) => sum + Number(e.points),
       0
     );
-    const pageCount = data.entries.reduce(
+
+    const completedEntries = data.entries.filter((e) => e.completed);
+    const pageCount = completedEntries.reduce(
       (sum, e) => sum + ((e as any).book?.pages ?? 0),
       0
     );
 
-    // Calculate season bonuses using pre-bonus totals (re-derived from scoring engine)
+    // Season bonuses only count completed entries
     let seasonBonus = 0;
     if (config) {
-      const enriched = data.entries.map((e) => {
+      const enriched = completedEntries.map((e) => {
         const pages = (e as any).book?.pages ?? 0;
         const roundedPages = Math.round(pages / 50) * 50;
         const fiction = e.fiction;
@@ -95,8 +97,8 @@ export async function getLeaderboardData(
     players.push({
       user_id: userId,
       display_name: data.display_name,
-      total_points: bookPoints + seasonBonus,
-      book_count: data.entries.length,
+      total_points: allPoints + seasonBonus,
+      book_count: completedEntries.length,
       page_count: pageCount,
       rank: 0,
     });
