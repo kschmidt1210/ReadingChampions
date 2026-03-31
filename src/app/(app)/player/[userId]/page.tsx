@@ -63,6 +63,7 @@ export default async function PlayerPage({
       genreMap={genreMap}
       isCurrentUser={user.id === userId}
       isAdmin={currentOrg.role === "admin"}
+      seasonId={season.id}
     />
   );
 }
