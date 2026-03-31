@@ -30,6 +30,7 @@ interface PlayerBooksViewProps {
   genreMap: Map<string, string>;
   isCurrentUser: boolean;
   isAdmin?: boolean;
+  seasonId: string;
 }
 
 export function PlayerBooksView({
@@ -39,6 +40,7 @@ export function PlayerBooksView({
   genreMap,
   isCurrentUser,
   isAdmin = false,
+  seasonId,
 }: PlayerBooksViewProps) {
   const [selectedEntry, setSelectedEntry] = useState<BookEntryWithBook | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -220,6 +222,7 @@ export function PlayerBooksView({
         open={panelOpen}
         onClose={handlePanelClose}
         genres={genres}
+        seasonId={seasonId}
         entry={selectedEntry ?? undefined}
         canEdit={canModify}
         canDelete={canModify}
