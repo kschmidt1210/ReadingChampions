@@ -33,6 +33,7 @@ export interface Organization {
   name: string;
   invite_code: string;
   spreadsheet_url: string | null;
+  notes: string | null;
   created_at: string;
 }
 

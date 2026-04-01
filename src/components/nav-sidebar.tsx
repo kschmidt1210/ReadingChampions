@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trophy, BookOpen, Settings, Plus, LogOut, Sparkles } from "lucide-react";
+import { Trophy, BookOpen, Settings, Plus, LogOut, Sparkles, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OrgSwitcher } from "./org-switcher";
 import { useOrg } from "./providers";
@@ -11,6 +11,7 @@ import { logout } from "@/lib/actions/auth";
 const navItems = [
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy, color: "text-amber-500" },
   { href: "/my-books", label: "My Books", icon: BookOpen, color: "text-indigo-500" },
+  { href: "/rules", label: "Rules & Points", icon: Scale, color: "text-teal-500" },
 ];
 
 const adminItems = [
