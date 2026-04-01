@@ -8,6 +8,28 @@ const rankColors: Record<number, string> = {
   3: "bg-orange-100 text-orange-700 ring-orange-300/50",
 };
 
+function ProgressPip({
+  filled,
+  total,
+  filledClass,
+  emptyClass,
+}: {
+  filled: number;
+  total: number;
+  filledClass: string;
+  emptyClass: string;
+}) {
+  const pct = total > 0 ? Math.min((filled / total) * 100, 100) : 0;
+  return (
+    <div className={cn("h-1.5 rounded-full overflow-hidden w-full", emptyClass)}>
+      <div
+        className={cn("h-full rounded-full transition-all", filledClass)}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
 export function LeaderboardTable({
   players,
   currentUserId,
@@ -37,17 +59,30 @@ export function LeaderboardTable({
       {players.map((player) => {
         const isCurrentUser = player.user_id === currentUserId;
         const rankStyle = rankColors[player.rank];
+
+        const alphabetComplete = player.unique_letters >= 26;
+        const alphabetHalf = player.unique_letters >= 13;
+        const genreComplete =
+          player.total_genre_count > 0 &&
+          player.covered_genre_count >= player.total_genre_count;
+
         return (
           <div
             key={player.user_id}
             className={cn(
               "flex items-center px-5 py-4 border-b border-gray-100/80 last:border-b-0 transition-colors hover:bg-gray-50/60",
-              isCurrentUser && "bg-indigo-50/50 border-l-[3px] border-l-indigo-500 hover:bg-indigo-50/70"
+              isCurrentUser &&
+                "bg-indigo-50/50 border-l-[3px] border-l-indigo-500 hover:bg-indigo-50/70"
             )}
           >
             <span className="w-12">
               {rankStyle ? (
-                <span className={cn("inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ring-1", rankStyle)}>
+                <span
+                  className={cn(
+                    "inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ring-1",
+                    rankStyle
+                  )}
+                >
                   {player.rank}
                 </span>
               ) : (
@@ -56,24 +91,115 @@ export function LeaderboardTable({
                 </span>
               )}
             </span>
-            <Link
-              href={isCurrentUser ? "/my-books" : `/player/${player.user_id}`}
+            <div className="flex-1 min-w-0">
+              <Link
+                href={
+                  isCurrentUser ? "/my-books" : `/player/${player.user_id}`
+                }
+                className={cn(
+                  "font-semibold text-[0.95rem] hover:underline decoration-1 underline-offset-2 block truncate",
+                  isCurrentUser ? "text-indigo-700" : "text-gray-900"
+                )}
+              >
+                {isCurrentUser
+                  ? `You (${player.display_name})`
+                  : player.display_name}
+              </Link>
+              <div className="flex items-center gap-3 mt-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className={cn(
+                      "text-[0.65rem] font-semibold uppercase tracking-wide shrink-0",
+                      alphabetComplete
+                        ? "text-indigo-600"
+                        : alphabetHalf
+                          ? "text-indigo-500"
+                          : "text-gray-400"
+                    )}
+                  >
+                    A-Z
+                  </span>
+                  <div className="w-12 sm:w-16">
+                    <ProgressPip
+                      filled={player.unique_letters}
+                      total={26}
+                      filledClass={
+                        alphabetComplete
+                          ? "bg-indigo-500"
+                          : "bg-indigo-400/70"
+                      }
+                      emptyClass="bg-gray-100"
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[0.65rem] font-medium tabular-nums shrink-0",
+                      alphabetComplete
+                        ? "text-indigo-600"
+                        : "text-gray-400"
+                    )}
+                  >
+                    {player.unique_letters}/26
+                  </span>
+                </div>
+                {player.total_genre_count > 0 && (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      className={cn(
+                        "text-[0.65rem] font-semibold uppercase tracking-wide shrink-0",
+                        genreComplete
+                          ? "text-emerald-600"
+                          : "text-gray-400"
+                      )}
+                    >
+                      Genre
+                    </span>
+                    <div className="w-10 sm:w-14">
+                      <ProgressPip
+                        filled={player.covered_genre_count}
+                        total={player.total_genre_count}
+                        filledClass={
+                          genreComplete
+                            ? "bg-emerald-500"
+                            : "bg-emerald-400/70"
+                        }
+                        emptyClass="bg-gray-100"
+                      />
+                    </div>
+                    <span
+                      className={cn(
+                        "text-[0.65rem] font-medium tabular-nums shrink-0",
+                        genreComplete
+                          ? "text-emerald-600"
+                          : "text-gray-400"
+                      )}
+                    >
+                      {player.covered_genre_count}/{player.total_genre_count}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <span
               className={cn(
-                "flex-1 font-semibold text-[0.95rem] hover:underline decoration-1 underline-offset-2",
-                isCurrentUser ? "text-indigo-700" : "text-gray-900"
+                "w-16 text-center text-sm font-medium",
+                isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
               )}
             >
-              {isCurrentUser
-                ? `You (${player.display_name})`
-                : player.display_name}
-            </Link>
-            <span className={cn("w-16 text-center text-sm font-medium", isCurrentUser ? "text-indigo-600/80" : "text-gray-500")}>
               {player.book_count}
               {player.reading_count > 0 && (
-                <span className="text-amber-500 text-xs"> +{player.reading_count}</span>
+                <span className="text-amber-500 text-xs">
+                  {" "}
+                  +{player.reading_count}
+                </span>
               )}
             </span>
-            <span className={cn("w-20 text-center text-sm font-medium", isCurrentUser ? "text-indigo-600/80" : "text-gray-500")}>
+            <span
+              className={cn(
+                "w-20 text-center text-sm font-medium",
+                isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
+              )}
+            >
               {player.page_count.toLocaleString()}
             </span>
             <span className="w-24 text-right">
