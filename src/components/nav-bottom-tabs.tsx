@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trophy, BookOpen, Plus, Settings } from "lucide-react";
+import { Trophy, BookOpen, Plus, Settings, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrg } from "./providers";
 import type { LucideIcon } from "lucide-react";
@@ -19,6 +19,7 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
     { href: "/leaderboard", label: "Board", icon: Trophy, activeColor: "text-amber-500" },
     { href: "/my-books", label: "Books", icon: BookOpen, activeColor: "text-indigo-600" },
     { label: "Add", icon: Plus, isAction: true },
+    { href: "/rules", label: "Rules", icon: Scale, activeColor: "text-teal-500" },
     ...(currentRole === "admin"
       ? [{ href: "/admin/settings", label: "Admin", icon: Settings, activeColor: "text-rose-500" } as NavTab]
       : []),

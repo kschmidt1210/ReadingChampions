@@ -71,6 +71,18 @@ export async function getSeasonEntryCount(seasonId: string) {
   return count ?? 0;
 }
 
+export async function getOrgNotes(orgId: string) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("organizations")
+    .select("notes")
+    .eq("id", orgId)
+    .single();
+
+  return data?.notes ?? null;
+}
+
 export async function getOrgGenres(orgId: string) {
   const supabase = await createClient();
 

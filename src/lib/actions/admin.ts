@@ -273,6 +273,19 @@ export async function recalculateSeasonPoints(orgId: string, seasonId: string) {
   return { updated };
 }
 
+export async function updateOrgNotes(orgId: string, notes: string) {
+  const { error: authError, supabase } = await requireAdmin(orgId);
+  if (authError) return { error: authError };
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ notes: notes || null })
+    .eq("id", orgId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/rules");
+}
+
 export async function deleteOrganization(orgId: string) {
   const { error: authError, supabase, user } = await requireAdmin(orgId);
   if (authError || !user) return { error: authError ?? "Not authenticated" };
