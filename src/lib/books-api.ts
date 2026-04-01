@@ -15,7 +15,18 @@ export interface ParsedBook {
   pages: number;
   year_published: number | null;
   cover_url: string | null;
-  country: string | null; // Not reliably available from Open Library; user fills manually
+  country: string | null;
+  series_name: string | null;
+}
+
+export function extractSeriesFromSubjects(subjects?: string[]): string | null {
+  if (!subjects) return null;
+  const tag = subjects.find((s) => s.startsWith("series:"));
+  if (!tag) return null;
+  return tag
+    .slice("series:".length)
+    .replace(/_/g, " ")
+    .trim() || null;
 }
 
 export function parseOpenLibraryResult(doc: OpenLibraryDoc): ParsedBook {
@@ -28,13 +39,17 @@ export function parseOpenLibraryResult(doc: OpenLibraryDoc): ParsedBook {
     cover_url: doc.cover_i
       ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
       : null,
-    country: null, // User fills manually
+    country: null,
+    series_name: extractSeriesFromSubjects(doc.subject),
   };
 }
 
+const SEARCH_FIELDS =
+  "title,author_name,isbn,number_of_pages_median,first_publish_year,cover_i,subject";
+
 export async function searchBooks(query: string): Promise<ParsedBook[]> {
   const encoded = encodeURIComponent(query);
-  const url = `https://openlibrary.org/search.json?q=${encoded}&limit=10&fields=title,author_name,isbn,number_of_pages_median,first_publish_year,cover_i`;
+  const url = `https://openlibrary.org/search.json?q=${encoded}&limit=10&fields=${SEARCH_FIELDS}`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -46,7 +61,7 @@ export async function searchBooks(query: string): Promise<ParsedBook[]> {
 }
 
 export async function searchByISBN(isbn: string): Promise<ParsedBook | null> {
-  const url = `https://openlibrary.org/search.json?isbn=${isbn}&limit=1&fields=title,author_name,isbn,number_of_pages_median,first_publish_year,cover_i`;
+  const url = `https://openlibrary.org/search.json?isbn=${isbn}&limit=1&fields=${SEARCH_FIELDS}`;
 
   const response = await fetch(url);
   if (!response.ok) return null;

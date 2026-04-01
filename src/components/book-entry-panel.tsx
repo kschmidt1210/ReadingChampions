@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookSearch } from "./book-search";
 import { GenrePicker } from "./genre-picker";
+import { SeriesPicker } from "./series-picker";
 import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
@@ -16,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
-import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries } from "@/lib/actions/books";
+import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries, getSeasonSeriesNames } from "@/lib/actions/books";
 import { toast } from "sonner";
 import type { ParsedBook } from "@/lib/books-api";
 import type { BookEntryWithBook, BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
@@ -81,6 +82,8 @@ export function BookEntryPanel({
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [existingCountries, setExistingCountries] = useState<string[]>([]);
+  const [seasonSeries, setSeasonSeries] = useState<string[]>([]);
+  const [detectedSeries, setDetectedSeries] = useState<string | null>(null);
 
   const populateFromEntry = useCallback((e: BookEntryWithBook) => {
     setPages(e.book.pages);
@@ -106,6 +109,7 @@ export function BookEntryPanel({
   useEffect(() => {
     if (open && seasonId) {
       getUserSeasonCountries(seasonId).then(setExistingCountries);
+      getSeasonSeriesNames(seasonId).then(setSeasonSeries);
     }
   }, [open, seasonId]);
 
@@ -136,6 +140,10 @@ export function BookEntryPanel({
     setSelectedBook(book);
     setPages(book.pages);
     setCountry(book.country ?? "");
+    setDetectedSeries(book.series_name);
+    if (book.series_name && !seriesName) {
+      setSeriesName(book.series_name);
+    }
   }
 
   function resetForm() {
@@ -153,6 +161,7 @@ export function BookEntryPanel({
     setHometownBonus(null);
     setDeduction(null);
     setConfirmingDelete(false);
+    setDetectedSeries(null);
   }
 
   function handleClose() {
@@ -358,7 +367,13 @@ export function BookEntryPanel({
 
           <div className="space-y-1.5">
             <Label>Series Name (optional)</Label>
-            <Input value={seriesName} onChange={(e) => setSeriesName(e.target.value)} placeholder="e.g., Lord of the Rings" disabled={readOnly} />
+            <SeriesPicker
+              value={seriesName}
+              onChange={setSeriesName}
+              seasonSeries={seasonSeries}
+              detectedSeries={detectedSeries}
+              disabled={readOnly}
+            />
           </div>
 
           <div className="space-y-1.5">

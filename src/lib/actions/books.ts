@@ -62,6 +62,30 @@ export async function getUserSeasonCountries(seasonId: string): Promise<string[]
   return [...countries];
 }
 
+export async function getSeasonSeriesNames(seasonId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("book_entries")
+    .select("series_name")
+    .eq("season_id", seasonId)
+    .not("series_name", "is", null);
+
+  if (!data) return [];
+
+  const unique = new Set<string>();
+  for (const row of data) {
+    const name = row.series_name?.trim();
+    if (name) unique.add(name);
+  }
+  return [...unique].sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeSeriesName(name: string | null): string | null {
+  if (!name) return null;
+  const trimmed = name.trim().replace(/\s+/g, " ");
+  return trimmed || null;
+}
+
 export async function findOrCreateBook(bookData: {
   isbn: string | null;
   title: string;
@@ -160,7 +184,7 @@ export async function createBookEntry(input: {
       book_id: input.bookId,
       completed: input.completed,
       fiction: input.fiction,
-      series_name: input.seriesName,
+      series_name: normalizeSeriesName(input.seriesName),
       genre_id: input.genreId,
       genre_name: input.genreName,
       date_finished: input.dateFinished,
@@ -327,7 +351,7 @@ export async function updateBookEntry(
     .update({
       completed: input.completed,
       fiction: input.fiction,
-      series_name: input.seriesName,
+      series_name: normalizeSeriesName(input.seriesName),
       genre_id: input.genreId,
       genre_name: input.genreName,
       date_finished: input.dateFinished,

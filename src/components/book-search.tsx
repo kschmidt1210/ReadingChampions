@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2, BookOpen } from "lucide-react";
 import type { ParsedBook } from "@/lib/books-api";
+import { extractSeriesFromSubjects } from "@/lib/books-api";
 
 export function BookSearch({
   onSelect,
@@ -22,7 +23,7 @@ export function BookSearch({
     setLoading(true);
     try {
       const res = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=8&fields=title,author_name,isbn,number_of_pages_median,first_publish_year,cover_i`
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=8&fields=title,author_name,isbn,number_of_pages_median,first_publish_year,cover_i,subject`
       );
       const data = await res.json();
       const parsed: ParsedBook[] = (data.docs ?? []).map((doc: any) => ({
@@ -35,6 +36,7 @@ export function BookSearch({
           ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
           : null,
         country: null,
+        series_name: extractSeriesFromSubjects(doc.subject),
       }));
       setResults(parsed);
     } catch {
@@ -61,7 +63,9 @@ export function BookSearch({
           placeholder="Search by title or ISBN..."
           className="pl-10"
         />
-        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />}
+        {loading && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />
+        )}
       </div>
       {results.length > 0 && (
         <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-64 overflow-y-auto shadow-sm">
@@ -76,18 +80,30 @@ export function BookSearch({
               className="w-full flex items-start gap-3 p-3 text-left hover:bg-indigo-50/50 transition-colors"
             >
               {book.cover_url ? (
-                <img src={book.cover_url} alt="" className="w-10 h-14 object-cover rounded-lg shadow-sm" />
+                <img
+                  src={book.cover_url}
+                  alt=""
+                  className="w-10 h-14 object-cover rounded-lg shadow-sm"
+                />
               ) : (
                 <div className="w-10 h-14 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-lg flex items-center justify-center">
                   <BookOpen className="h-4 w-4 text-indigo-400" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate text-gray-900">{book.title}</div>
+                <div className="font-medium text-sm truncate text-gray-900">
+                  {book.title}
+                </div>
                 <div className="text-xs text-gray-500">{book.author}</div>
                 <div className="text-xs text-gray-400 mt-0.5">
                   {book.pages > 0 ? `${book.pages} pages` : "Pages unknown"}
                   {book.year_published ? ` \u00B7 ${book.year_published}` : ""}
+                  {book.series_name && (
+                    <span className="text-violet-500">
+                      {" "}
+                      &middot; {book.series_name}
+                    </span>
+                  )}
                 </div>
               </div>
             </button>

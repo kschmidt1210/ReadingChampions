@@ -8,6 +8,11 @@ const rankColors: Record<number, string> = {
   3: "bg-orange-100 text-orange-700 ring-orange-300/50",
 };
 
+const challengeBadges: Record<number, { className: string; label: string }> = {
+  1: { className: "bg-amber-100 text-amber-700", label: "1st" },
+  2: { className: "bg-indigo-100 text-indigo-600", label: "2nd" },
+};
+
 function ProgressPip({
   filled,
   total,
@@ -21,12 +26,29 @@ function ProgressPip({
 }) {
   const pct = total > 0 ? Math.min((filled / total) * 100, 100) : 0;
   return (
-    <div className={cn("h-1.5 rounded-full overflow-hidden w-full", emptyClass)}>
+    <div
+      className={cn("h-1.5 rounded-full overflow-hidden w-full", emptyClass)}
+    >
       <div
         className={cn("h-full rounded-full transition-all", filledClass)}
         style={{ width: `${pct}%` }}
       />
     </div>
+  );
+}
+
+function ChallengeBadge({ rank }: { rank: number }) {
+  const badge = challengeBadges[rank];
+  if (!badge) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold leading-none",
+        badge.className
+      )}
+    >
+      {badge.label}
+    </span>
   );
 }
 
@@ -46,13 +68,19 @@ export function LeaderboardTable({
         <span className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Player
         </span>
-        <span className="w-16 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <span className="w-14 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Books
         </span>
-        <span className="w-20 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <span className="w-16 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:block">
           Pages
         </span>
-        <span className="w-24 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <span className="w-20 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Countries
+        </span>
+        <span className="w-24 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Series
+        </span>
+        <span className="w-22 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Points
         </span>
       </div>
@@ -134,9 +162,7 @@ export function LeaderboardTable({
                   <span
                     className={cn(
                       "text-[0.65rem] font-medium tabular-nums shrink-0",
-                      alphabetComplete
-                        ? "text-indigo-600"
-                        : "text-gray-400"
+                      alphabetComplete ? "text-indigo-600" : "text-gray-400"
                     )}
                   >
                     {player.unique_letters}/26
@@ -147,9 +173,7 @@ export function LeaderboardTable({
                     <span
                       className={cn(
                         "text-[0.65rem] font-semibold uppercase tracking-wide shrink-0",
-                        genreComplete
-                          ? "text-emerald-600"
-                          : "text-gray-400"
+                        genreComplete ? "text-emerald-600" : "text-gray-400"
                       )}
                     >
                       Genre
@@ -169,9 +193,7 @@ export function LeaderboardTable({
                     <span
                       className={cn(
                         "text-[0.65rem] font-medium tabular-nums shrink-0",
-                        genreComplete
-                          ? "text-emerald-600"
-                          : "text-gray-400"
+                        genreComplete ? "text-emerald-600" : "text-gray-400"
                       )}
                     >
                       {player.covered_genre_count}/{player.total_genre_count}
@@ -182,7 +204,7 @@ export function LeaderboardTable({
             </div>
             <span
               className={cn(
-                "w-16 text-center text-sm font-medium",
+                "w-14 text-center text-sm font-medium",
                 isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
               )}
             >
@@ -196,13 +218,65 @@ export function LeaderboardTable({
             </span>
             <span
               className={cn(
-                "w-20 text-center text-sm font-medium",
+                "w-16 text-center text-sm font-medium hidden sm:block",
                 isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
               )}
             >
               {player.page_count.toLocaleString()}
             </span>
-            <span className="w-24 text-right">
+            {/* Countries column */}
+            <div className="w-20 text-center">
+              {player.unique_countries > 0 ? (
+                <div className="flex flex-col items-center gap-0.5">
+                  <span
+                    className={cn(
+                      "text-sm font-semibold tabular-nums",
+                      player.country_rank <= 2
+                        ? "text-gray-900"
+                        : isCurrentUser
+                          ? "text-indigo-600/80"
+                          : "text-gray-500"
+                    )}
+                  >
+                    {player.unique_countries}
+                  </span>
+                  <ChallengeBadge rank={player.country_rank} />
+                </div>
+              ) : (
+                <span className="text-sm text-gray-300">&mdash;</span>
+              )}
+            </div>
+            {/* Series column */}
+            <div className="w-24 text-center">
+              {player.best_series_pages > 0 ? (
+                <div className="flex flex-col items-center gap-0.5">
+                  <span
+                    className={cn(
+                      "text-sm font-semibold tabular-nums",
+                      player.series_rank <= 2
+                        ? "text-gray-900"
+                        : isCurrentUser
+                          ? "text-indigo-600/80"
+                          : "text-gray-500"
+                    )}
+                  >
+                    {player.best_series_pages.toLocaleString()}
+                    <span className="text-[0.65rem] font-normal text-gray-400 ml-0.5">
+                      pg
+                    </span>
+                  </span>
+                  <span className="text-[0.6rem] text-gray-400 truncate max-w-[5.5rem]">
+                    {player.best_series_name}
+                    {player.best_series_count > 0 &&
+                      ` (${player.best_series_count})`}
+                  </span>
+                  <ChallengeBadge rank={player.series_rank} />
+                </div>
+              ) : (
+                <span className="text-sm text-gray-300">&mdash;</span>
+              )}
+            </div>
+            <span className="w-22 text-right">
               <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-sm font-bold text-indigo-700">
                 {player.total_points.toFixed(2)}
               </span>
