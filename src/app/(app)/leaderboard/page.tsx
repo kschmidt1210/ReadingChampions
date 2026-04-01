@@ -7,6 +7,7 @@ import {
 } from "@/lib/queries/organizations";
 import { LeaderboardPodium } from "@/components/leaderboard-podium";
 import { LeaderboardTable } from "@/components/leaderboard-table";
+import { ChallengeRankings } from "@/components/challenge-rankings";
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
@@ -27,7 +28,8 @@ export default async function LeaderboardPage() {
   if (!season)
     return <div className="p-8 text-center">No active season.</div>;
 
-  const players = await getLeaderboardData(season.id, currentOrg.id);
+  const { players, countryRankings, seriesRankings } =
+    await getLeaderboardData(season.id, currentOrg.id);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -41,6 +43,13 @@ export default async function LeaderboardPage() {
       </div>
       <LeaderboardPodium players={players} />
       <LeaderboardTable players={players} currentUserId={user.id} />
+      <div className="mt-8">
+        <ChallengeRankings
+          countryRankings={countryRankings}
+          seriesRankings={seriesRankings}
+          currentUserId={user.id}
+        />
+      </div>
     </div>
   );
 }

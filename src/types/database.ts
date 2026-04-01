@@ -141,4 +141,22 @@ export interface LeaderboardPlayer {
   reading_count: number;
   page_count: number;
   rank: number;
+  unique_letters: number;
+  covered_genre_count: number;
+  total_genre_count: number;
+}
+
+export interface ChallengeRanking {
+  user_id: string;
+  display_name: string;
+  value: number;
+  detail: string | null;
+  rank: number;
+  points_awarded: number;
+}
+
+export interface LeaderboardData {
+  players: LeaderboardPlayer[];
+  countryRankings: ChallengeRanking[];
+  seriesRankings: ChallengeRanking[];
 }

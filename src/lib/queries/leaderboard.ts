@@ -1,23 +1,37 @@
 import { createClient } from "@/lib/supabase/server";
 import { calculateSeasonBonuses } from "@/lib/scoring";
-import type { ScoringRulesConfig, LeaderboardPlayer } from "@/types/database";
+import type {
+  ScoringRulesConfig,
+  LeaderboardPlayer,
+  LeaderboardData,
+  ChallengeRanking,
+} from "@/types/database";
+
+function getFirstLetter(title: string): string {
+  return title
+    .replace(/^(the|a|an)\s+/i, "")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+}
 
 export async function getLeaderboardData(
   seasonId: string,
   orgId: string
-): Promise<LeaderboardPlayer[]> {
+): Promise<LeaderboardData> {
   const supabase = await createClient();
 
-  // Get all entries for this season with book and profile data
   const { data: entries, error } = await supabase
     .from("book_entries")
-    .select("*, book:books(title, pages), profile:profiles(display_name)")
+    .select(
+      "*, book:books(title, pages, country), profile:profiles(display_name)"
+    )
     .eq("season_id", seasonId);
 
   if (error) throw error;
-  if (!entries?.length) return [];
+  if (!entries?.length)
+    return { players: [], countryRankings: [], seriesRankings: [] };
 
-  // Get scoring config
   const { data: scoringRules } = await supabase
     .from("scoring_rules")
     .select("config")
@@ -28,7 +42,6 @@ export async function getLeaderboardData(
 
   const config = scoringRules?.config as ScoringRulesConfig;
 
-  // Get org genres for genre challenge
   const { data: genres } = await supabase
     .from("genres")
     .select("id")
@@ -39,10 +52,7 @@ export async function getLeaderboardData(
   // Group entries by user
   const byUser = new Map<
     string,
-    {
-      display_name: string;
-      entries: typeof entries;
-    }
+    { display_name: string; entries: typeof entries }
   >();
 
   for (const entry of entries) {
@@ -56,8 +66,21 @@ export async function getLeaderboardData(
     byUser.get(userId)!.entries.push(entry);
   }
 
-  // Calculate per-player totals with season bonuses
   const players: LeaderboardPlayer[] = [];
+
+  // Track per-player country/series data for competitive rankings
+  const countryData: Array<{
+    user_id: string;
+    display_name: string;
+    count: number;
+  }> = [];
+  const seriesData: Array<{
+    user_id: string;
+    display_name: string;
+    count: number;
+    name: string;
+    pages: number;
+  }> = [];
 
   for (const [userId, data] of byUser) {
     const allPoints = data.entries.reduce(
@@ -71,7 +94,66 @@ export async function getLeaderboardData(
       0
     );
 
-    // Season bonuses only count completed entries
+    // Alphabet progress
+    const letters = new Set(
+      completedEntries.map((e) => getFirstLetter((e as any).book?.title ?? ""))
+    );
+
+    // Genre progress
+    const coveredGenres = new Set(
+      completedEntries
+        .map((e) => e.genre_id)
+        .filter((g): g is string => g !== null)
+    );
+    const coveredGenreCount = genreIds.filter((gid) =>
+      coveredGenres.has(gid)
+    ).length;
+
+    // Unique countries
+    const countries = new Set(
+      completedEntries
+        .map((e) => (e as any).book?.country)
+        .filter(
+          (c): c is string => c !== null && c !== undefined && c !== ""
+        )
+    );
+    countryData.push({
+      user_id: userId,
+      display_name: data.display_name,
+      count: countries.size,
+    });
+
+    // Longest series: group completed entries by series_name
+    const seriesCounts = new Map<string, { count: number; pages: number }>();
+    for (const e of completedEntries) {
+      const sn = e.series_name;
+      if (!sn) continue;
+      const prev = seriesCounts.get(sn) ?? { count: 0, pages: 0 };
+      seriesCounts.set(sn, {
+        count: prev.count + 1,
+        pages: prev.pages + ((e as any).book?.pages ?? 0),
+      });
+    }
+    let bestSeries = { name: "", count: 0, pages: 0 };
+    for (const [name, stats] of seriesCounts) {
+      if (
+        stats.count > bestSeries.count ||
+        (stats.count === bestSeries.count && stats.pages > bestSeries.pages)
+      ) {
+        bestSeries = { name, ...stats };
+      }
+    }
+    if (bestSeries.count > 0) {
+      seriesData.push({
+        user_id: userId,
+        display_name: data.display_name,
+        count: bestSeries.count,
+        name: bestSeries.name,
+        pages: bestSeries.pages,
+      });
+    }
+
+    // Season bonuses
     let seasonBonus = 0;
     if (config) {
       const enriched = completedEntries.map((e) => {
@@ -102,6 +184,9 @@ export async function getLeaderboardData(
       reading_count: data.entries.length - completedEntries.length,
       page_count: pageCount,
       rank: 0,
+      unique_letters: letters.size,
+      covered_genre_count: coveredGenreCount,
+      total_genre_count: genreIds.length,
     });
   }
 
@@ -109,5 +194,60 @@ export async function getLeaderboardData(
   players.sort((a, b) => b.total_points - a.total_points);
   players.forEach((p, i) => (p.rank = i + 1));
 
-  return players;
+  // Build competitive rankings
+  const pointTiers = config?.longest_road;
+
+  const countryRankings = buildRankings(
+    countryData
+      .filter((d) => d.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .map((d) => ({
+        user_id: d.user_id,
+        display_name: d.display_name,
+        value: d.count,
+        detail: null,
+      })),
+    pointTiers?.countries ?? []
+  );
+
+  const seriesRankings = buildRankings(
+    seriesData
+      .sort(
+        (a, b) => b.count - a.count || b.pages - a.pages
+      )
+      .map((d) => ({
+        user_id: d.user_id,
+        display_name: d.display_name,
+        value: d.count,
+        detail: d.name,
+      })),
+    pointTiers?.series ?? []
+  );
+
+  return { players, countryRankings, seriesRankings };
+}
+
+function buildRankings(
+  sorted: Array<{
+    user_id: string;
+    display_name: string;
+    value: number;
+    detail: string | null;
+  }>,
+  pointTiers: number[]
+): ChallengeRanking[] {
+  let currentRank = 0;
+  let lastValue = -1;
+
+  return sorted.map((item, i) => {
+    if (item.value !== lastValue) {
+      currentRank = i + 1;
+      lastValue = item.value;
+    }
+    return {
+      ...item,
+      rank: currentRank,
+      points_awarded: currentRank <= pointTiers.length ? pointTiers[currentRank - 1] : 0,
+    };
+  });
 }
