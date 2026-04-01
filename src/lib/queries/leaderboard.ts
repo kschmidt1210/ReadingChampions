@@ -1,11 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { calculateSeasonBonuses } from "@/lib/scoring";
-import type {
-  ScoringRulesConfig,
-  LeaderboardPlayer,
-  LeaderboardData,
-  ChallengeRanking,
-} from "@/types/database";
+import type { ScoringRulesConfig, LeaderboardPlayer } from "@/types/database";
 
 function getFirstLetter(title: string): string {
   return title
@@ -18,7 +13,7 @@ function getFirstLetter(title: string): string {
 export async function getLeaderboardData(
   seasonId: string,
   orgId: string
-): Promise<LeaderboardData> {
+): Promise<LeaderboardPlayer[]> {
   const supabase = await createClient();
 
   const { data: entries, error } = await supabase
@@ -29,8 +24,7 @@ export async function getLeaderboardData(
     .eq("season_id", seasonId);
 
   if (error) throw error;
-  if (!entries?.length)
-    return { players: [], countryRankings: [], seriesRankings: [] };
+  if (!entries?.length) return [];
 
   const { data: scoringRules } = await supabase
     .from("scoring_rules")
@@ -68,20 +62,6 @@ export async function getLeaderboardData(
 
   const players: LeaderboardPlayer[] = [];
 
-  // Track per-player country/series data for competitive rankings
-  const countryData: Array<{
-    user_id: string;
-    display_name: string;
-    count: number;
-  }> = [];
-  const seriesData: Array<{
-    user_id: string;
-    display_name: string;
-    count: number;
-    name: string;
-    pages: number;
-  }> = [];
-
   for (const [userId, data] of byUser) {
     const allPoints = data.entries.reduce(
       (sum, e) => sum + Number(e.points),
@@ -96,7 +76,9 @@ export async function getLeaderboardData(
 
     // Alphabet progress
     const letters = new Set(
-      completedEntries.map((e) => getFirstLetter((e as any).book?.title ?? ""))
+      completedEntries.map((e) =>
+        getFirstLetter((e as any).book?.title ?? "")
+      )
     );
 
     // Genre progress
@@ -117,40 +99,28 @@ export async function getLeaderboardData(
           (c): c is string => c !== null && c !== undefined && c !== ""
         )
     );
-    countryData.push({
-      user_id: userId,
-      display_name: data.display_name,
-      count: countries.size,
-    });
 
-    // Longest series: group completed entries by series_name
-    const seriesCounts = new Map<string, { count: number; pages: number }>();
+    // Best series by total pages (case-insensitive grouping)
+    const seriesCounts = new Map<string, { count: number; pages: number; canonicalName: string }>();
     for (const e of completedEntries) {
-      const sn = e.series_name;
+      const sn = e.series_name?.trim();
       if (!sn) continue;
-      const prev = seriesCounts.get(sn) ?? { count: 0, pages: 0 };
-      seriesCounts.set(sn, {
+      const key = sn.toLowerCase();
+      const prev = seriesCounts.get(key) ?? { count: 0, pages: 0, canonicalName: sn };
+      seriesCounts.set(key, {
         count: prev.count + 1,
         pages: prev.pages + ((e as any).book?.pages ?? 0),
+        canonicalName: prev.count > 0 ? prev.canonicalName : sn,
       });
     }
     let bestSeries = { name: "", count: 0, pages: 0 };
-    for (const [name, stats] of seriesCounts) {
+    for (const [, stats] of seriesCounts) {
       if (
-        stats.count > bestSeries.count ||
-        (stats.count === bestSeries.count && stats.pages > bestSeries.pages)
+        stats.pages > bestSeries.pages ||
+        (stats.pages === bestSeries.pages && stats.count > bestSeries.count)
       ) {
-        bestSeries = { name, ...stats };
+        bestSeries = { name: stats.canonicalName, count: stats.count, pages: stats.pages };
       }
-    }
-    if (bestSeries.count > 0) {
-      seriesData.push({
-        user_id: userId,
-        display_name: data.display_name,
-        count: bestSeries.count,
-        name: bestSeries.name,
-        pages: bestSeries.pages,
-      });
     }
 
     // Season bonuses
@@ -187,67 +157,47 @@ export async function getLeaderboardData(
       unique_letters: letters.size,
       covered_genre_count: coveredGenreCount,
       total_genre_count: genreIds.length,
+      unique_countries: countries.size,
+      best_series_pages: bestSeries.pages,
+      best_series_name: bestSeries.name || null,
+      best_series_count: bestSeries.count,
+      country_rank: 0,
+      series_rank: 0,
     });
   }
 
-  // Sort by total points descending, assign ranks
+  // Sort by total points descending, assign overall ranks
   players.sort((a, b) => b.total_points - a.total_points);
   players.forEach((p, i) => (p.rank = i + 1));
 
-  // Build competitive rankings
-  const pointTiers = config?.longest_road;
+  // Assign country ranks (by unique_countries desc, ties get same rank)
+  const byCountries = [...players]
+    .filter((p) => p.unique_countries > 0)
+    .sort((a, b) => b.unique_countries - a.unique_countries);
+  assignChallengeRanks(byCountries, (p) => p.unique_countries, (p, r) => { p.country_rank = r; });
 
-  const countryRankings = buildRankings(
-    countryData
-      .filter((d) => d.count > 0)
-      .sort((a, b) => b.count - a.count)
-      .map((d) => ({
-        user_id: d.user_id,
-        display_name: d.display_name,
-        value: d.count,
-        detail: null,
-      })),
-    pointTiers?.countries ?? []
-  );
+  // Assign series ranks (by best_series_pages desc, tie-break by count)
+  const bySeries = [...players]
+    .filter((p) => p.best_series_pages > 0)
+    .sort((a, b) => b.best_series_pages - a.best_series_pages || b.best_series_count - a.best_series_count);
+  assignChallengeRanks(bySeries, (p) => p.best_series_pages, (p, r) => { p.series_rank = r; });
 
-  const seriesRankings = buildRankings(
-    seriesData
-      .sort(
-        (a, b) => b.count - a.count || b.pages - a.pages
-      )
-      .map((d) => ({
-        user_id: d.user_id,
-        display_name: d.display_name,
-        value: d.count,
-        detail: d.name,
-      })),
-    pointTiers?.series ?? []
-  );
-
-  return { players, countryRankings, seriesRankings };
+  return players;
 }
 
-function buildRankings(
-  sorted: Array<{
-    user_id: string;
-    display_name: string;
-    value: number;
-    detail: string | null;
-  }>,
-  pointTiers: number[]
-): ChallengeRanking[] {
+function assignChallengeRanks<T>(
+  sorted: T[],
+  getValue: (item: T) => number,
+  setRank: (item: T, rank: number) => void,
+) {
   let currentRank = 0;
   let lastValue = -1;
-
-  return sorted.map((item, i) => {
-    if (item.value !== lastValue) {
+  for (let i = 0; i < sorted.length; i++) {
+    const val = getValue(sorted[i]);
+    if (val !== lastValue) {
       currentRank = i + 1;
-      lastValue = item.value;
+      lastValue = val;
     }
-    return {
-      ...item,
-      rank: currentRank,
-      points_awarded: currentRank <= pointTiers.length ? pointTiers[currentRank - 1] : 0,
-    };
-  });
+    setRank(sorted[i], currentRank);
+  }
 }
