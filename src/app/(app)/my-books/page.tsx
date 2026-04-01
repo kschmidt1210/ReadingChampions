@@ -33,14 +33,12 @@ export default async function MyBooksPage() {
     user.id
   )) as BookEntryWithBook[];
   const genres = await getOrgGenres(currentOrg.id);
-  const genreMap = new Map(genres.map((g) => [g.id, g.name]));
 
   return (
     <PlayerBooksView
       playerName=""
       entries={entries}
       genres={genres}
-      genreMap={genreMap}
       isCurrentUser={true}
       isAdmin={currentOrg.role === "admin"}
       seasonId={season.id}

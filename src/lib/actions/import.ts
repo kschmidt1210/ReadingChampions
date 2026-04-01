@@ -485,6 +485,7 @@ export async function importFromSheet(
         fiction: p.fiction,
         series_name: p.seriesName,
         genre_id: p.genreId,
+        genre_name: p.genreName,
         date_finished: p.dateFinished,
         rating: p.rating !== null && !isNaN(p.rating) ? p.rating : null,
         hometown_bonus: p.hometownBonus,

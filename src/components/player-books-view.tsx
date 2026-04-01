@@ -27,7 +27,6 @@ interface PlayerBooksViewProps {
   playerName: string;
   entries: BookEntryWithBook[];
   genres: Array<{ id: string; name: string }>;
-  genreMap: Map<string, string>;
   isCurrentUser: boolean;
   isAdmin?: boolean;
   seasonId: string;
@@ -37,7 +36,6 @@ export function PlayerBooksView({
   playerName,
   entries,
   genres,
-  genreMap,
   isCurrentUser,
   isAdmin = false,
   seasonId,
@@ -108,9 +106,7 @@ export function PlayerBooksView({
               <BookEntryCard
                 key={entry.id}
                 entry={entry}
-                genreName={
-                  entry.genre_id ? genreMap.get(entry.genre_id) : undefined
-                }
+                genreName={entry.genre_name ?? undefined}
                 onClick={() => handleCardClick(entry)}
               />
             ))}
@@ -208,9 +204,7 @@ export function PlayerBooksView({
               <BookEntryCard
                 key={entry.id}
                 entry={entry}
-                genreName={
-                  entry.genre_id ? genreMap.get(entry.genre_id) : undefined
-                }
+                genreName={entry.genre_name ?? undefined}
                 onClick={() => handleCardClick(entry)}
               />
             ))}

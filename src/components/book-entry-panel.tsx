@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookSearch } from "./book-search";
+import { GenrePicker } from "./genre-picker";
 import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
@@ -68,7 +69,8 @@ export function BookEntryPanel({
   const [fiction, setFiction] = useState(true);
   const [completed, setCompleted] = useState(true);
   const [seriesName, setSeriesName] = useState("");
-  const [genreId, setGenreId] = useState<string>("");
+  const [genreId, setGenreId] = useState<string | null>(null);
+  const [genreName, setGenreName] = useState("");
   const [dateFinished, setDateFinished] = useState(new Date().toISOString().split("T")[0]);
   const [rating, setRating] = useState<string>("7");
   const [country, setCountry] = useState("");
@@ -85,7 +87,8 @@ export function BookEntryPanel({
     setFiction(e.fiction);
     setCompleted(e.completed);
     setSeriesName(e.series_name ?? "");
-    setGenreId(e.genre_id ?? "");
+    setGenreId(e.genre_id ?? null);
+    setGenreName(e.genre_name ?? "");
     setDateFinished(e.date_finished ?? new Date().toISOString().split("T")[0]);
     setRating(e.rating !== null ? String(e.rating) : "");
     setCountry(e.book.country ?? "");
@@ -141,7 +144,8 @@ export function BookEntryPanel({
     setFiction(true);
     setCompleted(true);
     setSeriesName("");
-    setGenreId("");
+    setGenreId(null);
+    setGenreName("");
     setDateFinished(new Date().toISOString().split("T")[0]);
     setRating("7");
     setCountry("");
@@ -179,6 +183,7 @@ export function BookEntryPanel({
           fiction,
           seriesName: seriesName || null,
           genreId: genreId || null,
+          genreName: genreName || null,
           dateFinished: completed ? dateFinished : null,
           rating: parsedRating,
           hometownBonus,
@@ -210,6 +215,7 @@ export function BookEntryPanel({
           fiction,
           seriesName: seriesName || null,
           genreId: genreId || null,
+          genreName: genreName || null,
           dateFinished: completed ? dateFinished : null,
           rating: parsedRating,
           hometownBonus,
@@ -340,19 +346,15 @@ export function BookEntryPanel({
             </div>
           </div>
 
-          {genres.length > 0 && (
-            <div className="space-y-1.5">
-              <Label>Genre</Label>
-              <Select value={genreId} onValueChange={(v) => setGenreId(v ?? "")} disabled={readOnly}>
-                <SelectTrigger><SelectValue placeholder="Select genre..." /></SelectTrigger>
-                <SelectContent>
-                  {genres.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <Label>Genre</Label>
+            <GenrePicker
+              value={genreName}
+              onChange={(name, id) => { setGenreName(name); setGenreId(id); }}
+              genres={genres}
+              disabled={readOnly}
+            />
+          </div>
 
           <div className="space-y-1.5">
             <Label>Series Name (optional)</Label>

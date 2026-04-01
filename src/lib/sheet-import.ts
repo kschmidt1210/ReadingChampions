@@ -158,15 +158,19 @@ export function mapHometown(label: string): HometownBonusKey | null {
 export function matchGenre(
   raw: string,
   genreMap: Map<string, string>
-): string | null {
+): { id: string; name: string } | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
   const lower = trimmed.toLowerCase();
   const directId = genreMap.get(lower);
-  if (directId) return directId;
+  if (directId) {
+    const name = [...genreMap.entries()].find(([, v]) => v === directId)?.[0] ?? trimmed;
+    return { id: directId, name: trimmed };
+  }
   const alias = GENRE_ALIASES[lower];
   if (alias) {
-    return genreMap.get(alias.toLowerCase()) ?? null;
+    const aliasId = genreMap.get(alias.toLowerCase()) ?? null;
+    if (aliasId) return { id: aliasId, name: alias };
   }
   return null;
 }
@@ -198,6 +202,7 @@ export interface ParsedSheetRow {
   fiction: boolean;
   seriesName: string | null;
   genreId: string | null;
+  genreName: string | null;
   genreRaw: string;
   country: string | null;
   dateFinished: string | null;
@@ -230,6 +235,8 @@ export function parseSheetRow(
     if (!isNaN(pts)) sheetPoints = pts;
   }
 
+  const genreMatch = matchGenre(genreRaw, genreMap);
+
   return {
     parsed: {
       isbn: row[COL.isbn]?.trim() || null,
@@ -239,7 +246,8 @@ export function parseSheetRow(
       completed: row[COL.completed]?.trim().toLowerCase() !== "no",
       fiction: row[COL.fictionNf]?.trim().toLowerCase() !== "nonfiction",
       seriesName: row[COL.series]?.trim() || null,
-      genreId: matchGenre(genreRaw, genreMap),
+      genreId: genreMatch?.id ?? null,
+      genreName: genreMatch?.name ?? (genreRaw || null),
       genreRaw,
       country: row[COL.country]?.trim() || null,
       dateFinished: parseDate(row[COL.dateFinished] || ""),
