@@ -112,6 +112,7 @@ export async function createBookEntry(input: {
   fiction: boolean;
   seriesName: string | null;
   genreId: string | null;
+  genreName: string | null;
   dateFinished: string | null;
   rating: number | null;
   hometownBonus: HometownBonusKey | null;
@@ -161,6 +162,7 @@ export async function createBookEntry(input: {
       fiction: input.fiction,
       series_name: input.seriesName,
       genre_id: input.genreId,
+      genre_name: input.genreName,
       date_finished: input.dateFinished,
       rating: input.rating,
       hometown_bonus: input.hometownBonus,
@@ -282,6 +284,7 @@ export async function updateBookEntry(
     fiction: boolean;
     seriesName: string | null;
     genreId: string | null;
+    genreName: string | null;
     dateFinished: string | null;
     rating: number | null;
     hometownBonus: HometownBonusKey | null;
@@ -326,6 +329,7 @@ export async function updateBookEntry(
       fiction: input.fiction,
       series_name: input.seriesName,
       genre_id: input.genreId,
+      genre_name: input.genreName,
       date_finished: input.dateFinished,
       rating: input.rating,
       hometown_bonus: input.hometownBonus,

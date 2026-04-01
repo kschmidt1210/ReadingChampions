@@ -82,6 +82,7 @@ export interface BookEntry {
   fiction: boolean;
   series_name: string | null;
   genre_id: string | null;
+  genre_name: string | null;
   date_finished: string | null;
   rating: number | null;
   hometown_bonus: HometownBonusKey | null;

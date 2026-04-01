@@ -155,10 +155,10 @@ export function FlaggedEntryCard({
                     )}
                     <span className="text-gray-400">Type</span>
                     <span>{entry.fiction ? "Fiction" : "Nonfiction"}</span>
-                    {entry.genre_id && (
+                    {(entry.genre_name || entry.genre_id) && (
                       <>
                         <span className="text-gray-400">Genre</span>
-                        <span>{entry.genre_id}</span>
+                        <span>{entry.genre_name ?? entry.genre_id}</span>
                       </>
                     )}
                   </div>
