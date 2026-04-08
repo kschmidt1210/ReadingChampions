@@ -440,6 +440,11 @@ export function LeaderboardTable({
                 <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-sm font-bold text-indigo-700">
                   {player.total_points.toFixed(2)}
                 </span>
+                {player.pending_points > 0 && (
+                  <span className="block text-[0.6rem] font-medium text-amber-500 mt-0.5">
+                    +{player.pending_points.toFixed(1)} pending
+                  </span>
+                )}
               </span>
             </div>
           );

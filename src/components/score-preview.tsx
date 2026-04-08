@@ -1,14 +1,15 @@
 "use client";
 
-import { Plus, Minus, BookOpen } from "lucide-react";
+import { Plus, Minus, BookOpen, Clock, XCircle } from "lucide-react";
 import type { ScoreBreakdown } from "@/lib/scoring-types";
+import type { BookEntryStatus } from "@/types/database";
 
 export function ScorePreview({
   breakdown,
-  completed = true,
+  status = "completed",
 }: {
   breakdown: ScoreBreakdown | null;
-  completed?: boolean;
+  status?: BookEntryStatus;
 }) {
   if (!breakdown) {
     return (
@@ -18,32 +19,51 @@ export function ScorePreview({
     );
   }
 
-  const baseLabel = breakdown.basePoints > 1 ? "Nonfiction" : "Fiction";
+  const baseLabel = breakdown.fiction ? "Fiction" : "Nonfiction";
+
+  const headerConfig = {
+    reading: {
+      bg: "bg-gradient-to-r from-amber-500 to-orange-500",
+      labelColor: "text-amber-100",
+      label: "Expected Score",
+    },
+    completed: {
+      bg: "bg-gradient-to-r from-indigo-600 to-violet-600",
+      labelColor: "text-indigo-100",
+      label: "Score",
+    },
+    did_not_finish: {
+      bg: "bg-gradient-to-r from-gray-500 to-gray-600",
+      labelColor: "text-gray-200",
+      label: "DNF Score",
+    },
+  }[status];
 
   return (
     <div className="rounded-xl overflow-hidden border border-indigo-200/60">
-      <div className={`px-4 py-3 flex items-baseline justify-between ${
-        completed
-          ? "bg-gradient-to-r from-indigo-600 to-violet-600"
-          : "bg-gradient-to-r from-amber-500 to-orange-500"
-      }`}>
-        <span className={`text-sm font-medium ${completed ? "text-indigo-100" : "text-amber-100"}`}>
-          {completed ? "Estimated Score" : "In-Progress Score"}
+      <div className={`px-4 py-3 flex items-baseline justify-between ${headerConfig.bg}`}>
+        <span className={`text-sm font-medium ${headerConfig.labelColor}`}>
+          {headerConfig.label}
         </span>
         <span className="text-2xl font-extrabold text-white">
           {breakdown.finalScore.toFixed(2)}
         </span>
       </div>
       <div className="bg-indigo-50/50 px-4 py-3 space-y-1.5">
-        {completed ? (
+        {status === "completed" ? (
           <div className="flex justify-between text-xs text-gray-600">
-            <span>Base ({baseLabel})</span>
+            <span>Completion Bonus ({baseLabel})</span>
             <span className="font-medium">{breakdown.basePoints.toFixed(3)}</span>
           </div>
-        ) : (
+        ) : status === "reading" ? (
           <div className="flex justify-between text-xs text-gray-400">
-            <span>Base ({baseLabel})</span>
-            <span className="font-medium italic">+{breakdown.basePoints > 0 ? breakdown.basePoints.toFixed(3) : (breakdown.pagePoints > 0 ? "on completion" : "0.000")}</span>
+            <span>Completion Bonus ({baseLabel})</span>
+            <span className="font-medium italic">+{breakdown.basePoints > 0 ? breakdown.basePoints.toFixed(3) : "on completion"}</span>
+          </div>
+        ) : (
+          <div className="flex justify-between text-xs text-gray-400 line-through">
+            <span>Completion Bonus ({baseLabel})</span>
+            <span className="font-medium">0.000</span>
           </div>
         )}
         <div className="flex justify-between text-xs text-gray-600">
@@ -86,11 +106,19 @@ export function ScorePreview({
             <span className="font-medium">&times;{breakdown.newCountryMultiplier.toFixed(3)}</span>
           </div>
         )}
-        {!completed && (
+        {status === "reading" && (
           <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-200/60">
-            <BookOpen className="h-3.5 w-3.5 text-amber-500" />
+            <Clock className="h-3.5 w-3.5 text-amber-500" />
             <span className="text-xs text-amber-600 font-medium">
-              Base points added when you finish this book
+              Points added to your total when finished
+            </span>
+          </div>
+        )}
+        {status === "did_not_finish" && (
+          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-200/60">
+            <XCircle className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-xs text-gray-500 font-medium">
+              No completion bonus for unfinished books
             </span>
           </div>
         )}

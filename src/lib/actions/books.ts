@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { calculateBookScore } from "@/lib/scoring";
-import type { ScoringRulesConfig, BonusKey, DeductionKey, HometownBonusKey } from "@/types/database";
+import type { ScoringRulesConfig, BonusKey, BookEntryStatus, DeductionKey, HometownBonusKey } from "@/types/database";
 
 async function getExistingCountries(
   seasonId: string,
@@ -128,11 +128,24 @@ export async function findOrCreateBook(bookData: {
   return data.id;
 }
 
+function scoringPagesForStatus(
+  status: BookEntryStatus,
+  bookPages: number,
+  pagesRead: number | null,
+): number {
+  if (status === "did_not_finish") return pagesRead ?? 0;
+  return bookPages;
+}
+
+function scoringCompletedForStatus(status: BookEntryStatus): boolean {
+  return status === "completed" || status === "reading";
+}
+
 export async function createBookEntry(input: {
   seasonId: string;
   orgId: string;
   bookId: string;
-  completed: boolean;
+  status: BookEntryStatus;
   fiction: boolean;
   seriesName: string | null;
   genreId: string | null;
@@ -145,6 +158,7 @@ export async function createBookEntry(input: {
   bonus3: BonusKey | null;
   deduction: DeductionKey | null;
   pages: number;
+  pagesRead: number | null;
   country: string | null;
 }) {
   const supabase = await createClient();
@@ -163,9 +177,9 @@ export async function createBookEntry(input: {
 
   const score = calculateBookScore(
     {
-      pages: input.pages,
+      pages: scoringPagesForStatus(input.status, input.pages, input.pagesRead),
       fiction: input.fiction,
-      completed: input.completed,
+      completed: scoringCompletedForStatus(input.status),
       bonus_1: input.bonus1,
       bonus_2: input.bonus2,
       bonus_3: input.bonus3,
@@ -182,7 +196,7 @@ export async function createBookEntry(input: {
       season_id: input.seasonId,
       user_id: user.id,
       book_id: input.bookId,
-      completed: input.completed,
+      status: input.status,
       fiction: input.fiction,
       series_name: normalizeSeriesName(input.seriesName),
       genre_id: input.genreId,
@@ -195,6 +209,7 @@ export async function createBookEntry(input: {
       bonus_3: input.bonus3,
       deduction: input.deduction,
       points: score.finalScore,
+      pages_read: input.pagesRead,
     })
     .select("id")
     .single();
@@ -304,7 +319,7 @@ export async function updateBookEntry(
   orgId: string,
   seasonId: string,
   input: {
-    completed: boolean;
+    status: BookEntryStatus;
     fiction: boolean;
     seriesName: string | null;
     genreId: string | null;
@@ -317,6 +332,7 @@ export async function updateBookEntry(
     bonus3: BonusKey | null;
     deduction: DeductionKey | null;
     pages: number;
+    pagesRead: number | null;
     country: string | null;
   }
 ) {
@@ -331,9 +347,9 @@ export async function updateBookEntry(
 
   const score = calculateBookScore(
     {
-      pages: input.pages,
+      pages: scoringPagesForStatus(input.status, input.pages, input.pagesRead),
       fiction: input.fiction,
-      completed: input.completed,
+      completed: scoringCompletedForStatus(input.status),
       bonus_1: input.bonus1,
       bonus_2: input.bonus2,
       bonus_3: input.bonus3,
@@ -349,7 +365,7 @@ export async function updateBookEntry(
   const { error } = await supabase
     .from("book_entries")
     .update({
-      completed: input.completed,
+      status: input.status,
       fiction: input.fiction,
       series_name: normalizeSeriesName(input.seriesName),
       genre_id: input.genreId,
@@ -362,6 +378,7 @@ export async function updateBookEntry(
       bonus_3: input.bonus3,
       deduction: input.deduction,
       points: score.finalScore,
+      pages_read: input.pagesRead,
       updated_at: new Date().toISOString(),
     })
     .eq("id", entryId);

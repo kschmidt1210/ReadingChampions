@@ -213,8 +213,12 @@ export function PlayerBooksView({
     setGenreFilter("");
   }
 
-  const allCurrentlyReading = entries.filter((e) => !e.completed);
-  const allCompleted = entries.filter((e) => e.completed);
+  const allCurrentlyReading = entries.filter((e) => e.status === "reading");
+  const allCompleted = entries.filter((e) => e.status === "completed");
+  const allDnf = entries.filter((e) => e.status === "did_not_finish");
+  const allFinished = entries.filter(
+    (e) => e.status === "completed" || e.status === "did_not_finish"
+  );
 
   const filteredReading = useMemo(
     () => applyFilters(allCurrentlyReading, search, fictionFilter, genreFilter),
@@ -231,25 +235,48 @@ export function PlayerBooksView({
     [allCompleted, search, fictionFilter, genreFilter, sortKey, sortDir]
   );
 
-  const totalBooks = allCompleted.length;
-  const totalPoints = entries.reduce((sum, e) => sum + Number(e.points), 0);
-  const totalPages = allCompleted.reduce(
-    (sum, e) => sum + (e.book?.pages ?? 0),
+  const filteredDnf = useMemo(
+    () =>
+      applySorting(
+        applyFilters(allDnf, search, fictionFilter, genreFilter),
+        sortKey,
+        sortDir
+      ),
+    [allDnf, search, fictionFilter, genreFilter, sortKey, sortDir]
+  );
+
+  const totalBooks = allFinished.length;
+  const confirmedPoints = allFinished.reduce(
+    (sum, e) => sum + Number(e.points),
     0
   );
+  const pendingPoints = allCurrentlyReading.reduce(
+    (sum, e) => sum + Number(e.points),
+    0
+  );
+  const totalPages = allFinished.reduce(
+    (sum, e) => {
+      if (e.status === "did_not_finish") return sum + (e.pages_read ?? 0);
+      return sum + (e.book?.pages ?? 0);
+    },
+    0
+  );
+  const ratedEntries = allFinished.filter((e) => e.rating !== null);
   const avgRating =
-    totalBooks > 0
-      ? allCompleted.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) /
-        totalBooks
+    ratedEntries.length > 0
+      ? ratedEntries.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) /
+        ratedEntries.length
       : 0;
 
   const statValues = [
     totalBooks,
     totalPages.toLocaleString(),
-    totalPoints.toFixed(1),
+    confirmedPoints.toFixed(1),
     avgRating.toFixed(1),
   ];
 
+  // Challenge progress uses only fully completed books (not DNF).
+  // This could become an org-level setting in the future.
   const coveredGenreIds = new Set(
     allCompleted
       .map((e) => e.genre_id)
@@ -396,6 +423,18 @@ export function PlayerBooksView({
           )}
         </div>
       </div>
+
+      {/* Pending points indicator */}
+      {pendingPoints > 0 && (
+        <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-2.5 border border-amber-200/60">
+          <BookMarked className="h-4 w-4 text-amber-500 shrink-0" />
+          <span className="text-sm text-amber-700">
+            <span className="font-semibold">+{pendingPoints.toFixed(1)}</span>{" "}
+            points pending from {allCurrentlyReading.length} book
+            {allCurrentlyReading.length !== 1 ? "s" : ""} in progress
+          </span>
+        </div>
+      )}
 
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
@@ -551,14 +590,14 @@ export function PlayerBooksView({
         <div className="flex items-center gap-2 mb-4">
           <Library className="h-4.5 w-4.5 text-indigo-500" />
           <h2 className="font-semibold text-gray-900">
-            Completed Books ({filteredCompleted.length}
+            Completed ({filteredCompleted.length}
             {hasActiveFilters &&
-              filteredCompleted.length !== totalBooks &&
-              ` of ${totalBooks}`}
+              filteredCompleted.length !== allCompleted.length &&
+              ` of ${allCompleted.length}`}
             )
           </h2>
         </div>
-        {totalBooks === 0 && allCurrentlyReading.length === 0 ? (
+        {entries.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
             <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">
@@ -593,6 +632,32 @@ export function PlayerBooksView({
           </div>
         )}
       </div>
+
+      {/* Did Not Finish */}
+      {filteredDnf.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="h-4.5 w-4.5 text-gray-400" />
+            <h2 className="font-semibold text-gray-900">
+              Did Not Finish ({filteredDnf.length}
+              {hasActiveFilters &&
+                filteredDnf.length !== allDnf.length &&
+                ` of ${allDnf.length}`}
+              )
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {filteredDnf.map((entry) => (
+              <BookEntryCard
+                key={entry.id}
+                entry={entry}
+                genreName={entry.genre_name ?? undefined}
+                onClick={() => handleCardClick(entry)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <BookEntryPanel
         open={panelOpen}

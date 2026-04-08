@@ -13,14 +13,13 @@ import { SeriesPicker } from "./series-picker";
 import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
-import { Switch } from "@/components/ui/switch";
 import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
 import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries, getSeasonSeriesNames } from "@/lib/actions/books";
 import { toast } from "sonner";
 import type { ParsedBook } from "@/lib/books-api";
-import type { BookEntryWithBook, BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
+import type { BookEntryStatus, BookEntryWithBook, BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
 
 const DEFAULT_SCORING_CONFIG: ScoringRulesConfig = {
   base_points: { fiction: 0.71, nonfiction: 1.26 },
@@ -68,7 +67,8 @@ export function BookEntryPanel({
   const [selectedBook, setSelectedBook] = useState<ParsedBook | null>(null);
   const [pages, setPages] = useState(0);
   const [fiction, setFiction] = useState(true);
-  const [completed, setCompleted] = useState(true);
+  const [status, setStatus] = useState<BookEntryStatus>("completed");
+  const [pagesRead, setPagesRead] = useState<string>("");
   const [seriesName, setSeriesName] = useState("");
   const [genreId, setGenreId] = useState<string | null>(null);
   const [genreName, setGenreName] = useState("");
@@ -88,7 +88,8 @@ export function BookEntryPanel({
   const populateFromEntry = useCallback((e: BookEntryWithBook) => {
     setPages(e.book.pages);
     setFiction(e.fiction);
-    setCompleted(e.completed);
+    setStatus(e.status);
+    setPagesRead(e.pages_read !== null ? String(e.pages_read) : "");
     setSeriesName(e.series_name ?? "");
     setGenreId(e.genre_id ?? null);
     setGenreName(e.genre_name ?? "");
@@ -120,11 +121,15 @@ export function BookEntryPanel({
 
   const scoreBreakdown = useMemo(() => {
     if (pages === 0 && !selectedBook && !entry) return null;
+    const bookPages = pages || selectedBook?.pages || 0;
+    const parsedPagesRead = pagesRead ? parseInt(pagesRead) || 0 : null;
+    const scoringPages = status === "did_not_finish" ? (parsedPagesRead ?? 0) : bookPages;
+    const scoringCompleted = status === "completed" || status === "reading";
     return calculateBookScore(
       {
-        pages: pages || selectedBook?.pages || 0,
+        pages: scoringPages,
         fiction,
-        completed,
+        completed: scoringCompleted,
         bonus_1: bonuses[0],
         bonus_2: bonuses[1],
         bonus_3: bonuses[2],
@@ -134,7 +139,7 @@ export function BookEntryPanel({
       },
       scoringConfig
     );
-  }, [pages, fiction, completed, bonuses, hometownBonus, deduction, isNewCountry, selectedBook, entry, scoringConfig]);
+  }, [pages, fiction, status, pagesRead, bonuses, hometownBonus, deduction, isNewCountry, selectedBook, entry, scoringConfig]);
 
   function handleBookSelect(book: ParsedBook) {
     setSelectedBook(book);
@@ -150,7 +155,8 @@ export function BookEntryPanel({
     setSelectedBook(null);
     setPages(0);
     setFiction(true);
-    setCompleted(true);
+    setStatus("completed");
+    setPagesRead("");
     setSeriesName("");
     setGenreId(null);
     setGenreName("");
@@ -178,22 +184,30 @@ export function BookEntryPanel({
       return;
     }
 
+    const parsedPagesRead = pagesRead ? parseInt(pagesRead) || null : null;
+    if (status === "did_not_finish" && (!parsedPagesRead || parsedPagesRead <= 0)) {
+      toast.error("Please enter how many pages you read.");
+      return;
+    }
+
     const parsedRating = rating ? parseFloat(rating) : null;
     if (parsedRating !== null && (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 10)) {
       toast.error("Rating must be between 0 and 10.");
       return;
     }
 
+    const isFinished = status === "completed" || status === "did_not_finish";
+
     setSaving(true);
     try {
       if (isEditMode) {
         await updateBookEntry(entry.id, currentOrgId, seasonId, {
-          completed,
+          status,
           fiction,
           seriesName: seriesName || null,
           genreId: genreId || null,
           genreName: genreName || null,
-          dateFinished: completed ? dateFinished : null,
+          dateFinished: isFinished ? dateFinished : null,
           rating: parsedRating,
           hometownBonus,
           bonus1: bonuses[0],
@@ -201,6 +215,7 @@ export function BookEntryPanel({
           bonus3: bonuses[2],
           deduction,
           pages: finalPages,
+          pagesRead: status !== "completed" ? parsedPagesRead : null,
           country: country || null,
         });
         toast.success("Book entry updated!");
@@ -220,12 +235,12 @@ export function BookEntryPanel({
           seasonId,
           orgId: currentOrgId,
           bookId,
-          completed,
+          status,
           fiction,
           seriesName: seriesName || null,
           genreId: genreId || null,
           genreName: genreName || null,
-          dateFinished: completed ? dateFinished : null,
+          dateFinished: isFinished ? dateFinished : null,
           rating: parsedRating,
           hometownBonus,
           bonus1: bonuses[0],
@@ -233,6 +248,7 @@ export function BookEntryPanel({
           bonus3: bonuses[2],
           deduction,
           pages: finalPages,
+          pagesRead: status !== "completed" ? parsedPagesRead : null,
           country: country || null,
         });
         toast.success("Book entry saved!");
@@ -313,24 +329,45 @@ export function BookEntryPanel({
           )}
 
           {!readOnly && (
-            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 border border-gray-100">
-              <div>
-                <Label htmlFor="completed-toggle" className="text-sm font-medium text-gray-700">Finished reading?</Label>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {completed ? "Full points with base score" : "Page points only until completed"}
-                </p>
+            <div className="rounded-xl bg-gray-50 px-4 py-3 border border-gray-100 space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Reading Status</Label>
+              <div className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
+                {([
+                  { value: "reading" as const, label: "Reading" },
+                  { value: "completed" as const, label: "Completed" },
+                  { value: "did_not_finish" as const, label: "DNF" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setStatus(opt.value)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                      status === opt.value
+                        ? opt.value === "reading"
+                          ? "bg-amber-500 text-white shadow-sm"
+                          : opt.value === "did_not_finish"
+                            ? "bg-gray-500 text-white shadow-sm"
+                            : "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-              <Switch
-                id="completed-toggle"
-                checked={completed}
-                onCheckedChange={setCompleted}
-              />
+              <p className="text-xs text-gray-400 mt-1">
+                {status === "completed"
+                  ? "Full points with completion bonus"
+                  : status === "reading"
+                    ? "Points will count once you finish"
+                    : "Page points based on pages read, no completion bonus"}
+              </p>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>{completed ? "Pages" : "Pages Read"}</Label>
+              <Label>Pages</Label>
               <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} disabled={readOnly} />
             </div>
             <div className="space-y-1.5">
@@ -343,7 +380,21 @@ export function BookEntryPanel({
                 </SelectContent>
               </Select>
             </div>
-            {completed && (
+            {status !== "completed" && (
+              <div className="space-y-1.5">
+                <Label>Pages Read{status === "did_not_finish" ? " *" : ""}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={pages || undefined}
+                  value={pagesRead}
+                  onChange={(e) => setPagesRead(e.target.value)}
+                  placeholder={status === "did_not_finish" ? "Required" : "Optional"}
+                  disabled={readOnly}
+                />
+              </div>
+            )}
+            {status !== "reading" && (
               <div className="space-y-1.5">
                 <Label>Date Finished</Label>
                 <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
@@ -403,7 +454,7 @@ export function BookEntryPanel({
           )}
 
           <div className="sticky bottom-0 bg-background pt-3 space-y-3 border-t border-gray-100">
-            <ScorePreview breakdown={scoreBreakdown} completed={completed} />
+            <ScorePreview breakdown={scoreBreakdown} status={status} />
 
             {!readOnly && (
               <button

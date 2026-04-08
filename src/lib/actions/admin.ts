@@ -241,14 +241,21 @@ export async function recalculateSeasonPoints(orgId: string, seasonId: string) {
     const seenCountries = new Set<string>();
     for (const entry of sortedEntries) {
       const country = (entry.book as any)?.country;
-      const isNewCountry = entry.completed && !!country && !seenCountries.has(country);
-      if (entry.completed && country) seenCountries.add(country);
+      const isFinished = entry.status === "completed" || entry.status === "did_not_finish";
+      const isNewCountry = isFinished && !!country && !seenCountries.has(country);
+      if (isFinished && country) seenCountries.add(country);
+
+      const bookPages = (entry.book as any)?.pages ?? 0;
+      const scoringPages = entry.status === "did_not_finish"
+        ? (entry.pages_read ?? 0)
+        : bookPages;
+      const scoringCompleted = entry.status === "completed" || entry.status === "reading";
 
       const score = calculateBookScore(
         {
-          pages: (entry.book as any)?.pages ?? 0,
+          pages: scoringPages,
           fiction: entry.fiction,
-          completed: entry.completed,
+          completed: scoringCompleted,
           bonus_1: entry.bonus_1,
           bonus_2: entry.bonus_2,
           bonus_3: entry.bonus_3,

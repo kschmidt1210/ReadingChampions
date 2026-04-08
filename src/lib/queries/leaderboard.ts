@@ -63,27 +63,46 @@ export async function getLeaderboardData(
   const players: LeaderboardPlayer[] = [];
 
   for (const [userId, data] of byUser) {
-    const allPoints = data.entries.reduce(
+    const finishedEntries = data.entries.filter(
+      (e) => e.status === "completed" || e.status === "did_not_finish"
+    );
+    const readingEntries = data.entries.filter((e) => e.status === "reading");
+
+    // Entries that count toward challenges and season bonuses.
+    // Currently only fully completed books qualify; DNF books earn points
+    // but don't contribute to challenge progress. This could become an
+    // org-level setting in the future (e.g. config.challenges.include_dnf).
+    const challengeEntries = finishedEntries.filter(
+      (e) => e.status === "completed"
+    );
+
+    const confirmedPoints = finishedEntries.reduce(
+      (sum, e) => sum + Number(e.points),
+      0
+    );
+    const pendingPoints = readingEntries.reduce(
       (sum, e) => sum + Number(e.points),
       0
     );
 
-    const completedEntries = data.entries.filter((e) => e.completed);
-    const pageCount = completedEntries.reduce(
-      (sum, e) => sum + ((e as any).book?.pages ?? 0),
+    const pageCount = finishedEntries.reduce(
+      (sum, e) => {
+        if (e.status === "did_not_finish") return sum + (e.pages_read ?? 0);
+        return sum + ((e as any).book?.pages ?? 0);
+      },
       0
     );
 
-    // Alphabet progress
+    // Alphabet progress (completed entries only)
     const letters = new Set(
-      completedEntries.map((e) =>
+      challengeEntries.map((e) =>
         getFirstLetter((e as any).book?.title ?? "")
       )
     );
 
-    // Genre progress
+    // Genre progress (completed entries only)
     const coveredGenres = new Set(
-      completedEntries
+      challengeEntries
         .map((e) => e.genre_id)
         .filter((g): g is string => g !== null)
     );
@@ -91,18 +110,18 @@ export async function getLeaderboardData(
       coveredGenres.has(gid)
     ).length;
 
-    // Unique countries
+    // Unique countries (completed entries only)
     const countries = new Set(
-      completedEntries
+      challengeEntries
         .map((e) => (e as any).book?.country)
         .filter(
           (c): c is string => c !== null && c !== undefined && c !== ""
         )
     );
 
-    // Best series by total pages (case-insensitive grouping)
+    // Best series by total pages (completed entries only, case-insensitive grouping)
     const seriesCounts = new Map<string, { count: number; pages: number; canonicalName: string }>();
-    for (const e of completedEntries) {
+    for (const e of challengeEntries) {
       const sn = e.series_name?.trim();
       if (!sn) continue;
       const key = sn.toLowerCase();
@@ -123,25 +142,25 @@ export async function getLeaderboardData(
       }
     }
 
-    // Season bonuses
+    // Season bonuses (completed entries only, consistent with challengeEntries)
     let seasonBonus = 0;
     if (config) {
-      const enriched = completedEntries.map((e) => {
-        const pages = (e as any).book?.pages ?? 0;
-        const roundedPages = Math.round(pages / 50) * 50;
-        const fiction = e.fiction;
-        const base = fiction
-          ? config.base_points.fiction
-          : config.base_points.nonfiction;
-        const pagePoints =
-          Math.min(roundedPages, 100) * config.page_points.first_100_rate +
-          Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
-        return {
-          preBonusTotal: base + pagePoints,
-          genre_id: e.genre_id,
-          book: { title: (e as any).book?.title ?? "" },
-        };
-      });
+      const enriched = challengeEntries.map((e) => {
+          const pages = (e as any).book?.pages ?? 0;
+          const roundedPages = Math.round(pages / 50) * 50;
+          const fiction = e.fiction;
+          const base = fiction
+            ? config.base_points.fiction
+            : config.base_points.nonfiction;
+          const pagePoints =
+            Math.min(roundedPages, 100) * config.page_points.first_100_rate +
+            Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
+          return {
+            preBonusTotal: base + pagePoints,
+            genre_id: e.genre_id,
+            book: { title: (e as any).book?.title ?? "" },
+          };
+        });
       const bonuses = calculateSeasonBonuses(enriched, genreIds, config);
       seasonBonus = bonuses.totalSeasonBonus;
     }
@@ -149,9 +168,10 @@ export async function getLeaderboardData(
     players.push({
       user_id: userId,
       display_name: data.display_name,
-      total_points: allPoints + seasonBonus,
-      book_count: completedEntries.length,
-      reading_count: data.entries.length - completedEntries.length,
+      total_points: confirmedPoints + seasonBonus,
+      pending_points: pendingPoints,
+      book_count: finishedEntries.length,
+      reading_count: readingEntries.length,
       page_count: pageCount,
       rank: 0,
       unique_letters: letters.size,
