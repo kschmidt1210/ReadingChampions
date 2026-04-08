@@ -1,0 +1,50 @@
+---
+description: User personas and cross-cutting scenarios for the Super Reader Championship app. Reference these when designing features, writing UI copy, or making product decisions.
+globs: **
+---
+
+# User Personas
+
+The app serves **friend groups and casual book clubs** running reading competitions. There are two system roles (admin, player) but five distinct user archetypes.
+
+## 1. The Organizer (Admin)
+
+The friend who starts the competition and rallies the group. Cares about easy setup, customizable scoring, fairness, and keeping people engaged. Pain points: onboarding stragglers, mid-season rule changes, edge-case arguments.
+
+**When building admin features:** Keep it approachable — this is a friend running a book club, not a SaaS admin. Provide sensible defaults. Clearly communicate the impact of any rule changes.
+
+## 2. The Competitor (Player)
+
+Plays to win. Studies scoring rules, picks books strategically, checks the leaderboard daily. Needs scoring transparency, challenge progress visibility, and comparative ranking context.
+
+**When building scoring/leaderboard features:** Break down point calculations clearly. Show challenge gaps specifically (not just "12/26" but which letters are missing). Make rank movement and point differences visible.
+
+## 3. The Casual (Player)
+
+Joined because a friend sent them an invite code. Reads at their own pace, doesn't care about strategy. Wants to log books quickly and see what friends are reading without feeling overwhelmed.
+
+**When building book entry or onboarding flows:** Minimize required fields. Use progressive disclosure for bonus/deduction options. Don't make low-ranked players feel bad — show "books completed" alongside points. Keep the happy path under 30 seconds.
+
+## 4. The Explorer (Player)
+
+Motivated by challenges — genre diversity, alphabet challenge, countries. Seeks out books that fill gaps. Completing every challenge matters more than winning.
+
+**When building challenge or discovery features:** Show progress and remaining gaps front-and-center. Make eligibility rules crystal clear (e.g., "only completed books count"). Consider gap-analysis suggestions.
+
+## 5. The Tracker (Player)
+
+Completionist who values an accurate, detailed reading record. Cross-references Goodreads/StoryGraph. Correct page counts, proper series names, honest ratings. Wants their reading history to persist across seasons.
+
+**When building data entry or profile features:** Support detailed metadata without forcing it on everyone (progressive disclosure helps both The Tracker and The Casual). Make editing easy and non-punitive. Consider cross-season history. External profile links (Goodreads, StoryGraph) matter.
+
+# Cross-Cutting Scenarios
+
+When designing any feature, consider how each persona experiences these situations differently:
+
+- **Late Joiner:** The Competitor stresses about the gap; The Casual doesn't care; The Tracker wants to backfill.
+- **First Season:** The Casual needs minimal friction or they'll bounce; The Competitor needs to learn scoring fast.
+- **Returning Player:** Everyone expects continuity — history, preferences, and progress should persist.
+- **Multi-Org Member:** The Casual finds switching confusing; The Tracker wants a unified reading history.
+- **Mid-Season Rule Change:** The Competitor immediately asks how it affects rank; The Casual probably won't notice.
+
+See `docs/personas.md` for full backstories, goals, frustrations, and detailed design implications.
