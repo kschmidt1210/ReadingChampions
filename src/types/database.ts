@@ -25,6 +25,9 @@ export type HometownBonusKey = "state_setting" | "state_name" | "city_name";
 export interface Profile {
   id: string;
   display_name: string;
+  about_text: string | null;
+  goodreads_url: string | null;
+  storygraph_url: string | null;
   created_at: string;
 }
 

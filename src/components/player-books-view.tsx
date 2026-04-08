@@ -13,7 +13,10 @@ import {
   ArrowDown,
   ArrowUp,
   X,
+  ExternalLink,
+  Settings,
 } from "lucide-react";
+import Link from "next/link";
 import { BookEntryCard } from "@/components/book-entry-card";
 import { BookEntryPanel } from "@/components/book-entry-panel";
 import { GenreGrid } from "@/components/genre-grid";
@@ -91,6 +94,12 @@ const statConfig = [
   },
 ] as const;
 
+interface PlayerProfile {
+  about_text: string | null;
+  goodreads_url: string | null;
+  storygraph_url: string | null;
+}
+
 interface PlayerBooksViewProps {
   playerName: string;
   entries: BookEntryWithBook[];
@@ -98,6 +107,7 @@ interface PlayerBooksViewProps {
   isCurrentUser: boolean;
   isAdmin?: boolean;
   seasonId: string;
+  profile?: PlayerProfile;
 }
 
 function applyFilters(
@@ -173,6 +183,7 @@ export function PlayerBooksView({
   isCurrentUser,
   isAdmin = false,
   seasonId,
+  profile,
 }: PlayerBooksViewProps) {
   const [selectedEntry, setSelectedEntry] =
     useState<BookEntryWithBook | null>(null);
@@ -270,9 +281,61 @@ export function PlayerBooksView({
     setSelectedEntry(null);
   }
 
+  const hasLinks = profile?.goodreads_url || profile?.storygraph_url;
+  const hasAbout = profile?.about_text;
+  const showProfileBlock = hasAbout || hasLinks;
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+
+        {showProfileBlock && (
+          <div className="mt-3 space-y-2">
+            {hasAbout && (
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {profile.about_text}
+              </p>
+            )}
+            {hasLinks && (
+              <div className="flex flex-wrap items-center gap-3">
+                {profile.goodreads_url && (
+                  <a
+                    href={profile.goodreads_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Goodreads
+                  </a>
+                )}
+                {profile.storygraph_url && (
+                  <a
+                    href={profile.storygraph_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    The StoryGraph
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {isCurrentUser && !showProfileBlock && (
+          <Link
+            href="/settings"
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+          >
+            <Settings className="h-3 w-3" />
+            Add a bio or reading profile links
+          </Link>
+        )}
+      </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
