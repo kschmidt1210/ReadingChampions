@@ -146,6 +146,7 @@ export interface LeaderboardPlayer {
   total_points: number;
   pending_points: number;
   book_count: number;
+  completed_count: number;
   reading_count: number;
   page_count: number;
   rank: number;
@@ -158,4 +159,15 @@ export interface LeaderboardPlayer {
   best_series_count: number;
   country_rank: number;
   series_rank: number;
+  pre_bonus_total: number;
+  country_bonus: number;
+  series_bonus: number;
+  longest_book_title: string | null;
+  longest_book_pages: number;
+  avg_book_length: number;
+  avg_points_per_book: number;
+  highest_point_book_title: string | null;
+  highest_point_book_score: number;
+  highest_rated_book_title: string | null;
+  highest_rated_book_rating: number | null;
 }

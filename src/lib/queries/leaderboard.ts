@@ -144,6 +144,7 @@ export async function getLeaderboardData(
 
     // Season bonuses (completed entries only, consistent with challengeEntries)
     let seasonBonus = 0;
+    let preBonusTotal = 0;
     if (config) {
       const enriched = challengeEntries.map((e) => {
           const pages = (e as any).book?.pages ?? 0;
@@ -161,16 +162,52 @@ export async function getLeaderboardData(
             book: { title: (e as any).book?.title ?? "" },
           };
         });
+      preBonusTotal = enriched.reduce((sum, e) => sum + e.preBonusTotal, 0);
       const bonuses = calculateSeasonBonuses(enriched, genreIds, config);
       seasonBonus = bonuses.totalSeasonBonus;
     }
+
+    // Longest book by page count
+    let longestBookTitle: string | null = null;
+    let longestBookPages = 0;
+    for (const e of finishedEntries) {
+      const pages = (e as any).book?.pages ?? 0;
+      if (pages > longestBookPages) {
+        longestBookPages = pages;
+        longestBookTitle = (e as any).book?.title ?? null;
+      }
+    }
+
+    // Highest-scoring single book entry
+    let highestPointTitle: string | null = null;
+    let highestPointScore = 0;
+    for (const e of finishedEntries) {
+      const pts = Number(e.points);
+      if (pts > highestPointScore) {
+        highestPointScore = pts;
+        highestPointTitle = (e as any).book?.title ?? null;
+      }
+    }
+
+    // Highest-rated book (by user rating)
+    let highestRatedTitle: string | null = null;
+    let highestRatedRating: number | null = null;
+    for (const e of finishedEntries) {
+      if (e.rating != null && (highestRatedRating == null || e.rating > highestRatedRating)) {
+        highestRatedRating = e.rating;
+        highestRatedTitle = (e as any).book?.title ?? null;
+      }
+    }
+
+    const bookCount = finishedEntries.length;
 
     players.push({
       user_id: userId,
       display_name: data.display_name,
       total_points: confirmedPoints + seasonBonus,
       pending_points: pendingPoints,
-      book_count: finishedEntries.length,
+      book_count: bookCount,
+      completed_count: challengeEntries.length,
       reading_count: readingEntries.length,
       page_count: pageCount,
       rank: 0,
@@ -183,6 +220,17 @@ export async function getLeaderboardData(
       best_series_count: bestSeries.count,
       country_rank: 0,
       series_rank: 0,
+      pre_bonus_total: preBonusTotal,
+      country_bonus: 0,
+      series_bonus: 0,
+      longest_book_title: longestBookTitle,
+      longest_book_pages: longestBookPages,
+      avg_book_length: bookCount > 0 ? pageCount / bookCount : 0,
+      avg_points_per_book: bookCount > 0 ? (confirmedPoints + seasonBonus) / bookCount : 0,
+      highest_point_book_title: highestPointTitle,
+      highest_point_book_score: highestPointScore,
+      highest_rated_book_title: highestRatedTitle,
+      highest_rated_book_rating: highestRatedRating,
     });
   }
 
@@ -201,6 +249,25 @@ export async function getLeaderboardData(
     .filter((p) => p.best_series_pages > 0)
     .sort((a, b) => b.best_series_pages - a.best_series_pages || b.best_series_count - a.best_series_count);
   assignChallengeRanks(bySeries, (p) => p.best_series_pages, (p, r) => { p.series_rank = r; });
+
+  // Assign longest-road bonus points based on rank (top 3 get tiered bonus)
+  if (config) {
+    for (const p of players) {
+      if (p.country_rank >= 1 && p.country_rank <= 3) {
+        p.country_bonus = config.longest_road.countries[p.country_rank - 1] ?? 0;
+      }
+      if (p.series_rank >= 1 && p.series_rank <= 3) {
+        p.series_bonus = config.longest_road.series[p.series_rank - 1] ?? 0;
+      }
+      p.total_points += p.country_bonus + p.series_bonus;
+      if (p.book_count > 0) {
+        p.avg_points_per_book = p.total_points / p.book_count;
+      }
+    }
+    // Re-sort and re-rank after adding longest-road bonuses
+    players.sort((a, b) => b.total_points - a.total_points);
+    players.forEach((p, i) => (p.rank = i + 1));
+  }
 
   return players;
 }

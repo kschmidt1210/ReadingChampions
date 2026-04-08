@@ -382,6 +382,14 @@ export function PlayerBooksView({
             <div className="text-xs font-medium text-gray-500 mt-1">
               {stat.key}
             </div>
+            {stat.key === "Points" && pendingPoints > 0 && (
+              <div className="flex items-center gap-1 mt-1.5">
+                <BookMarked className="h-3 w-3 text-amber-500" />
+                <span className="text-xs text-amber-600 font-medium">
+                  +{pendingPoints.toFixed(1)} pending
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -423,18 +431,6 @@ export function PlayerBooksView({
           )}
         </div>
       </div>
-
-      {/* Pending points indicator */}
-      {pendingPoints > 0 && (
-        <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-2.5 border border-amber-200/60">
-          <BookMarked className="h-4 w-4 text-amber-500 shrink-0" />
-          <span className="text-sm text-amber-700">
-            <span className="font-semibold">+{pendingPoints.toFixed(1)}</span>{" "}
-            points pending from {allCurrentlyReading.length} book
-            {allCurrentlyReading.length !== 1 ? "s" : ""} in progress
-          </span>
-        </div>
-      )}
 
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
