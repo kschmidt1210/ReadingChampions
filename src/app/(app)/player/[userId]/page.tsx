@@ -6,9 +6,13 @@ import {
   getUserOrganizations,
   getCurrentOrg,
   getOrgGenres,
+  getScoringConfig,
 } from "@/lib/queries/organizations";
+import { getLeaderboardData } from "@/lib/queries/leaderboard";
+import { calculateSeasonBonuses } from "@/lib/scoring";
 import { PlayerBooksView } from "@/components/player-books-view";
 import type { BookEntryWithBook } from "@/types/database";
+import type { ScoreBreakdownInfo } from "@/components/player-books-view";
 
 export default async function PlayerPage({
   params,
@@ -48,11 +52,56 @@ export default async function PlayerPage({
   if (!season)
     return <div className="p-8 text-center">No active season.</div>;
 
-  const entries = (await getUserBookEntries(
-    season.id,
-    userId
-  )) as BookEntryWithBook[];
-  const genres = await getOrgGenres(currentOrg.id);
+  const [entries, genres, config, leaderboard] = await Promise.all([
+    getUserBookEntries(season.id, userId) as Promise<BookEntryWithBook[]>,
+    getOrgGenres(currentOrg.id),
+    getScoringConfig(currentOrg.id),
+    getLeaderboardData(season.id, currentOrg.id),
+  ]);
+
+  const playerLeaderboard = leaderboard.find((p) => p.user_id === userId);
+
+  let scoreBreakdown: ScoreBreakdownInfo | null = null;
+
+  if (config && playerLeaderboard) {
+    const completedEntries = entries.filter((e) => e.status === "completed");
+    const enriched = completedEntries.map((e) => {
+      const pages = e.book?.pages ?? 0;
+      const roundedPages = Math.round(pages / 50) * 50;
+      const base = e.fiction
+        ? config.base_points.fiction
+        : config.base_points.nonfiction;
+      const pagePoints =
+        Math.min(roundedPages, 100) * config.page_points.first_100_rate +
+        Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
+      return {
+        preBonusTotal: base + pagePoints,
+        genre_id: e.genre_id,
+        book: { title: e.book.title },
+      };
+    });
+    const seasonBonuses = calculateSeasonBonuses(
+      enriched,
+      genres.map((g) => g.id),
+      config
+    );
+
+    scoreBreakdown = {
+      seasonBonuses: {
+        genreComplete: seasonBonuses.genreCompleteBonus,
+        alphabet: seasonBonuses.alphabetBonus,
+        uniqueLetters: seasonBonuses.uniqueLetters,
+      },
+      longestRoad: {
+        countryBonus: playerLeaderboard.country_bonus,
+        countryRank: playerLeaderboard.country_rank,
+        seriesBonus: playerLeaderboard.series_bonus,
+        seriesRank: playerLeaderboard.series_rank,
+        bestSeriesName: playerLeaderboard.best_series_name,
+      },
+      grandTotal: playerLeaderboard.total_points,
+    };
+  }
 
   return (
     <PlayerBooksView
@@ -67,6 +116,7 @@ export default async function PlayerPage({
         goodreads_url: profile?.goodreads_url ?? null,
         storygraph_url: profile?.storygraph_url ?? null,
       }}
+      scoreBreakdown={scoreBreakdown ?? undefined}
     />
   );
 }

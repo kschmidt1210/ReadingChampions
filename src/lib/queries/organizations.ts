@@ -94,3 +94,17 @@ export async function getOrgGenres(orgId: string) {
 
   return data ?? [];
 }
+
+export async function getScoringConfig(orgId: string) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("scoring_rules")
+    .select("config")
+    .or(`org_id.eq.${orgId},org_id.is.null`)
+    .order("org_id", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .single();
+
+  return data?.config as import("@/types/database").ScoringRulesConfig | null;
+}
