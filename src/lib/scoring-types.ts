@@ -1,4 +1,14 @@
-import type { BonusKey, DeductionKey, HometownBonusKey } from "@/types/database";
+import type { BonusKey, BookEntryStatus, DeductionKey, HometownBonusKey } from "@/types/database";
+
+export const STATUS_LABELS: Record<BookEntryStatus, string> = {
+  reading: "Currently Reading",
+  completed: "Completed",
+  did_not_finish: "Did Not Finish",
+};
+
+export function isFinishedStatus(status: BookEntryStatus): boolean {
+  return status === "completed" || status === "did_not_finish";
+}
 
 export const BONUS_LABELS: Record<BonusKey, string> = {
   classics_1900: "Classics (1900-Present)",
@@ -48,6 +58,7 @@ export interface SeasonBonusResult {
 }
 
 export interface ScoreBreakdown {
+  fiction: boolean;
   roundedPages: number;
   basePoints: number;
   pagePoints: number;

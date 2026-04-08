@@ -69,6 +69,11 @@ export function LeaderboardPodium({
             <div className={`${style.points} font-extrabold ${style.score} mt-1.5`}>
               {player.total_points.toFixed(1)}
             </div>
+            {player.pending_points > 0 && (
+              <div className="text-xs font-medium text-amber-500 mt-0.5">
+                +{player.pending_points.toFixed(1)} pending
+              </div>
+            )}
             <div className="text-xs font-medium text-gray-400 mt-1">
               {player.book_count} {player.book_count === 1 ? "book" : "books"}
               {player.reading_count > 0 && (

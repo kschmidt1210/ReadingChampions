@@ -22,6 +22,8 @@ export type DeductionKey =
 
 export type HometownBonusKey = "state_setting" | "state_name" | "city_name";
 
+export type BookEntryStatus = "reading" | "completed" | "did_not_finish";
+
 export interface Profile {
   id: string;
   display_name: string;
@@ -82,7 +84,7 @@ export interface BookEntry {
   season_id: string;
   user_id: string;
   book_id: string;
-  completed: boolean;
+  status: BookEntryStatus;
   fiction: boolean;
   series_name: string | null;
   genre_id: string | null;
@@ -95,6 +97,7 @@ export interface BookEntry {
   bonus_3: BonusKey | null;
   deduction: DeductionKey | null;
   points: number;
+  pages_read: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -141,6 +144,7 @@ export interface LeaderboardPlayer {
   user_id: string;
   display_name: string;
   total_points: number;
+  pending_points: number;
   book_count: number;
   reading_count: number;
   page_count: number;

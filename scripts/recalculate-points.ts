@@ -29,10 +29,13 @@ interface ScoringRulesConfig {
   longest_road: { countries: [number, number, number]; series: [number, number, number] };
 }
 
+type BookEntryStatus = "reading" | "completed" | "did_not_finish";
+
 function calculateBookScore(
   input: {
     pages: number;
     fiction: boolean;
+    completed: boolean;
     bonus_1: BonusKey | null;
     bonus_2: BonusKey | null;
     bonus_3: BonusKey | null;
@@ -43,9 +46,9 @@ function calculateBookScore(
   config: ScoringRulesConfig
 ): number {
   const roundedPages = Math.round(input.pages / 50) * 50;
-  const basePoints = input.fiction
-    ? config.base_points.fiction
-    : config.base_points.nonfiction;
+  const basePoints = input.completed
+    ? (input.fiction ? config.base_points.fiction : config.base_points.nonfiction)
+    : 0;
   const pagePoints =
     Math.min(roundedPages, 100) * config.page_points.first_100_rate +
     Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
@@ -102,7 +105,7 @@ async function main() {
   // 2. Fetch all book entries with book data
   const { data: entries, error } = await supabase
     .from("book_entries")
-    .select("id, user_id, season_id, fiction, bonus_1, bonus_2, bonus_3, hometown_bonus, deduction, points, date_finished, created_at, book:books(title, pages, country), season:seasons(org_id)")
+    .select("id, user_id, season_id, status, fiction, pages_read, bonus_1, bonus_2, bonus_3, hometown_bonus, deduction, points, date_finished, created_at, book:books(title, pages, country), season:seasons(org_id)")
     .order("date_finished", { ascending: true, nullsFirst: true })
     .order("created_at", { ascending: true });
 
@@ -154,12 +157,19 @@ async function main() {
       continue;
     }
 
-    const isNew = isFirstCountry(entry.user_id, entry.season_id, country);
+    const status = (entry as any).status as BookEntryStatus ?? "completed";
+    const pagesRead = (entry as any).pages_read as number | null;
+    const isFinished = status === "completed" || status === "did_not_finish";
+    const isNew = isFinished && isFirstCountry(entry.user_id, entry.season_id, country);
+
+    const scoringPages = status === "did_not_finish" ? (pagesRead ?? 0) : pages;
+    const scoringCompleted = status === "completed" || status === "reading";
 
     const newPoints = calculateBookScore(
       {
-        pages,
+        pages: scoringPages,
         fiction: entry.fiction,
+        completed: scoringCompleted,
         bonus_1: entry.bonus_1 as BonusKey | null,
         bonus_2: entry.bonus_2 as BonusKey | null,
         bonus_3: entry.bonus_3 as BonusKey | null,

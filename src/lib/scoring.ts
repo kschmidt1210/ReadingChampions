@@ -62,6 +62,7 @@ export function calculateBookScore(
   const finalScore = afterDeduction * newCountryMultiplier;
 
   return {
+    fiction: input.fiction,
     roundedPages,
     basePoints,
     pagePoints,
