@@ -28,11 +28,15 @@ export default async function MyBooksPage() {
   if (!season)
     return <div className="p-8 text-center">No active season.</div>;
 
-  const entries = (await getUserBookEntries(
-    season.id,
-    user.id
-  )) as BookEntryWithBook[];
-  const genres = await getOrgGenres(currentOrg.id);
+  const [entries, genres, { data: profile }] = await Promise.all([
+    getUserBookEntries(season.id, user.id) as Promise<BookEntryWithBook[]>,
+    getOrgGenres(currentOrg.id),
+    supabase
+      .from("profiles")
+      .select("about_text, goodreads_url, storygraph_url")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
   return (
     <PlayerBooksView
@@ -42,6 +46,11 @@ export default async function MyBooksPage() {
       isCurrentUser={true}
       isAdmin={currentOrg.role === "admin"}
       seasonId={season.id}
+      profile={{
+        about_text: profile?.about_text ?? null,
+        goodreads_url: profile?.goodreads_url ?? null,
+        storygraph_url: profile?.storygraph_url ?? null,
+      }}
     />
   );
 }

@@ -38,7 +38,7 @@ export default async function PlayerPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select("display_name, about_text, goodreads_url, storygraph_url")
     .eq("id", userId)
     .single();
 
@@ -62,6 +62,11 @@ export default async function PlayerPage({
       isCurrentUser={user.id === userId}
       isAdmin={currentOrg.role === "admin"}
       seasonId={season.id}
+      profile={{
+        about_text: profile?.about_text ?? null,
+        goodreads_url: profile?.goodreads_url ?? null,
+        storygraph_url: profile?.storygraph_url ?? null,
+      }}
     />
   );
 }

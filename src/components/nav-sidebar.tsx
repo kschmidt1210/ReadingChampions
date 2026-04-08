@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trophy, BookOpen, Settings, Plus, LogOut, Sparkles, Scale } from "lucide-react";
+import { Trophy, BookOpen, Settings, Plus, LogOut, Sparkles, Scale, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OrgSwitcher } from "./org-switcher";
 import { useOrg } from "./providers";
@@ -80,6 +80,18 @@ export function NavSidebar({ onAddBook }: { onAddBook: () => void }) {
           <Plus className="h-4 w-4" />
           Add Book
         </button>
+        <Link
+          href="/settings"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+            pathname === "/settings"
+              ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
+              : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          )}
+        >
+          <UserCog className={cn("h-4 w-4", pathname === "/settings" ? "text-white" : "text-gray-400")} />
+          Account
+        </Link>
         <form action={logout}>
           <button
             type="submit"
