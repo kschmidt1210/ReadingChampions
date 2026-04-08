@@ -15,6 +15,10 @@ import {
   X,
   ExternalLink,
   Settings,
+  Trophy,
+  Route,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
 import { BookEntryCard } from "@/components/book-entry-card";
@@ -23,6 +27,22 @@ import { GenreGrid } from "@/components/genre-grid";
 import { AlphabetGrid } from "@/components/alphabet-grid";
 import type { BookEntryWithBook } from "@/types/database";
 import { cn } from "@/lib/utils";
+
+export interface ScoreBreakdownInfo {
+  seasonBonuses: {
+    genreComplete: number;
+    alphabet: number;
+    uniqueLetters: number;
+  };
+  longestRoad: {
+    countryBonus: number;
+    countryRank: number;
+    seriesBonus: number;
+    seriesRank: number;
+    bestSeriesName: string | null;
+  };
+  grandTotal: number;
+}
 
 function getFirstLetter(title: string): string {
   return title
@@ -108,6 +128,7 @@ interface PlayerBooksViewProps {
   isAdmin?: boolean;
   seasonId: string;
   profile?: PlayerProfile;
+  scoreBreakdown?: ScoreBreakdownInfo;
 }
 
 function applyFilters(
@@ -184,6 +205,7 @@ export function PlayerBooksView({
   isAdmin = false,
   seasonId,
   profile,
+  scoreBreakdown,
 }: PlayerBooksViewProps) {
   const [selectedEntry, setSelectedEntry] =
     useState<BookEntryWithBook | null>(null);
@@ -295,6 +317,8 @@ export function PlayerBooksView({
     ),
   ];
 
+  const [bookListExpanded, setBookListExpanded] = useState(false);
+
   const canModify = isCurrentUser || isAdmin;
   const title = isCurrentUser ? "My Books" : `${playerName}'s Books`;
 
@@ -393,6 +417,205 @@ export function PlayerBooksView({
           </div>
         ))}
       </div>
+
+      {/* Score Breakdown */}
+      {scoreBreakdown && allFinished.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-5 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Star className="h-4.5 w-4.5 text-indigo-200" />
+              <h3 className="font-semibold text-white">Score Breakdown</h3>
+            </div>
+            <span className="text-xl font-extrabold text-white">
+              {scoreBreakdown.grandTotal.toFixed(1)}
+            </span>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {/* Book Points */}
+            <div className="px-5 py-4">
+              <button
+                onClick={() => setBookListExpanded((v) => !v)}
+                className="w-full flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="bg-indigo-50 rounded-lg p-1.5">
+                    <BookOpen className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <span className="font-medium text-gray-900 text-sm">
+                    Book Points
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    ({allFinished.length} {allFinished.length === 1 ? "book" : "books"})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-900 text-sm">
+                    {confirmedPoints.toFixed(1)}
+                  </span>
+                  {bookListExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  )}
+                </div>
+              </button>
+
+              {bookListExpanded && (
+                <div className="mt-3 ml-9 space-y-1.5">
+                  {allFinished
+                    .sort((a, b) => Number(b.points) - Number(a.points))
+                    .map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-center justify-between text-xs"
+                      >
+                        <span className="text-gray-600 truncate mr-3">
+                          {entry.book.title}
+                          {entry.status === "did_not_finish" && (
+                            <span className="text-gray-400 ml-1">(DNF)</span>
+                          )}
+                        </span>
+                        <span className="font-medium text-gray-700 tabular-nums shrink-0">
+                          {Number(entry.points).toFixed(1)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Season Bonuses */}
+            <div className="px-5 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="bg-amber-50 rounded-lg p-1.5">
+                    <Trophy className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <span className="font-medium text-gray-900 text-sm">
+                    Challenge Bonuses
+                  </span>
+                </div>
+                <span className="font-semibold text-gray-900 text-sm">
+                  {(
+                    scoreBreakdown.seasonBonuses.genreComplete +
+                    scoreBreakdown.seasonBonuses.alphabet
+                  ).toFixed(1)}
+                </span>
+              </div>
+              <div className="ml-9 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className={cn(
+                    "text-gray-600",
+                    scoreBreakdown.seasonBonuses.genreComplete > 0 && "text-emerald-700"
+                  )}>
+                    Genre Challenge
+                    {scoreBreakdown.seasonBonuses.genreComplete > 0 && " ✓"}
+                  </span>
+                  <span className={cn(
+                    "font-medium tabular-nums",
+                    scoreBreakdown.seasonBonuses.genreComplete > 0
+                      ? "text-emerald-700"
+                      : "text-gray-400"
+                  )}>
+                    {scoreBreakdown.seasonBonuses.genreComplete > 0
+                      ? `+${scoreBreakdown.seasonBonuses.genreComplete.toFixed(1)}`
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className={cn(
+                    "text-gray-600",
+                    scoreBreakdown.seasonBonuses.alphabet > 0 && "text-emerald-700"
+                  )}>
+                    Alphabet Challenge
+                    {scoreBreakdown.seasonBonuses.uniqueLetters >= 26
+                      ? ` (26 letters)${scoreBreakdown.seasonBonuses.alphabet > 0 ? " ✓" : ""}`
+                      : scoreBreakdown.seasonBonuses.uniqueLetters >= 13
+                        ? ` (13+ letters)${scoreBreakdown.seasonBonuses.alphabet > 0 ? " ✓" : ""}`
+                        : ` (${scoreBreakdown.seasonBonuses.uniqueLetters}/13)`}
+                  </span>
+                  <span className={cn(
+                    "font-medium tabular-nums",
+                    scoreBreakdown.seasonBonuses.alphabet > 0
+                      ? "text-emerald-700"
+                      : "text-gray-400"
+                  )}>
+                    {scoreBreakdown.seasonBonuses.alphabet > 0
+                      ? `+${scoreBreakdown.seasonBonuses.alphabet.toFixed(1)}`
+                      : "—"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Longest Road Bonuses */}
+            {(scoreBreakdown.longestRoad.countryBonus > 0 ||
+              scoreBreakdown.longestRoad.seriesBonus > 0) && (
+              <div className="px-5 py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-violet-50 rounded-lg p-1.5">
+                      <Route className="h-4 w-4 text-violet-600" />
+                    </div>
+                    <span className="font-medium text-gray-900 text-sm">
+                      Longest Road Bonuses
+                    </span>
+                  </div>
+                  <span className="font-semibold text-gray-900 text-sm">
+                    {(
+                      scoreBreakdown.longestRoad.countryBonus +
+                      scoreBreakdown.longestRoad.seriesBonus
+                    ).toFixed(1)}
+                  </span>
+                </div>
+                <div className="ml-9 space-y-1.5">
+                  {scoreBreakdown.longestRoad.countryBonus > 0 && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-emerald-700">
+                        Most Countries
+                        <span className="text-gray-400 ml-1">
+                          (#{scoreBreakdown.longestRoad.countryRank})
+                        </span>
+                      </span>
+                      <span className="font-medium text-emerald-700 tabular-nums">
+                        +{scoreBreakdown.longestRoad.countryBonus.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                  {scoreBreakdown.longestRoad.seriesBonus > 0 && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-emerald-700">
+                        Longest Series
+                        {scoreBreakdown.longestRoad.bestSeriesName && (
+                          <span className="text-gray-400 ml-1">
+                            ({scoreBreakdown.longestRoad.bestSeriesName}, #{scoreBreakdown.longestRoad.seriesRank})
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-medium text-emerald-700 tabular-nums">
+                        +{scoreBreakdown.longestRoad.seriesBonus.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Grand Total */}
+            <div className="px-5 py-3 bg-gray-50/80">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-900 text-sm">
+                  Total Points
+                </span>
+                <span className="font-bold text-indigo-700 text-base">
+                  {scoreBreakdown.grandTotal.toFixed(1)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Genre Challenge */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
