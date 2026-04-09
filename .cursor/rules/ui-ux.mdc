@@ -46,11 +46,13 @@ Admin features are for a friend running a book club, not a SaaS admin. Use appro
 
 ## Layout Rules
 
-- **Mobile:** Bottom tab bar (max 5 items). Full-width content with `px-4` padding.
+- **Mobile is the primary experience.** Design for thumbs and 375px screens first, enhance for desktop.
+- **Mobile:** Bottom tab bar (max 5 items). Full-width content with `px-4` padding. Safe area insets on fixed elements.
 - **Desktop:** Fixed left sidebar (w-64) with `ml-64` content area.
 - "Add Book" is a global action (opens `BookEntryPanel`) not a page navigation.
 - Most player flows should be ≤ 2 taps from the tab bar.
 - Admin lives in `/admin/*` — never leaks into player UI.
+- See `.cursor/rules/mobile.mdc` for detailed mobile patterns (touch targets, safe areas, responsive breakpoints).
 
 ## Component Conventions
 
@@ -89,4 +91,4 @@ Admin features are for a friend running a book club, not a SaaS admin. Use appro
 
 **Resolution rule:** When personas conflict, start with The Casual's simplicity, then layer in depth for others via progressive disclosure. A collapsed section costs The Casual nothing but gives The Competitor everything.
 
-See `docs/ui-ux-design.md` for detailed rationale, worked examples, and component specifications.
+See `docs/ui-ux-design.md` for detailed rationale, worked examples, and component specifications. See `docs/mobile-design.md` for mobile-specific patterns, touch targets, safe area insets, and PWA configuration.

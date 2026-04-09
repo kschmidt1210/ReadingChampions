@@ -67,6 +67,8 @@ The Organizer is a friend running a book club, not a SaaS administrator.
 
 ## Layout & Navigation
 
+> **Mobile-specific patterns** — responsive breakpoints, touch targets, safe area insets, PWA config, and screen-by-screen mobile layouts are covered in detail in `docs/mobile-design.md`.
+
 ### Responsive Strategy
 
 | Viewport | Navigation | Content width |
@@ -77,6 +79,7 @@ The Organizer is a friend running a book club, not a SaaS administrator.
 - The bottom tab bar prioritizes primary actions: Leaderboard, My Books, Add Book (action button), Rules, and contextual items (Admin if admin, Account).
 - The sidebar mirrors these with room for org switching and sign-out.
 - "Add Book" is an **action**, not a page — it opens the `BookEntryPanel` dialog/sheet globally from any screen.
+- Mobile is the primary experience — design for phones first, enhance for desktop.
 
 ### Page Hierarchy
 
