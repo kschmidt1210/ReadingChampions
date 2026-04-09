@@ -134,6 +134,111 @@ function NotesSection({
   );
 }
 
+function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
+  const pages = 350;
+  const rounded = 350;
+  const base = config.base_points.fiction;
+  const pagePoints =
+    100 * config.page_points.first_100_rate +
+    250 * config.page_points.beyond_100_rate;
+  const preBonusTotal = base + pagePoints;
+
+  const firstBonusKey = Object.keys(config.bonuses).find(
+    (k) => k !== "new_country"
+  ) as BonusKey | undefined;
+  const bonusPct = firstBonusKey ? config.bonuses[firstBonusKey] : 0;
+  const bonusLabel = firstBonusKey ? BONUS_LABELS[firstBonusKey] : "Bonus";
+  const bonusAmount = preBonusTotal * bonusPct;
+  const postBonus = preBonusTotal + bonusAmount;
+
+  const deductionKey = Object.keys(config.deductions)[0] as
+    | keyof typeof config.deductions
+    | undefined;
+  const deductionMult = deductionKey ? config.deductions[deductionKey] : 1;
+  const deductionLabel = deductionKey ? DEDUCTION_LABELS[deductionKey] : "";
+
+  const newCountryMult = 1 + config.bonuses.new_country;
+  const finalWithBonus = postBonus * newCountryMult;
+  const finalWithDeduction =
+    preBonusTotal * deductionMult * newCountryMult;
+
+  return (
+    <Card className="border-indigo-200/60 bg-gradient-to-br from-indigo-50/40 to-violet-50/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Calculator className="h-4.5 w-4.5 text-indigo-500" />
+          Full Scoring Example
+        </CardTitle>
+        <p className="text-xs text-gray-500 mt-0.5">
+          A {pages}-page fiction book from a new country
+        </p>
+      </CardHeader>
+      <CardContent className="text-sm space-y-4">
+        <div className="space-y-1.5">
+          <p className="font-medium text-gray-700 text-xs uppercase tracking-wide">
+            With a bonus ({bonusLabel})
+          </p>
+          <div className="rounded-lg bg-white/80 px-3 py-2.5 text-xs text-gray-600 space-y-1 border border-gray-100">
+            <PointRow label="Base (fiction)" value={`${base}`} />
+            <PointRow
+              label={`Page points (${rounded} pages)`}
+              value={pagePoints.toFixed(2)}
+            />
+            <PointRow
+              label="Pre-bonus total"
+              value={preBonusTotal.toFixed(2)}
+              className="font-medium"
+            />
+            <PointRow
+              label={`${bonusLabel} (+${(bonusPct * 100).toFixed(1)}%)`}
+              value={`+${bonusAmount.toFixed(2)}`}
+            />
+            <PointRow
+              label={`New country (+${(config.bonuses.new_country * 100).toFixed(1)}%)`}
+              value={`×${newCountryMult.toFixed(3)}`}
+            />
+            <div className="border-t border-gray-200 pt-1.5 mt-1.5">
+              <PointRow
+                label="Final score"
+                value={finalWithBonus.toFixed(2)}
+                className="font-bold text-indigo-700"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <p className="font-medium text-gray-700 text-xs uppercase tracking-wide">
+            With a deduction ({deductionLabel})
+          </p>
+          <div className="rounded-lg bg-white/80 px-3 py-2.5 text-xs text-gray-600 space-y-1 border border-gray-100">
+            <PointRow label="Pre-bonus total" value={preBonusTotal.toFixed(2)} />
+            <PointRow
+              label="Bonuses"
+              value="removed"
+              className="text-gray-400 line-through"
+            />
+            <PointRow
+              label={`${deductionLabel} (×${deductionMult})`}
+              value={(preBonusTotal * deductionMult).toFixed(2)}
+            />
+            <PointRow
+              label={`New country (+${(config.bonuses.new_country * 100).toFixed(1)}%)`}
+              value={`×${newCountryMult.toFixed(3)}`}
+            />
+            <div className="border-t border-gray-200 pt-1.5 mt-1.5">
+              <PointRow
+                label="Final score"
+                value={finalWithDeduction.toFixed(2)}
+                className="font-bold text-indigo-700"
+              />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function RulesPointsView({
   orgId,
   config,
@@ -337,6 +442,9 @@ export function RulesPointsView({
           </div>
         </CardContent>
       </Card>
+
+      {/* Full Worked Example */}
+      <FullWorkedExample config={config} />
     </div>
   );
 }

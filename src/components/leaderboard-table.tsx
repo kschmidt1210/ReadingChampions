@@ -276,8 +276,10 @@ export function LeaderboardTable({
       {/* Search */}
       <div className="px-4 pt-3 pb-2">
         <div className="relative">
+          <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
           <input
+            id="leaderboard-search"
             type="text"
             placeholder="Search players..."
             value={search}
@@ -388,8 +390,17 @@ export function LeaderboardTable({
 
       {/* Rows */}
       {displayPlayers.length === 0 ? (
-        <div className="py-8 text-center text-sm text-gray-400">
-          No players match your search.
+        <div className="py-12 text-center">
+          <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500 font-medium">
+            No players match &ldquo;{search}&rdquo;
+          </p>
+          <button
+            onClick={() => setSearch("")}
+            className="text-xs text-indigo-600 hover:underline mt-1"
+          >
+            Clear search
+          </button>
         </div>
       ) : (
         displayPlayers.map((player) => {
@@ -408,6 +419,7 @@ export function LeaderboardTable({
               <button
                 type="button"
                 onClick={() => toggleExpand(player.user_id)}
+                aria-expanded={isExpanded}
                 className={cn(
                   "w-full flex items-center px-5 py-4 border-b border-gray-100/80 transition-colors hover:bg-gray-50/60 cursor-pointer text-left",
                   isCurrentUser &&

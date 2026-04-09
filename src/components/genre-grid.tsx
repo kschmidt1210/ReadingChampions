@@ -54,6 +54,15 @@ export function GenreGrid({ genres, coveredGenreIds }: GenreGridProps) {
           Genre challenge complete! +10% bonus
         </div>
       )}
+      {covered > 0 && covered < total && (
+        <p className="text-xs text-gray-400">
+          Remaining:{" "}
+          {genres
+            .filter((g) => !coveredGenreIds.has(g.id))
+            .map((g) => g.name)
+            .join(", ")}
+        </p>
+      )}
     </div>
   );
 }

@@ -34,6 +34,7 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
             <button
               key="add"
               onClick={onAddBook}
+              aria-label="Add book"
               className="flex flex-col items-center gap-0.5 px-3 py-1"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-200">

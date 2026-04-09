@@ -13,7 +13,7 @@ import { SeriesPicker } from "./series-picker";
 import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
-import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
+import { HometownBonusChips } from "./hometown-bonus-chips";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
 import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries, getSeasonSeriesNames } from "@/lib/actions/books";
@@ -190,6 +190,11 @@ export function BookEntryPanel({
       return;
     }
 
+    if (!genreId) {
+      toast.error("Please select a genre.");
+      return;
+    }
+
     const parsedRating = rating ? parseFloat(rating) : null;
     if (parsedRating !== null && (isNaN(parsedRating) || parsedRating < 0 || parsedRating > 10)) {
       toast.error("Rating must be between 0 and 10.");
@@ -331,7 +336,7 @@ export function BookEntryPanel({
           {!readOnly && (
             <div className="rounded-xl bg-gray-50 px-4 py-3 border border-gray-100 space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Reading Status</Label>
-              <div className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
+              <div role="radiogroup" aria-label="Reading status" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
                 {([
                   { value: "reading" as const, label: "Reading" },
                   { value: "completed" as const, label: "Completed" },
@@ -340,6 +345,8 @@ export function BookEntryPanel({
                   <button
                     key={opt.value}
                     type="button"
+                    role="radio"
+                    aria-checked={status === opt.value}
                     onClick={() => setStatus(opt.value)}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
                       status === opt.value
@@ -435,20 +442,7 @@ export function BookEntryPanel({
           {readOnly ? null : (
             <>
               <BonusChips selected={bonuses} onChange={setBonuses} />
-
-              <div className="space-y-1.5">
-                <Label>Hometown Bonus</Label>
-                <Select value={hometownBonus ?? "none"} onValueChange={(v) => setHometownBonus(v === "none" ? null : v as HometownBonusKey)}>
-                  <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {Object.entries(HOMETOWN_BONUS_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+              <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
               <DeductionChips selected={deduction} onChange={setDeduction} />
             </>
           )}

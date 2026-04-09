@@ -5,9 +5,13 @@ import {
   getUserOrganizations,
   getCurrentOrg,
   getOrgGenres,
+  getScoringConfig,
 } from "@/lib/queries/organizations";
+import { getLeaderboardData } from "@/lib/queries/leaderboard";
+import { calculateSeasonBonuses } from "@/lib/scoring";
 import { PlayerBooksView } from "@/components/player-books-view";
 import type { BookEntryWithBook } from "@/types/database";
+import type { ScoreBreakdownInfo, RankContext } from "@/components/player-books-view";
 
 export default async function MyBooksPage() {
   const supabase = await createClient();
@@ -26,17 +30,87 @@ export default async function MyBooksPage() {
 
   const season = await getActiveSeason(currentOrg.id);
   if (!season)
-    return <div className="p-8 text-center">No active season.</div>;
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500 font-medium">No active season right now.</p>
+        <p className="text-sm text-gray-400 mt-1">Check back when your organizer starts a new season!</p>
+      </div>
+    );
 
-  const [entries, genres, { data: profile }] = await Promise.all([
-    getUserBookEntries(season.id, user.id) as Promise<BookEntryWithBook[]>,
-    getOrgGenres(currentOrg.id),
-    supabase
-      .from("profiles")
-      .select("about_text, goodreads_url, storygraph_url")
-      .eq("id", user.id)
-      .single(),
-  ]);
+  const [entries, genres, config, leaderboard, { data: profile }] =
+    await Promise.all([
+      getUserBookEntries(season.id, user.id) as Promise<BookEntryWithBook[]>,
+      getOrgGenres(currentOrg.id),
+      getScoringConfig(currentOrg.id),
+      getLeaderboardData(season.id, currentOrg.id),
+      supabase
+        .from("profiles")
+        .select("about_text, goodreads_url, storygraph_url")
+        .eq("id", user.id)
+        .single(),
+    ]);
+
+  const playerLeaderboard = leaderboard.find((p) => p.user_id === user.id);
+
+  let scoreBreakdown: ScoreBreakdownInfo | null = null;
+  let rankContext: RankContext | undefined;
+
+  if (playerLeaderboard) {
+    const sorted = [...leaderboard].sort(
+      (a, b) => b.total_points - a.total_points
+    );
+    const idx = sorted.findIndex((p) => p.user_id === user.id);
+    const rank = idx + 1;
+    const playerAbove = idx > 0 ? sorted[idx - 1] : null;
+    rankContext = {
+      rank,
+      totalPlayers: sorted.length,
+      pointsToNextRank: playerAbove
+        ? playerAbove.total_points - playerLeaderboard.total_points
+        : null,
+      nextRankName: playerAbove?.display_name ?? null,
+    };
+  }
+
+  if (config && playerLeaderboard) {
+    const completedEntries = entries.filter((e) => e.status === "completed");
+    const enriched = completedEntries.map((e) => {
+      const pages = e.book?.pages ?? 0;
+      const roundedPages = Math.round(pages / 50) * 50;
+      const base = e.fiction
+        ? config.base_points.fiction
+        : config.base_points.nonfiction;
+      const pagePoints =
+        Math.min(roundedPages, 100) * config.page_points.first_100_rate +
+        Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
+      return {
+        preBonusTotal: base + pagePoints,
+        genre_id: e.genre_id,
+        book: { title: e.book.title },
+      };
+    });
+    const seasonBonuses = calculateSeasonBonuses(
+      enriched,
+      genres.map((g) => g.id),
+      config
+    );
+
+    scoreBreakdown = {
+      seasonBonuses: {
+        genreComplete: seasonBonuses.genreCompleteBonus,
+        alphabet: seasonBonuses.alphabetBonus,
+        uniqueLetters: seasonBonuses.uniqueLetters,
+      },
+      longestRoad: {
+        countryBonus: playerLeaderboard.country_bonus,
+        countryRank: playerLeaderboard.country_rank,
+        seriesBonus: playerLeaderboard.series_bonus,
+        seriesRank: playerLeaderboard.series_rank,
+        bestSeriesName: playerLeaderboard.best_series_name,
+      },
+      grandTotal: playerLeaderboard.total_points,
+    };
+  }
 
   return (
     <PlayerBooksView
@@ -51,6 +125,8 @@ export default async function MyBooksPage() {
         goodreads_url: profile?.goodreads_url ?? null,
         storygraph_url: profile?.storygraph_url ?? null,
       }}
+      scoreBreakdown={scoreBreakdown ?? undefined}
+      rankContext={rankContext}
     />
   );
 }

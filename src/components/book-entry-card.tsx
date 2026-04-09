@@ -46,9 +46,10 @@ export function BookEntryCard({
     : `${entry.book.pages} pages`;
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`group flex items-start gap-4 p-4 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border ${cardBg}`}
+      className={`group flex items-start gap-4 p-4 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border w-full text-left ${cardBg}`}
     >
       {entry.book.cover_url ? (
         <img
@@ -108,6 +109,6 @@ export function BookEntryCard({
         </div>
         <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
       </div>
-    </div>
+    </button>
   );
 }

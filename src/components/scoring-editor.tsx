@@ -141,11 +141,13 @@ export function ScoringEditor({
   rulesId,
   initialConfig,
   seasonId,
+  entryCount = 0,
 }: {
   orgId: string;
   rulesId: string;
   initialConfig: ScoringRulesConfig;
   seasonId: string | null;
+  entryCount?: number;
 }) {
   const [config, setConfig] = useState<ScoringRulesConfig>(initialConfig);
   const [editing, setEditing] = useState(false);
@@ -169,6 +171,9 @@ export function ScoringEditor({
     setEditing(false);
   }
 
+  const hasChanges =
+    JSON.stringify(config) !== JSON.stringify(savedConfig);
+
   function handleSave() {
     startTransition(async () => {
       const result = await updateScoringRules(orgId, rulesId, config as any);
@@ -177,7 +182,13 @@ export function ScoringEditor({
       } else {
         setSavedConfig(config);
         setEditing(false);
-        toast.success("Scoring rules updated");
+        if (entryCount > 0) {
+          toast.success(
+            `Scoring rules updated. Use "Recalculate" to apply to ${entryCount} existing entries.`
+          );
+        } else {
+          toast.success("Scoring rules updated");
+        }
       }
     });
   }
@@ -265,6 +276,14 @@ export function ScoringEditor({
           )}
         </div>
       </div>
+
+      {editing && hasChanges && entryCount > 0 && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200/60 px-4 py-3 text-sm text-amber-800">
+          Saving will update the scoring rules. You&apos;ll need to recalculate to
+          apply changes to {entryCount} existing{" "}
+          {entryCount === 1 ? "entry" : "entries"}.
+        </div>
+      )}
 
       <Card>
         <CardHeader>

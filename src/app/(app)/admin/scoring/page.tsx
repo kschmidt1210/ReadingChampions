@@ -2,6 +2,7 @@ import {
   getUserOrganizations,
   getCurrentOrg,
   getActiveSeason,
+  getSeasonEntryCount,
 } from "@/lib/queries/organizations";
 import { getScoringRules } from "@/lib/queries/admin";
 import { ScoringEditor } from "@/components/scoring-editor";
@@ -22,12 +23,15 @@ export default async function AdminScoringPage() {
   if (!rules || !config)
     return <p className="text-gray-400">No scoring rules found.</p>;
 
+  const entryCount = season ? await getSeasonEntryCount(season.id) : 0;
+
   return (
     <ScoringEditor
       orgId={currentOrg.id}
       rulesId={rules.id}
       initialConfig={config}
       seasonId={season?.id ?? null}
+      entryCount={entryCount}
     />
   );
 }

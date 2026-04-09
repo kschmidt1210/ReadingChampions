@@ -120,6 +120,13 @@ interface PlayerProfile {
   storygraph_url: string | null;
 }
 
+export interface RankContext {
+  rank: number;
+  totalPlayers: number;
+  pointsToNextRank: number | null;
+  nextRankName: string | null;
+}
+
 interface PlayerBooksViewProps {
   playerName: string;
   entries: BookEntryWithBook[];
@@ -129,6 +136,7 @@ interface PlayerBooksViewProps {
   seasonId: string;
   profile?: PlayerProfile;
   scoreBreakdown?: ScoreBreakdownInfo;
+  rankContext?: RankContext;
 }
 
 function applyFilters(
@@ -206,6 +214,7 @@ export function PlayerBooksView({
   seasonId,
   profile,
   scoreBreakdown,
+  rankContext,
 }: PlayerBooksViewProps) {
   const [selectedEntry, setSelectedEntry] =
     useState<BookEntryWithBook | null>(null);
@@ -417,6 +426,30 @@ export function PlayerBooksView({
           </div>
         ))}
       </div>
+
+      {/* Rank context */}
+      {rankContext && (
+        <div className="flex items-center gap-2 px-1">
+          <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold text-gray-900">
+              #{rankContext.rank}
+            </span>{" "}
+            of {rankContext.totalPlayers}
+            {rankContext.pointsToNextRank !== null &&
+              rankContext.nextRankName && (
+                <span className="text-gray-400">
+                  {" "}&middot;{" "}
+                  {rankContext.pointsToNextRank.toFixed(1)} pts behind{" "}
+                  {rankContext.nextRankName}
+                </span>
+              )}
+            {rankContext.rank === 1 && (
+              <span className="text-amber-600 font-medium"> &middot; Leading!</span>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Score Breakdown */}
       {scoreBreakdown && allFinished.length > 0 && (
@@ -706,8 +739,8 @@ export function PlayerBooksView({
                 onClick={() =>
                   setSortDir((d) => (d === "desc" ? "asc" : "desc"))
                 }
-                className="h-7 w-7 flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors"
-                title={sortDir === "desc" ? "Descending" : "Ascending"}
+                className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors"
+                aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
               >
                 {sortDir === "desc" ? (
                   <ArrowDown className="h-3.5 w-3.5" />
