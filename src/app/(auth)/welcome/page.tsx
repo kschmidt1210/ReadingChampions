@@ -17,7 +17,8 @@ import {
 export default function WelcomePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"choose" | "create">("choose");
+  const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
+  const [inviteCode, setInviteCode] = useState("");
 
   async function handleCreate(formData: FormData) {
     setLoading(true);
@@ -71,6 +72,61 @@ export default function WelcomePage() {
     );
   }
 
+  if (mode === "join") {
+    return (
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Join a Competition</CardTitle>
+          <CardDescription>
+            Enter the invite code your friend shared with you
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const trimmed = inviteCode.trim();
+              if (trimmed) {
+                window.location.href = `/join/${trimmed}`;
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="invite-code">Invite Code</Label>
+              <Input
+                id="invite-code"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="e.g. ABC123"
+                className="text-center text-lg font-mono tracking-widest uppercase"
+                autoFocus
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!inviteCode.trim()}
+            >
+              Join Competition
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setMode("choose");
+                setInviteCode("");
+              }}
+            >
+              Back
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="text-center">
@@ -87,12 +143,7 @@ export default function WelcomePage() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => {
-            const code = prompt("Enter your invite code:");
-            if (code) {
-              window.location.href = `/join/${code.trim()}`;
-            }
-          }}
+          onClick={() => setMode("join")}
         >
           Join with Invite Code
         </Button>

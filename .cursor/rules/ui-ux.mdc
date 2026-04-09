@@ -1,0 +1,94 @@
+---
+description: UI/UX design principles and component patterns for the Super Reader Championship app. Reference when building UI, choosing layouts, designing forms, or making interaction decisions.
+globs: src/app/**,src/components/**
+---
+
+# UI/UX Design System
+
+## Philosophy: Simple by default, detailed on demand
+
+This app replaces a spreadsheet. When persona needs conflict, bias toward the simpler presentation with a clear affordance to expand into detail. The Casual should never feel lost; The Competitor should never feel data-starved.
+
+## Information Layering
+
+Every data-rich screen should have three disclosure layers:
+
+1. **Glanceable** (always visible) — Rank, total points, book count, primary action. Serves The Casual.
+2. **Scannable** (visible with minimal interaction) — Challenge progress bars, point breakdowns, recent activity. Serves The Competitor and Explorer.
+3. **Deep-dive** (expandable/drill-through) — Per-book scoring math, letter/genre/country gap grids, series tracking. Serves The Tracker, Explorer, and Competitor.
+
+**Use expandable rows, collapsible sections, and drill-through navigation to move between layers — not separate pages or hidden modes.**
+
+## The 30-Second Book Entry
+
+Required fields only: title, author, pages, fiction/nonfiction, genre, status. Everything else (bonuses, deductions, hometown, series, rating, date) goes in collapsible sections. Score preview updates live as fields change.
+
+- Default status to "Completed," fiction to true
+- Auto-fill from book search when possible
+- Bonus/deduction selection uses toggle chips (scannable, fast), not dropdowns
+
+## Scoring Transparency
+
+- Score preview must break down every calculation step (base → pages → bonuses → deductions → multipliers → final)
+- Leaderboard rows should support inline expansion for point breakdowns
+- Rules page should use plain language with worked examples, not raw config values
+
+## Encourage, Don't Discourage
+
+- Show "books completed" alongside points on the leaderboard
+- Top 3 get podium treatment; beyond that, don't dramatize the gap
+- Emphasize activity and milestones (new genre, new country) over raw rank
+- Empty states should be warm and inviting with clear CTAs — never "No data"
+
+## Admin is Approachable
+
+Admin features are for a friend running a book club, not a SaaS admin. Use approachable language ("Scoring rules" not "Configuration," "Players" not "User management"). Ship sensible defaults. When rules change, communicate impact explicitly ("This will recalculate X entries").
+
+## Layout Rules
+
+- **Mobile is the primary experience.** Design for thumbs and 375px screens first, enhance for desktop.
+- **Mobile:** Bottom tab bar (max 5 items). Full-width content with `px-4` padding. Safe area insets on fixed elements.
+- **Desktop:** Fixed left sidebar (w-64) with `ml-64` content area.
+- "Add Book" is a global action (opens `BookEntryPanel`) not a page navigation.
+- Most player flows should be ≤ 2 taps from the tab bar.
+- Admin lives in `/admin/*` — never leaks into player UI.
+- See `.cursor/rules/mobile.mdc` for detailed mobile patterns (touch targets, safe areas, responsive breakpoints).
+
+## Component Conventions
+
+- **Cards:** Primary content container. Tappable cards need hover/press states and chevrons. Prefer inline expansion over navigation for detail.
+- **Data tables:** Default to essential columns (rank, name, points, books). Expandable for challenge stats and fun stats. Collapse to cards on mobile.
+- **Panels/Sheets:** For create/edit flows. Bottom sheet on mobile, dialog on desktop. `BookEntryPanel` is the pattern.
+- **Progress indicators:** Pip bars for scanning, grids for gap analysis, counts with context ("12/26 letters — missing: J, Q, X...").
+- **Chips:** Toggle chips for multi-select (bonuses, deductions). Filled = active, outlined = available. Group by category.
+
+## Color Usage
+
+- **Brand:** Indigo/violet gradient (nav, key actions, app shell background)
+- **Rank:** Amber (1st), indigo (2nd), orange (3rd)
+- **Status:** Green = completed, blue = reading, amber = DNF
+- **Destructive:** Red for delete/error
+- **Numbers:** Use tabular figures in columns to prevent layout shift
+
+## Accessibility
+
+- All interactions keyboard-navigable
+- Color never the sole state indicator — always pair with icon/label/pattern
+- 44x44px minimum touch targets on mobile
+- Visible labels on form inputs (never placeholder-only)
+- WCAG AA contrast (4.5:1 for text)
+- Skeleton screens for loading, not spinners
+
+## Persona Quick Reference
+
+| Persona | What they need | Design response |
+|---------|---------------|-----------------|
+| **Organizer** | Fast setup, safe rule changes | Defaults, impact previews, contained admin |
+| **Competitor** | Scoring transparency, rank context | Breakdowns, deltas, expandable stats |
+| **Casual** | Speed, simplicity, encouragement | Minimal fields, 30s entry, warm tone |
+| **Explorer** | Challenge visibility, gap analysis | Progress grids, "X remaining" counts |
+| **Tracker** | Accuracy, editability, history | Full metadata, easy edits, cross-season |
+
+**Resolution rule:** When personas conflict, start with The Casual's simplicity, then layer in depth for others via progressive disclosure. A collapsed section costs The Casual nothing but gives The Competitor everything.
+
+See `docs/ui-ux-design.md` for detailed rationale, worked examples, and component specifications. See `docs/mobile-design.md` for mobile-specific patterns, touch targets, safe area insets, and PWA configuration.

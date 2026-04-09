@@ -62,7 +62,7 @@ export function LeaderboardPodium({
             </div>
             <Link
               href={`/player/${player.user_id}`}
-              className={`font-bold ${style.name} text-gray-900 hover:underline decoration-2 underline-offset-2 block truncate`}
+              className={`font-bold ${style.name} text-gray-900 hover:underline active:underline decoration-2 underline-offset-2 block truncate text-center min-h-[44px] leading-[44px]`}
             >
               {player.display_name}
             </Link>

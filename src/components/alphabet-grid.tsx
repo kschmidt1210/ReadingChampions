@@ -29,7 +29,7 @@ export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
         />
       </div>
 
-      <div className="grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5">
+      <div className="grid grid-cols-[repeat(9,minmax(0,1fr))] sm:grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5">
         {LETTERS.map((letter) => {
           const done = coveredLetters.has(letter);
           return (
@@ -58,6 +58,12 @@ export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
           <PartyPopper className="h-4 w-4" />
           13+ letters! +6% bonus
         </div>
+      )}
+      {count > 0 && count < 26 && (
+        <p className="text-xs text-gray-400">
+          Missing:{" "}
+          {LETTERS.filter((l) => !coveredLetters.has(l)).join(", ")}
+        </p>
       )}
     </div>
   );

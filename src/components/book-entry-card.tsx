@@ -46,9 +46,10 @@ export function BookEntryCard({
     : `${entry.book.pages} pages`;
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`group flex items-start gap-4 p-4 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border ${cardBg}`}
+      className={`group flex items-start gap-4 p-4 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm transition-all duration-200 cursor-pointer border w-full text-left ${cardBg}`}
     >
       {entry.book.cover_url ? (
         <img
@@ -97,7 +98,7 @@ export function BookEntryCard({
           <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-bold ${pointsPillStyle}`}>
             {points.toFixed(2)}
           </span>
-          <div className="text-[0.65rem] text-gray-400 mt-1 text-center">
+          <div className="text-xs text-gray-400 mt-1 text-center">
             {isReading ? "pending" : "pts"}
           </div>
           {entry.rating !== null && (
@@ -108,6 +109,6 @@ export function BookEntryCard({
         </div>
         <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
       </div>
-    </div>
+    </button>
   );
 }

@@ -33,7 +33,12 @@ export default async function RulesPage() {
   const config = rules?.config as ScoringRulesConfig | undefined;
 
   if (!config)
-    return <div className="p-8 text-center text-gray-400">No scoring rules found.</div>;
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500 font-medium">Scoring rules haven&apos;t been set up yet.</p>
+        <p className="text-sm text-gray-400 mt-1">Ask your competition organizer to configure the scoring rules.</p>
+      </div>
+    );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

@@ -45,7 +45,9 @@ function SignupForm() {
           </div>
         </div>
         <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
-        <CardDescription>Join the Super Reader Championship</CardDescription>
+        <CardDescription>
+          Track your reading, compete with friends, and see who reads the most.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction}>
@@ -89,8 +91,8 @@ function SignupForm() {
                 name="password"
                 type="password"
                 required
-                minLength={6}
-                placeholder="At least 6 characters"
+                minLength={8}
+                placeholder="At least 8 characters"
               />
             </div>
             <button

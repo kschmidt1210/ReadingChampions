@@ -3,7 +3,6 @@
 import { Check } from "lucide-react";
 import type { BonusKey } from "@/types/database";
 import { BONUS_LABELS } from "@/lib/scoring-types";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const ALL_BONUS_KEYS = (Object.keys(BONUS_LABELS) as BonusKey[]).filter(
@@ -41,20 +40,21 @@ export function BonusChips({
         {ALL_BONUS_KEYS.map((key) => {
           const isActive = activeKeys.includes(key);
           return (
-            <Badge
+            <button
               key={key}
-              variant={isActive ? "default" : "outline"}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => toggle(key)}
               className={cn(
-                "cursor-pointer transition-all duration-200",
+                "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
                   ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent shadow-sm"
-                  : "hover:bg-emerald-50 hover:border-emerald-300 text-gray-600"
+                  : "border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-gray-600"
               )}
-              onClick={() => toggle(key)}
             >
               {isActive && <Check className="h-3 w-3 mr-1" />}
               {BONUS_LABELS[key]}
-            </Badge>
+            </button>
           );
         })}
       </div>

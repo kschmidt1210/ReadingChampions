@@ -1,0 +1,117 @@
+---
+description: Mobile-first design rules for the Super Reader Championship app. Reference when building UI components, handling responsive layouts, touch interactions, or PWA features.
+globs: src/app/**,src/components/**
+---
+
+# Mobile Design Rules
+
+## Philosophy: Phone-first, not phone-adapted
+
+Most users interact on mobile. Design for thumbs and 375px screens first, then enhance for desktop. Every primary action must be reachable with one thumb.
+
+## Safe Area Insets
+
+All fixed-bottom elements (bottom tab bar, sticky footers, bottom sheets) **must** include safe area padding for modern iPhones:
+
+```css
+padding-bottom: env(safe-area-inset-bottom, 0px);
+```
+
+Full-screen modals must account for top inset:
+
+```css
+padding-top: env(safe-area-inset-top, 0px);
+```
+
+## Touch Targets
+
+- **Minimum 44x44px** for all interactive elements (buttons, links, toggles, list items)
+- **48x48px preferred** for primary actions (Add Book, Save, Delete)
+- **8px minimum spacing** between adjacent touch targets
+- Form inputs: minimum **44px height** on mobile (current `h-8` / 32px is too small)
+- Never rely on hover-only interactions — everything must work with tap
+
+## Typography Floor
+
+- **Never below 12px** (`text-xs`) for any readable content on mobile
+- Current `text-[0.65rem]` (10.4px) labels are at the threshold — consider bumping to `text-xs` (12px) for mobile
+- Use `tabular-nums` for all numeric columns to prevent layout shift
+
+## Responsive Component Patterns
+
+### Leaderboard Table → Card View
+
+On mobile (`< md`), the leaderboard should prioritize legibility over density:
+- **Always visible:** Rank, name, points, book count
+- **Fold into expanded panel:** Pages, Countries, Series columns
+- Use `hidden sm:flex` or `hidden md:flex` to hide non-essential columns
+- Each player row should be a tappable card with expand chevron
+
+### Panels & Sheets
+
+- **Mobile:** Bottom sheet sliding up (use `Sheet` with `side="bottom"`)
+- **Desktop:** Centered dialog
+- Book entry panel should be full-height or near-full-height on mobile (`h-[100dvh]`)
+- Support swipe-to-dismiss on bottom sheets
+
+### Book Entry Form (Mobile)
+
+Progressive disclosure is critical on mobile:
+1. **Visible:** Book search, fiction toggle, genre, status, live score preview
+2. **Collapsed "Add details":** Bonuses, deduction, hometown, series, rating, date
+3. **Score preview:** Sticky at bottom of panel (always visible while scrolling form)
+4. Use native `<select>` on mobile for date/dropdown pickers instead of custom popovers
+
+### Alphabet Grid
+
+`grid-cols-[repeat(13,1fr)]` is tight on 320px screens (~20px per cell). Consider responsive grid:
+- `< 375px`: `grid-cols-[repeat(9,1fr)]` with wrapping
+- `≥ 375px`: `grid-cols-[repeat(13,1fr)]` (current)
+
+### Filter/Sort Toolbars
+
+On mobile, collapse filter controls behind a single "Filter" toggle button. Show a badge with active filter count.
+
+## Scrolling & Gestures
+
+- Bottom tab clearance: `pb-20` minimum (verify with safe area insets)
+- When expanding inline content (leaderboard rows, book details), ensure the expanded area scrolls into view without pushing the trigger off-screen
+- Avoid horizontal swipe gestures (conflicts with iOS back navigation)
+- No horizontal scrolling for primary content (acceptable for chip rows)
+
+## Performance
+
+- Use Next.js `<Image>` with `sizes` prop for book covers. Cover thumbnails at `112x160` max (2x of 56x80 display).
+- Dynamically import desktop-only packages (e.g., `cmdk`)
+- Loading states: skeleton screens, never spinners
+- Reserve space for dynamic content to prevent layout shift
+
+## PWA Configuration
+
+The app should be installable via "Add to Home Screen":
+- Ship `manifest.json` with `display: "standalone"` and `start_url: "/leaderboard"`
+- Set `theme_color` to `#4f46e5` (indigo-600) for browser chrome integration
+- Configure `apple-mobile-web-app-capable` and `apple-mobile-web-app-status-bar-style: black-translucent`
+
+## Breakpoint Strategy
+
+| Breakpoint | Layout shift |
+|-----------|-------------|
+| `< 640px` (default) | Single column, card-based, stacked. Bottom tabs. |
+| `640px` (sm) | Some 2-col grids appear, leaderboard table gets a few more columns |
+| `768px` (md) | Sidebar replaces bottom tabs. Full table layouts. |
+
+The major layout shift is at `md` (768px). Below that, everything should be vertically stacked and thumb-friendly.
+
+## Mobile Checklist
+
+When building any component, verify:
+- [ ] Touch targets ≥ 44px
+- [ ] No text < 12px for readable content
+- [ ] Vertical stacking on mobile (no horizontal scroll)
+- [ ] Fixed elements respect `env(safe-area-inset-*)`
+- [ ] Form inputs ≥ 44px height
+- [ ] Skeletons for loading states
+- [ ] No hover-only interactions
+
+See `docs/mobile-design.md` for screen-by-screen patterns, PWA config details, and persona-specific mobile considerations.

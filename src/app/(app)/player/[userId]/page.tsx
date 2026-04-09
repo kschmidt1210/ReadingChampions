@@ -12,7 +12,7 @@ import { getLeaderboardData } from "@/lib/queries/leaderboard";
 import { calculateSeasonBonuses } from "@/lib/scoring";
 import { PlayerBooksView } from "@/components/player-books-view";
 import type { BookEntryWithBook } from "@/types/database";
-import type { ScoreBreakdownInfo } from "@/components/player-books-view";
+import type { ScoreBreakdownInfo, RankContext } from "@/components/player-books-view";
 
 export default async function PlayerPage({
   params,
@@ -62,6 +62,24 @@ export default async function PlayerPage({
   const playerLeaderboard = leaderboard.find((p) => p.user_id === userId);
 
   let scoreBreakdown: ScoreBreakdownInfo | null = null;
+  let rankContext: RankContext | undefined;
+
+  if (playerLeaderboard) {
+    const sorted = [...leaderboard].sort(
+      (a, b) => b.total_points - a.total_points
+    );
+    const idx = sorted.findIndex((p) => p.user_id === userId);
+    const rank = idx + 1;
+    const playerAbove = idx > 0 ? sorted[idx - 1] : null;
+    rankContext = {
+      rank,
+      totalPlayers: sorted.length,
+      pointsToNextRank: playerAbove
+        ? playerAbove.total_points - playerLeaderboard.total_points
+        : null,
+      nextRankName: playerAbove?.display_name ?? null,
+    };
+  }
 
   if (config && playerLeaderboard) {
     const completedEntries = entries.filter((e) => e.status === "completed");
@@ -117,6 +135,7 @@ export default async function PlayerPage({
         storygraph_url: profile?.storygraph_url ?? null,
       }}
       scoreBreakdown={scoreBreakdown ?? undefined}
+      rankContext={rankContext}
     />
   );
 }
