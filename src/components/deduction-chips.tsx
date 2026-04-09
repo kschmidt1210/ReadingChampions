@@ -27,7 +27,7 @@ export function DeductionChips({
               aria-pressed={isActive}
               onClick={() => onChange(isActive ? null : key)}
               className={cn(
-                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-pointer transition-all duration-200",
+                "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
                   ? "bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white border-transparent shadow-sm"
                   : "border-gray-200 hover:bg-rose-50 hover:border-rose-300 text-gray-600"

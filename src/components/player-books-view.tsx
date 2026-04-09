@@ -19,6 +19,7 @@ import {
   Route,
   ChevronDown,
   ChevronUp,
+  SlidersHorizontal,
 } from "lucide-react";
 import Link from "next/link";
 import { BookEntryCard } from "@/components/book-entry-card";
@@ -225,9 +226,14 @@ export function PlayerBooksView({
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [fictionFilter, setFictionFilter] = useState<FictionFilter>("all");
   const [genreFilter, setGenreFilter] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const hasActiveFilters =
     search.trim() !== "" || fictionFilter !== "all" || genreFilter !== "";
+  const activeFilterCount =
+    (search.trim() !== "" ? 1 : 0) +
+    (fictionFilter !== "all" ? 1 : 0) +
+    (genreFilter !== "" ? 1 : 0);
 
   function handleSortChange(key: BookSortKey) {
     if (sortKey === key) {
@@ -691,28 +697,51 @@ export function PlayerBooksView({
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by title or author..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+          {/* Search + mobile filter toggle */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by title or author..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 active:text-gray-700 p-1.5 rounded-md"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setFiltersOpen((v) => !v)}
+              className={cn(
+                "md:hidden flex items-center gap-1.5 h-11 px-3 rounded-lg border text-xs font-medium transition-colors shrink-0",
+                filtersOpen || hasActiveFilters
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  : "border-gray-200 text-gray-500"
+              )}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filter
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-indigo-600 text-white text-xs px-1">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* Sort & Filter controls */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Sort & Filter controls — always visible on desktop, toggleable on mobile */}
+          <div className={cn(
+            "flex-wrap items-center gap-2",
+            filtersOpen ? "flex" : "hidden md:flex"
+          )}>
             {/* Sort */}
             <div className="flex items-center gap-1.5">
               <label
@@ -727,7 +756,7 @@ export function PlayerBooksView({
                 onChange={(e) =>
                   handleSortChange(e.target.value as BookSortKey)
                 }
-                className="text-xs h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
+                className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
               >
                 {(Object.keys(sortLabels) as BookSortKey[]).map((key) => (
                   <option key={key} value={key}>
@@ -739,7 +768,7 @@ export function PlayerBooksView({
                 onClick={() =>
                   setSortDir((d) => (d === "desc" ? "asc" : "desc"))
                 }
-                className="h-9 w-9 flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors"
+                className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-gray-500 transition-colors"
                 aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
               >
                 {sortDir === "desc" ? (
@@ -760,7 +789,7 @@ export function PlayerBooksView({
                     key={f}
                     onClick={() => setFictionFilter(f)}
                     className={cn(
-                      "px-2.5 py-1 text-xs font-medium transition-colors",
+                      "px-3 py-2 md:py-1 text-xs font-medium transition-colors",
                       fictionFilter === f
                         ? "bg-indigo-100 text-indigo-700"
                         : "text-gray-500 hover:bg-gray-50"
@@ -783,7 +812,7 @@ export function PlayerBooksView({
                 <select
                   value={genreFilter}
                   onChange={(e) => setGenreFilter(e.target.value)}
-                  className="text-xs h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
+                  className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
                 >
                   <option value="">All Genres</option>
                   {genres.map((g) => (
@@ -801,7 +830,7 @@ export function PlayerBooksView({
                 <div className="h-5 w-px bg-gray-200" />
                 <button
                   onClick={clearFilters}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800 active:text-indigo-900 transition-colors py-2 px-1"
                 >
                   Clear filters
                 </button>

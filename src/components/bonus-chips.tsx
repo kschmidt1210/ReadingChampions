@@ -46,7 +46,7 @@ export function BonusChips({
               aria-pressed={isActive}
               onClick={() => toggle(key)}
               className={cn(
-                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-pointer transition-all duration-200",
+                "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
                   ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent shadow-sm"
                   : "border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-gray-600"

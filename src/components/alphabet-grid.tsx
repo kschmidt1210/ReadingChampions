@@ -29,7 +29,7 @@ export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
         />
       </div>
 
-      <div className="grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5">
+      <div className="grid grid-cols-[repeat(9,minmax(0,1fr))] sm:grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5">
         {LETTERS.map((letter) => {
           const done = coveredLetters.has(letter);
           return (

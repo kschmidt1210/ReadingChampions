@@ -8,7 +8,7 @@ function Skeleton({ className }: { className?: string }) {
 
 export default function Loading() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8 space-y-6">
       {/* Page title skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-7 w-48" />

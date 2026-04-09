@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,53 @@ interface BookEntryPanelProps {
   entry?: BookEntryWithBook;
   canEdit?: boolean;
   canDelete?: boolean;
+}
+
+function DetailsSection({
+  bonuses,
+  hometownBonus,
+  deduction,
+  onBonusChange,
+  onHometownChange,
+  onDeductionChange,
+}: {
+  bonuses: (BonusKey | null)[];
+  hometownBonus: HometownBonusKey | null;
+  deduction: DeductionKey | null;
+  onBonusChange: (v: (BonusKey | null)[]) => void;
+  onHometownChange: (v: HometownBonusKey | null) => void;
+  onDeductionChange: (v: DeductionKey | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const activeBonusCount = bonuses.filter((b) => b !== null).length;
+  const totalActive = activeBonusCount + (hometownBonus ? 1 : 0) + (deduction ? 1 : 0);
+
+  return (
+    <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+      >
+        <span>
+          Add details
+          {totalActive > 0 && (
+            <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-semibold">
+              {totalActive} selected
+            </span>
+          )}
+        </span>
+        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
+          <BonusChips selected={bonuses} onChange={onBonusChange} />
+          <HometownBonusChips selected={hometownBonus} onChange={onHometownChange} />
+          <DeductionChips selected={deduction} onChange={onDeductionChange} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function BookEntryPanel({
@@ -284,17 +333,14 @@ export function BookEntryPanel({
     }
   }
 
+  const isMobile = useIsMobile();
+
   const dialogTitle = isEditMode
     ? entry.book.title
     : "Add a Book";
 
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>{dialogTitle}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-5 overflow-y-auto pr-1">
+  const formContent = (
+        <div className="space-y-5">
           {isEditMode ? (
             <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
               {entry.book.cover_url ? (
@@ -348,7 +394,7 @@ export function BookEntryPanel({
                     role="radio"
                     aria-checked={status === opt.value}
                     onClick={() => setStatus(opt.value)}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                    className={`rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
                       status === opt.value
                         ? opt.value === "reading"
                           ? "bg-amber-500 text-white shadow-sm"
@@ -440,21 +486,24 @@ export function BookEntryPanel({
           </div>
 
           {readOnly ? null : (
-            <>
-              <BonusChips selected={bonuses} onChange={setBonuses} />
-              <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
-              <DeductionChips selected={deduction} onChange={setDeduction} />
-            </>
+            <DetailsSection
+              bonuses={bonuses}
+              hometownBonus={hometownBonus}
+              deduction={deduction}
+              onBonusChange={setBonuses}
+              onHometownChange={setHometownBonus}
+              onDeductionChange={setDeduction}
+            />
           )}
 
-          <div className="sticky bottom-0 bg-background pt-3 space-y-3 border-t border-gray-100">
+          <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] space-y-3 border-t border-gray-100">
             <ScorePreview breakdown={scoreBreakdown} status={status} />
 
             {!readOnly && (
               <button
                 onClick={handleSave}
                 disabled={saving || (!isEditMode && !selectedBook)}
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 md:py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:brightness-95 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving
                   ? (isEditMode ? "Updating..." : "Saving...")
@@ -493,6 +542,33 @@ export function BookEntryPanel({
               )
             )}
           </div>
+        </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
+        <SheetContent side="bottom" className="max-h-[90dvh] flex flex-col rounded-t-2xl pb-[env(safe-area-inset-bottom)]" showCloseButton={false}>
+          <SheetHeader className="px-4 pt-1 pb-0">
+            <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 mb-2" />
+            <SheetTitle>{dialogTitle}</SheetTitle>
+          </SheetHeader>
+          <div className="px-4 flex-1 overflow-y-auto">
+            {formContent}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto pr-1">
+          {formContent}
         </div>
       </DialogContent>
     </Dialog>
