@@ -59,12 +59,6 @@ export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
           13+ letters! +6% bonus
         </div>
       )}
-      {count > 0 && count < 26 && (
-        <p className="text-xs text-gray-400">
-          Missing:{" "}
-          {LETTERS.filter((l) => !coveredLetters.has(l)).join(", ")}
-        </p>
-      )}
     </div>
   );
 }
