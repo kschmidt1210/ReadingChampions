@@ -8,28 +8,28 @@ const podiumStyles = [
     card: "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 border-2 border-amber-300/60 shadow-xl shadow-amber-500/10",
     glow: "bg-amber-400/20",
     points: "text-amber-700",
-    size: "w-[11.5rem] pb-8 pt-7",
-    medal: "text-6xl",
-    name: "text-xl",
-    score: "text-3xl",
+    size: "flex-1 min-w-0 sm:flex-none sm:w-[11.5rem] pb-6 pt-5 sm:pb-8 sm:pt-7",
+    medal: "text-4xl sm:text-6xl",
+    name: "text-base sm:text-xl",
+    score: "text-2xl sm:text-3xl",
   },
   {
     card: "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border border-indigo-200/60 shadow-lg shadow-indigo-500/5",
     glow: "bg-indigo-400/15",
     points: "text-indigo-600",
-    size: "w-44 pb-6 pt-6",
-    medal: "text-5xl",
-    name: "text-lg",
-    score: "text-2xl",
+    size: "flex-1 min-w-0 sm:flex-none sm:w-44 pb-5 pt-4 sm:pb-6 sm:pt-6",
+    medal: "text-3xl sm:text-5xl",
+    name: "text-sm sm:text-lg",
+    score: "text-xl sm:text-2xl",
   },
   {
     card: "bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border border-orange-200/60 shadow-lg shadow-orange-500/5",
     glow: "bg-orange-400/15",
     points: "text-orange-700",
-    size: "w-44 pb-6 pt-6",
-    medal: "text-5xl",
-    name: "text-lg",
-    score: "text-2xl",
+    size: "flex-1 min-w-0 sm:flex-none sm:w-44 pb-5 pt-4 sm:pb-6 sm:pt-6",
+    medal: "text-3xl sm:text-5xl",
+    name: "text-sm sm:text-lg",
+    score: "text-xl sm:text-2xl",
   },
 ];
 
@@ -46,7 +46,7 @@ export function LeaderboardPodium({
   );
 
   return (
-    <div className="flex justify-center items-end gap-3 sm:gap-5 mb-8">
+    <div className="flex justify-center items-end gap-2 sm:gap-5 mb-8">
       {ordered.map((player) => {
         const rankIdx = player.rank - 1;
         const style = podiumStyles[rankIdx];
@@ -54,7 +54,7 @@ export function LeaderboardPodium({
         return (
           <div
             key={player.user_id}
-            className={`relative text-center rounded-2xl px-4 ${style.size} ${style.card} ${isFirst ? "-mt-4" : "mt-4"}`}
+            className={`relative text-center rounded-2xl px-2 sm:px-4 ${style.size} ${style.card} ${isFirst ? "-mt-4" : "mt-4"}`}
           >
             <div className={`absolute inset-0 rounded-2xl ${style.glow} blur-xl -z-10`} />
             <div className={`${style.medal} mb-2 drop-shadow-sm`}>
@@ -79,7 +79,9 @@ export function LeaderboardPodium({
               {player.reading_count > 0 && (
                 <span className="text-amber-500"> + {player.reading_count} reading</span>
               )}
-              {" "}&middot; {player.page_count.toLocaleString()} pages
+              <span className="hidden sm:inline">
+                {" "}&middot; {player.page_count.toLocaleString()} pages
+              </span>
             </div>
           </div>
         );
