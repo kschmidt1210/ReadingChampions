@@ -1,4 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#4f46e5"/>
-  <text x="256" y="370" font-size="320" text-anchor="middle" fill="white" font-family="system-ui, sans-serif">=Ú</text>
+  <rect width="512" height="512" rx="85" fill="#4f46e5"/>
+  <!-- Open book icon -->
+  <g transform="translate(256,256)" fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-128,108 L-128,-86 C-128,-86 -64,-118 0,-86 C64,-118 128,-86 128,-86 L128,108"/>
+    <path d="M0,-86 L0,108"/>
+    <path d="M-128,108 C-128,108 -64,76 0,108 C64,76 128,108 128,108"/>
+    <!-- Page lines left -->
+    <path d="M-96,-44 L-20,-66" stroke-width="8" opacity="0.6"/>
+    <path d="M-96,-12 L-20,-34" stroke-width="8" opacity="0.6"/>
+    <path d="M-96,20 L-20,-2" stroke-width="8" opacity="0.6"/>
+    <!-- Page lines right -->
+    <path d="M96,-44 L20,-66" stroke-width="8" opacity="0.6"/>
+    <path d="M96,-12 L20,-34" stroke-width="8" opacity="0.6"/>
+    <path d="M96,20 L20,-2" stroke-width="8" opacity="0.6"/>
+  </g>
 </svg>

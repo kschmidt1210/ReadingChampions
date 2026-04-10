@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Maskable: no rounded corners, content in safe zone (inner 80%) -->
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <!-- Open book icon (scaled to 80% safe zone) -->
+  <g transform="translate(256,256)" fill="none" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-102,86 L-102,-68 C-102,-68 -52,-94 0,-68 C52,-94 102,-68 102,-68 L102,86"/>
+    <path d="M0,-68 L0,86"/>
+    <path d="M-102,86 C-102,86 -52,60 0,86 C52,60 102,86 102,86"/>
+    <!-- Page lines left -->
+    <path d="M-78,-34 L-16,-52" stroke-width="7" opacity="0.6"/>
+    <path d="M-78,-8 L-16,-26" stroke-width="7" opacity="0.6"/>
+    <path d="M-78,18 L-16,0" stroke-width="7" opacity="0.6"/>
+    <!-- Page lines right -->
+    <path d="M78,-34 L16,-52" stroke-width="7" opacity="0.6"/>
+    <path d="M78,-8 L16,-26" stroke-width="7" opacity="0.6"/>
+    <path d="M78,18 L16,0" stroke-width="7" opacity="0.6"/>
+  </g>
+</svg>
