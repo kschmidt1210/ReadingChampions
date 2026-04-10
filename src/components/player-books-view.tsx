@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import {
   BookA,
   BookOpen,
@@ -143,6 +143,7 @@ export interface RankContext {
   behindRankName: string | null;
   behindRankRank: number | null;
   neighbors: RankNeighbor[];
+  allPlayers: RankNeighbor[];
   currentUserId: string;
 }
 
@@ -231,6 +232,82 @@ function applySorting(
   });
 }
 
+function StandingsRow({
+  neighbor,
+  isMe,
+  isCurrentUser,
+  currentUserPoints,
+  currentUserRank,
+  innerRef,
+}: {
+  neighbor: RankNeighbor;
+  isMe: boolean;
+  isCurrentUser: boolean;
+  currentUserPoints: number;
+  currentUserRank: number;
+  innerRef?: React.Ref<HTMLDivElement>;
+}) {
+  const gap = isMe
+    ? null
+    : neighbor.rank < currentUserRank
+      ? neighbor.totalPoints - currentUserPoints
+      : currentUserPoints - neighbor.totalPoints;
+
+  const nameContent = isMe && isCurrentUser ? "You" : neighbor.displayName;
+  const nameLink = isMe && isCurrentUser ? "/my-books" : `/player/${neighbor.userId}`;
+
+  return (
+    <div
+      ref={innerRef}
+      className={cn(
+        "flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm",
+        isMe
+          ? "bg-indigo-50 border border-indigo-200/60"
+          : "hover:bg-gray-50"
+      )}
+    >
+      <span
+        className={cn(
+          "w-8 text-right font-bold tabular-nums text-sm",
+          isMe ? "text-indigo-700" : "text-gray-400"
+        )}
+      >
+        #{neighbor.rank}
+      </span>
+      <Link
+        href={nameLink}
+        className={cn(
+          "flex-1 truncate font-medium hover:underline decoration-1 underline-offset-2",
+          isMe ? "text-indigo-700" : "text-gray-700"
+        )}
+      >
+        {nameContent}
+      </Link>
+      <span
+        className={cn(
+          "tabular-nums font-semibold text-sm",
+          isMe ? "text-indigo-700" : "text-gray-600"
+        )}
+      >
+        {neighbor.totalPoints.toFixed(1)}
+      </span>
+      {gap !== null && (
+        <span
+          className={cn(
+            "text-xs tabular-nums w-16 text-right",
+            neighbor.rank < currentUserRank
+              ? "text-emerald-600"
+              : "text-amber-600"
+          )}
+        >
+          {neighbor.rank < currentUserRank ? `+${gap.toFixed(1)}` : `-${gap.toFixed(1)}`}
+        </span>
+      )}
+      {isMe && <span className="w-16" />}
+    </div>
+  );
+}
+
 function NearbyStandings({
   rankContext,
   isCurrentUser,
@@ -239,7 +316,25 @@ function NearbyStandings({
   isCurrentUser: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { rank, totalPlayers, neighbors, currentUserId } = rankContext;
+  const [showAll, setShowAll] = useState(false);
+  const { rank, totalPlayers, neighbors, allPlayers, currentUserId } = rankContext;
+  const currentPlayerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentUserPoints =
+    allPlayers.find((n) => n.userId === currentUserId)?.totalPoints ?? 0;
+
+  useEffect(() => {
+    if (showAll && currentPlayerRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const el = currentPlayerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const scrollTop =
+        elRect.top - containerRect.top + container.scrollTop - container.clientHeight / 2 + el.clientHeight / 2;
+      container.scrollTo({ top: Math.max(0, scrollTop), behavior: "smooth" });
+    }
+  }, [showAll]);
 
   const summaryParts: React.ReactNode[] = [];
 
@@ -279,6 +374,9 @@ function NearbyStandings({
     );
   }
 
+  const displayList = showAll ? allPlayers : neighbors;
+  const hasMorePlayers = allPlayers.length > neighbors.length;
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <button
@@ -312,66 +410,39 @@ function NearbyStandings({
 
       {expanded && neighbors.length > 0 && (
         <div className="border-t border-gray-100 px-4 pb-3 pt-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
-            Nearby Standings
-          </p>
-          <div className="space-y-0.5">
-            {neighbors.map((neighbor) => {
+          <div className="flex items-center justify-between mb-2 px-1">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              {showAll ? "Full Standings" : "Nearby Standings"}
+            </p>
+            {hasMorePlayers && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+              >
+                {showAll ? "Show nearby" : `Show all ${totalPlayers}`}
+              </button>
+            )}
+          </div>
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              "space-y-0.5",
+              showAll && "max-h-80 overflow-y-auto overscroll-contain rounded-lg"
+            )}
+          >
+            {displayList.map((neighbor) => {
               const isMe = neighbor.userId === currentUserId;
-              const gap = isMe
-                ? null
-                : neighbor.rank < rank
-                  ? neighbor.totalPoints - (neighbors.find((n) => n.userId === currentUserId)?.totalPoints ?? 0)
-                  : (neighbors.find((n) => n.userId === currentUserId)?.totalPoints ?? 0) - neighbor.totalPoints;
-
               return (
-                <div
+                <StandingsRow
                   key={neighbor.userId}
-                  className={cn(
-                    "flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm",
-                    isMe
-                      ? "bg-indigo-50 border border-indigo-200/60"
-                      : "hover:bg-gray-50"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "w-8 text-right font-bold tabular-nums text-sm",
-                      isMe ? "text-indigo-700" : "text-gray-400"
-                    )}
-                  >
-                    #{neighbor.rank}
-                  </span>
-                  <span
-                    className={cn(
-                      "flex-1 truncate font-medium",
-                      isMe ? "text-indigo-700" : "text-gray-700"
-                    )}
-                  >
-                    {isMe && isCurrentUser ? "You" : neighbor.displayName}
-                  </span>
-                  <span
-                    className={cn(
-                      "tabular-nums font-semibold text-sm",
-                      isMe ? "text-indigo-700" : "text-gray-600"
-                    )}
-                  >
-                    {neighbor.totalPoints.toFixed(1)}
-                  </span>
-                  {gap !== null && (
-                    <span
-                      className={cn(
-                        "text-xs tabular-nums w-16 text-right",
-                        neighbor.rank < rank
-                          ? "text-emerald-600"
-                          : "text-amber-600"
-                      )}
-                    >
-                      {neighbor.rank < rank ? `+${gap.toFixed(1)}` : `-${gap.toFixed(1)}`}
-                    </span>
-                  )}
-                  {isMe && <span className="w-16" />}
-                </div>
+                  neighbor={neighbor}
+                  isMe={isMe}
+                  isCurrentUser={isCurrentUser}
+                  currentUserPoints={currentUserPoints}
+                  currentUserRank={rank}
+                  innerRef={isMe && showAll ? currentPlayerRef : undefined}
+                />
               );
             })}
           </div>
