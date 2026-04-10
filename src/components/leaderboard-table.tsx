@@ -139,13 +139,15 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
       <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
         {/* Performance stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-          {player.book_page_count !== player.page_count && (
-            <StatCard
-              label="Book Only Pages"
-              value={player.book_page_count.toLocaleString()}
-              sub={`of ${player.page_count.toLocaleString()} total`}
-            />
-          )}
+          <StatCard
+            label="Book Only Pages"
+            value={player.book_page_count.toLocaleString()}
+            sub={
+              player.book_page_count !== player.page_count
+                ? `of ${player.page_count.toLocaleString()} total`
+                : undefined
+            }
+          />
           <StatCard
             label="Avg Book Length"
             value={`${Math.round(player.avg_book_length).toLocaleString()} pg`}
@@ -483,7 +485,7 @@ export function LeaderboardTable({
                       ? `You (${player.display_name})`
                       : player.display_name}
                   </Link>
-                    <div className="flex items-center gap-3 mt-1.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span
                         className={cn(

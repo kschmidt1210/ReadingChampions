@@ -13,6 +13,7 @@ import {
   detectPointsColumn,
   type ParsedSheetRow,
 } from "@/lib/sheet-import";
+import { searchByISBN } from "@/lib/books-api";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -93,6 +94,38 @@ function buildGenreMap(genres: Array<{ id: string; name: string }>): Map<string,
     map.set(g.name.toLowerCase(), g.id);
   }
   return map;
+}
+
+// ---------------------------------------------------------------------------
+// Open Library ISBN lookup (with in-memory cache & rate-limit delay)
+// ---------------------------------------------------------------------------
+
+interface BookMeta {
+  cover_url: string | null;
+  author: string;
+}
+
+async function fetchBookMetaByISBN(
+  isbn: string,
+  cache: Map<string, BookMeta>
+): Promise<BookMeta> {
+  const cached = cache.get(isbn);
+  if (cached) return cached;
+
+  try {
+    const result = await searchByISBN(isbn);
+    const meta: BookMeta = result
+      ? { cover_url: result.cover_url, author: result.author }
+      : { cover_url: null, author: "" };
+    cache.set(isbn, meta);
+    // Small delay to stay within Open Library rate limits
+    await new Promise((r) => setTimeout(r, 100));
+    return meta;
+  } catch {
+    const fallback: BookMeta = { cover_url: null, author: "" };
+    cache.set(isbn, fallback);
+    return fallback;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -371,6 +404,7 @@ export async function importFromSheet(
   let skipped = 0;
   let errors = 0;
   const details: string[] = [];
+  const isbnMetaCache = new Map<string, BookMeta>();
 
   for (const member of membersToImport) {
     const tabData = await fetchPlayerTab(sheetId, member.displayName);
@@ -413,27 +447,37 @@ export async function importFromSheet(
         config
       );
 
-      // Upsert book
+      // Upsert book (look up cover & author from Open Library when ISBN is available)
       let bookId: string;
       if (p.isbn) {
+        const meta = await fetchBookMetaByISBN(p.isbn, isbnMetaCache);
+
         const { data: existingBook } = await admin
           .from("books")
-          .select("id")
+          .select("id, cover_url, author")
           .eq("isbn", p.isbn)
           .single();
 
         if (existingBook) {
           bookId = existingBook.id;
+          // Backfill cover/author on existing books that are missing them
+          const updates: Record<string, string> = {};
+          if (!existingBook.cover_url && meta.cover_url) updates.cover_url = meta.cover_url;
+          if ((!existingBook.author || existingBook.author === "") && meta.author) updates.author = meta.author;
+          if (Object.keys(updates).length > 0) {
+            await admin.from("books").update(updates).eq("id", bookId);
+          }
         } else {
           const { data: newBook, error: bookError } = await admin
             .from("books")
             .insert({
               isbn: p.isbn,
               title: p.title,
-              author: "",
+              author: meta.author || "",
               pages: p.pages,
               year_published: p.yearPublished,
               country: p.country,
+              cover_url: meta.cover_url,
             })
             .select("id")
             .single();
