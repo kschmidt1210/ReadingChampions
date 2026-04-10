@@ -128,7 +128,6 @@ function HighlightRow({
 }
 
 function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
-  const hasBonus = player.country_bonus > 0 || player.series_bonus > 0;
   const hasHighlights =
     player.longest_book_title ||
     player.highest_point_book_title ||
@@ -137,7 +136,7 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
   return (
     <div className="px-5 pb-4 pt-1">
       <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
-        {/* Performance stats */}
+        {/* Performance stats & bonuses */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
           <StatCard
             label="Book Only Pages"
@@ -169,27 +168,21 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
               sub={`${player.book_count - player.completed_count} did not finish`}
             />
           )}
+          {player.country_bonus > 0 && (
+            <StatCard
+              label="Country Bonus"
+              value={`+${player.country_bonus.toFixed(1)} pts`}
+              sub={`Rank #${player.country_rank} in countries`}
+            />
+          )}
+          {player.series_bonus > 0 && (
+            <StatCard
+              label="Series Bonus"
+              value={`+${player.series_bonus.toFixed(1)} pts`}
+              sub={`Rank #${player.series_rank} in series`}
+            />
+          )}
         </div>
-
-        {/* Bonuses */}
-        {hasBonus && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-            {player.country_bonus > 0 && (
-              <StatCard
-                label="Country Bonus"
-                value={`+${player.country_bonus.toFixed(1)} pts`}
-                sub={`Rank #${player.country_rank} in countries`}
-              />
-            )}
-            {player.series_bonus > 0 && (
-              <StatCard
-                label="Series Bonus"
-                value={`+${player.series_bonus.toFixed(1)} pts`}
-                sub={`Rank #${player.series_rank} in series`}
-              />
-            )}
-          </div>
-        )}
 
         {/* Highlights */}
         {hasHighlights && (
