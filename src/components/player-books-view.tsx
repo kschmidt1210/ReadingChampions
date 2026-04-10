@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import {
+  BookA,
   BookOpen,
   FileText,
   Star,
@@ -20,6 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import Link from "next/link";
 import { BookEntryCard } from "@/components/book-entry-card";
@@ -121,11 +124,24 @@ interface PlayerProfile {
   storygraph_url: string | null;
 }
 
+export interface RankNeighbor {
+  rank: number;
+  displayName: string;
+  totalPoints: number;
+  userId: string;
+}
+
 export interface RankContext {
   rank: number;
   totalPlayers: number;
   pointsToNextRank: number | null;
   nextRankName: string | null;
+  nextRankRank: number | null;
+  pointsAheadOfBehind: number | null;
+  behindRankName: string | null;
+  behindRankRank: number | null;
+  neighbors: RankNeighbor[];
+  currentUserId: string;
 }
 
 interface PlayerBooksViewProps {
@@ -144,7 +160,8 @@ function applyFilters(
   entries: BookEntryWithBook[],
   search: string,
   fictionFilter: FictionFilter,
-  genreFilter: string
+  genreFilter: string,
+  letterFilter: string
 ): BookEntryWithBook[] {
   let result = entries;
 
@@ -164,6 +181,12 @@ function applyFilters(
 
   if (genreFilter) {
     result = result.filter((e) => e.genre_id === genreFilter);
+  }
+
+  if (letterFilter) {
+    result = result.filter(
+      (e) => getFirstLetter(e.book?.title ?? "") === letterFilter
+    );
   }
 
   return result;
@@ -206,6 +229,156 @@ function applySorting(
   });
 }
 
+function NearbyStandings({
+  rankContext,
+  isCurrentUser,
+}: {
+  rankContext: RankContext;
+  isCurrentUser: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const { rank, totalPlayers, neighbors, currentUserId } = rankContext;
+
+  const summaryParts: React.ReactNode[] = [];
+
+  if (rankContext.pointsToNextRank !== null && rankContext.nextRankName && rankContext.nextRankRank !== null) {
+    summaryParts.push(
+      <span key="ahead" className="inline-flex items-center gap-1 text-gray-500">
+        <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+        <span className="tabular-nums font-medium text-gray-700">
+          {rankContext.pointsToNextRank.toFixed(1)}
+        </span>{" "}
+        pts behind{" "}
+        <span className="font-medium text-gray-700">
+          #{rankContext.nextRankRank} {rankContext.nextRankName}
+        </span>
+      </span>
+    );
+  }
+
+  if (rankContext.pointsAheadOfBehind !== null && rankContext.behindRankName && rankContext.behindRankRank !== null) {
+    summaryParts.push(
+      <span key="behind" className="inline-flex items-center gap-1 text-gray-500">
+        <ArrowDownRight className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+        <span className="tabular-nums font-medium text-gray-700">
+          {rankContext.pointsAheadOfBehind.toFixed(1)}
+        </span>{" "}
+        pts ahead of{" "}
+        <span className="font-medium text-gray-700">
+          #{rankContext.behindRankRank} {rankContext.behindRankName}
+        </span>
+      </span>
+    );
+  }
+
+  if (rank === 1) {
+    summaryParts.push(
+      <span key="leading" className="text-amber-600 font-medium">Leading!</span>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-4 py-3 flex items-start gap-2.5 text-left hover:bg-gray-50/60 active:bg-gray-100/40 transition-colors cursor-pointer"
+      >
+        <Trophy className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm">
+              <span className="font-bold text-gray-900">#{rank}</span>{" "}
+              <span className="text-gray-500">of {totalPlayers}</span>
+            </span>
+            {summaryParts.length > 0 && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                {summaryParts.map((part, i) => (
+                  <span key={i}>{part}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-gray-300 shrink-0 mt-0.5 transition-transform duration-200",
+            expanded && "rotate-180 text-gray-500"
+          )}
+        />
+      </button>
+
+      {expanded && neighbors.length > 0 && (
+        <div className="border-t border-gray-100 px-4 pb-3 pt-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
+            Nearby Standings
+          </p>
+          <div className="space-y-0.5">
+            {neighbors.map((neighbor) => {
+              const isMe = neighbor.userId === currentUserId;
+              const gap = isMe
+                ? null
+                : neighbor.rank < rank
+                  ? neighbor.totalPoints - (neighbors.find((n) => n.userId === currentUserId)?.totalPoints ?? 0)
+                  : (neighbors.find((n) => n.userId === currentUserId)?.totalPoints ?? 0) - neighbor.totalPoints;
+
+              return (
+                <div
+                  key={neighbor.userId}
+                  className={cn(
+                    "flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm",
+                    isMe
+                      ? "bg-indigo-50 border border-indigo-200/60"
+                      : "hover:bg-gray-50"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "w-8 text-right font-bold tabular-nums text-sm",
+                      isMe ? "text-indigo-700" : "text-gray-400"
+                    )}
+                  >
+                    #{neighbor.rank}
+                  </span>
+                  <span
+                    className={cn(
+                      "flex-1 truncate font-medium",
+                      isMe ? "text-indigo-700" : "text-gray-700"
+                    )}
+                  >
+                    {isMe && isCurrentUser ? "You" : neighbor.displayName}
+                  </span>
+                  <span
+                    className={cn(
+                      "tabular-nums font-semibold text-sm",
+                      isMe ? "text-indigo-700" : "text-gray-600"
+                    )}
+                  >
+                    {neighbor.totalPoints.toFixed(1)}
+                  </span>
+                  {gap !== null && (
+                    <span
+                      className={cn(
+                        "text-xs tabular-nums w-16 text-right",
+                        neighbor.rank < rank
+                          ? "text-emerald-600"
+                          : "text-amber-600"
+                      )}
+                    >
+                      {neighbor.rank < rank ? `+${gap.toFixed(1)}` : `-${gap.toFixed(1)}`}
+                    </span>
+                  )}
+                  {isMe && <span className="w-16" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PlayerBooksView({
   playerName,
   entries,
@@ -226,14 +399,17 @@ export function PlayerBooksView({
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [fictionFilter, setFictionFilter] = useState<FictionFilter>("all");
   const [genreFilter, setGenreFilter] = useState("");
+  const [letterFilter, setLetterFilter] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const bookListRef = useRef<HTMLDivElement>(null);
 
   const hasActiveFilters =
-    search.trim() !== "" || fictionFilter !== "all" || genreFilter !== "";
+    search.trim() !== "" || fictionFilter !== "all" || genreFilter !== "" || letterFilter !== "";
   const activeFilterCount =
     (search.trim() !== "" ? 1 : 0) +
     (fictionFilter !== "all" ? 1 : 0) +
-    (genreFilter !== "" ? 1 : 0);
+    (genreFilter !== "" ? 1 : 0) +
+    (letterFilter !== "" ? 1 : 0);
 
   function handleSortChange(key: BookSortKey) {
     if (sortKey === key) {
@@ -248,6 +424,7 @@ export function PlayerBooksView({
     setSearch("");
     setFictionFilter("all");
     setGenreFilter("");
+    setLetterFilter("");
   }
 
   const allCurrentlyReading = entries.filter((e) => e.status === "reading");
@@ -258,28 +435,28 @@ export function PlayerBooksView({
   );
 
   const filteredReading = useMemo(
-    () => applyFilters(allCurrentlyReading, search, fictionFilter, genreFilter),
-    [allCurrentlyReading, search, fictionFilter, genreFilter]
+    () => applyFilters(allCurrentlyReading, search, fictionFilter, genreFilter, letterFilter),
+    [allCurrentlyReading, search, fictionFilter, genreFilter, letterFilter]
   );
 
   const filteredCompleted = useMemo(
     () =>
       applySorting(
-        applyFilters(allCompleted, search, fictionFilter, genreFilter),
+        applyFilters(allCompleted, search, fictionFilter, genreFilter, letterFilter),
         sortKey,
         sortDir
       ),
-    [allCompleted, search, fictionFilter, genreFilter, sortKey, sortDir]
+    [allCompleted, search, fictionFilter, genreFilter, letterFilter, sortKey, sortDir]
   );
 
   const filteredDnf = useMemo(
     () =>
       applySorting(
-        applyFilters(allDnf, search, fictionFilter, genreFilter),
+        applyFilters(allDnf, search, fictionFilter, genreFilter, letterFilter),
         sortKey,
         sortDir
       ),
-    [allDnf, search, fictionFilter, genreFilter, sortKey, sortDir]
+    [allDnf, search, fictionFilter, genreFilter, letterFilter, sortKey, sortDir]
   );
 
   const totalBooks = allFinished.length;
@@ -331,6 +508,45 @@ export function PlayerBooksView({
         )
     ),
   ];
+
+  const genreBookCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of allCompleted) {
+      if (entry.genre_id) {
+        counts.set(entry.genre_id, (counts.get(entry.genre_id) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [allCompleted]);
+
+  const letterBookCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of allCompleted) {
+      const letter = getFirstLetter(entry.book?.title ?? "");
+      if (letter) {
+        counts.set(letter, (counts.get(letter) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [allCompleted]);
+
+  const scrollToBooks = useCallback(() => {
+    setTimeout(() => {
+      bookListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }, []);
+
+  const handleGenrePillClick = useCallback((genreId: string) => {
+    setGenreFilter((prev) => prev === genreId ? "" : genreId);
+    setLetterFilter("");
+    scrollToBooks();
+  }, [scrollToBooks]);
+
+  const handleLetterPillClick = useCallback((letter: string) => {
+    setLetterFilter((prev) => prev === letter ? "" : letter);
+    setGenreFilter("");
+    scrollToBooks();
+  }, [scrollToBooks]);
 
   const [bookListExpanded, setBookListExpanded] = useState(false);
 
@@ -435,26 +651,7 @@ export function PlayerBooksView({
 
       {/* Rank context */}
       {rankContext && (
-        <div className="flex items-center gap-2 px-1">
-          <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">
-              #{rankContext.rank}
-            </span>{" "}
-            of {rankContext.totalPlayers}
-            {rankContext.pointsToNextRank !== null &&
-              rankContext.nextRankName && (
-                <span className="text-gray-400">
-                  {" "}&middot;{" "}
-                  {rankContext.pointsToNextRank.toFixed(1)} pts behind{" "}
-                  {rankContext.nextRankName}
-                </span>
-              )}
-            {rankContext.rank === 1 && (
-              <span className="text-amber-600 font-medium"> &middot; Leading!</span>
-            )}
-          </p>
-        </div>
+        <NearbyStandings rankContext={rankContext} isCurrentUser={isCurrentUser} />
       )}
 
       {/* Score Breakdown */}
@@ -658,12 +855,23 @@ export function PlayerBooksView({
 
       {/* Genre Challenge */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <GenreGrid genres={genres} coveredGenreIds={coveredGenreIds} />
+        <GenreGrid
+          genres={genres}
+          coveredGenreIds={coveredGenreIds}
+          genreBookCounts={genreBookCounts}
+          activeGenreFilter={genreFilter}
+          onGenreClick={handleGenrePillClick}
+        />
       </div>
 
       {/* Alphabet Challenge */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <AlphabetGrid coveredLetters={coveredLetters} />
+        <AlphabetGrid
+          coveredLetters={coveredLetters}
+          letterBookCounts={letterBookCounts}
+          activeLetterFilter={letterFilter}
+          onLetterClick={handleLetterPillClick}
+        />
       </div>
 
       {/* Countries */}
@@ -696,7 +904,7 @@ export function PlayerBooksView({
 
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+        <div ref={bookListRef} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
           {/* Search + mobile filter toggle */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -837,6 +1045,33 @@ export function PlayerBooksView({
               </>
             )}
           </div>
+
+          {/* Active challenge filter chip */}
+          {(letterFilter || genreFilter) && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">Showing:</span>
+              {genreFilter && (
+                <button
+                  onClick={() => setGenreFilter("")}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors"
+                >
+                  <BookOpen className="h-3 w-3" />
+                  {genres.find((g) => g.id === genreFilter)?.name ?? "Genre"}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {letterFilter && (
+                <button
+                  onClick={() => setLetterFilter("")}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-2.5 py-1 hover:bg-indigo-100 transition-colors"
+                >
+                  <BookA className="h-3 w-3" />
+                  Starts with &ldquo;{letterFilter}&rdquo;
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
