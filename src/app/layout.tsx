@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { SerwistProvider } from "./serwist-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,17 +22,24 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Super Reader Championship",
+  applicationName: "Super Reader Championship",
+  title: {
+    default: "Super Reader Championship",
+    template: "%s | Super Reader",
+  },
   description: "A reading competition tracker for book clubs",
   icons: {
     icon: "/favicon.svg",
-    apple: "/icon-192.svg",
+    apple: "/icons/apple-touch-icon.png",
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Super Reader",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -45,8 +53,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster richColors closeButton />
+        <SerwistProvider swUrl="/serwist/sw.js">
+          {children}
+          <Toaster richColors closeButton />
+        </SerwistProvider>
       </body>
     </html>
   );

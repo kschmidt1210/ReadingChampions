@@ -525,7 +525,7 @@ export async function importFromSheet(
         season_id: seasonId,
         user_id: member.userId,
         book_id: bookId,
-        status: p.completed ? "completed" : "did_not_finish",
+        status: p.completed ? "completed" : "reading",
         fiction: p.fiction,
         series_name: p.seriesName,
         genre_id: p.genreId,

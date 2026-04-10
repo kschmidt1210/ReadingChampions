@@ -440,8 +440,8 @@ export function BookEntryPanel({
       return;
     }
 
-    if (!genreId) {
-      toast.error("Please select a genre.");
+    if (!genreId && !genreName.trim()) {
+      toast.error("Please enter a genre.");
       return;
     }
 
