@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, MessageSquareText, Lock } from "lucide-react";
 import type { BookEntryWithBook } from "@/types/database";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -126,7 +126,21 @@ export function BookEntryCard({
               {format(new Date(entry.date_finished), "MMM d, yyyy")}
             </span>
           )}
+          {entry.review && (
+            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+              <MessageSquareText className="h-3 w-3" />
+              {entry.review.visibility === "private" && (
+                <Lock className="h-2.5 w-2.5" />
+              )}
+            </span>
+          )}
         </div>
+
+        {detailed && entry.review && (
+          <p className="text-xs text-gray-500 mt-1.5 line-clamp-1 italic">
+            &ldquo;{entry.review.review_text}&rdquo;
+          </p>
+        )}
 
         {detailed && (
           <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
