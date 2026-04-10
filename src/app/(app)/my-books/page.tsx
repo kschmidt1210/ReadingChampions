@@ -66,12 +66,14 @@ export default async function MyBooksPage() {
 
     const neighborStart = Math.max(0, idx - 2);
     const neighborEnd = Math.min(sorted.length, idx + 3);
-    const neighbors = sorted.slice(neighborStart, neighborEnd).map((p, i) => ({
-      rank: neighborStart + i + 1,
+    const toNeighbor = (p: (typeof sorted)[number], i: number, offset: number) => ({
+      rank: offset + i + 1,
       displayName: p.display_name,
       totalPoints: p.total_points,
       userId: p.user_id,
-    }));
+    });
+    const neighbors = sorted.slice(neighborStart, neighborEnd).map((p, i) => toNeighbor(p, i, neighborStart));
+    const allPlayers = sorted.map((p, i) => toNeighbor(p, i, 0));
 
     rankContext = {
       rank,
@@ -87,6 +89,7 @@ export default async function MyBooksPage() {
       behindRankName: playerBelow?.display_name ?? null,
       behindRankRank: playerBelow ? idx + 2 : null,
       neighbors,
+      allPlayers,
       currentUserId: user.id,
     };
   }
