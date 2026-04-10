@@ -1,12 +1,21 @@
 import { BookA, PartyPopper } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 interface AlphabetGridProps {
   coveredLetters: Set<string>;
+  letterBookCounts?: Map<string, number>;
+  activeLetterFilter?: string;
+  onLetterClick?: (letter: string) => void;
 }
 
-export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
+export function AlphabetGrid({
+  coveredLetters,
+  letterBookCounts,
+  activeLetterFilter,
+  onLetterClick,
+}: AlphabetGridProps) {
   const count = coveredLetters.size;
   const pct = (count / 26) * 100;
 
@@ -32,17 +41,38 @@ export function AlphabetGrid({ coveredLetters }: AlphabetGridProps) {
       <div className="grid grid-cols-[repeat(9,minmax(0,1fr))] sm:grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5">
         {LETTERS.map((letter) => {
           const done = coveredLetters.has(letter);
+          const bookCount = letterBookCounts?.get(letter) ?? 0;
+          const isActive = activeLetterFilter === letter;
+          const clickable = done && onLetterClick;
+
           return (
-            <div
+            <button
               key={letter}
-              className={`aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+              type="button"
+              disabled={!clickable}
+              onClick={() => clickable && onLetterClick(letter)}
+              className={cn(
+                "relative aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all",
                 done
                   ? "bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm"
-                  : "bg-gray-50 text-gray-300 border border-dashed border-gray-200"
-              }`}
+                  : "bg-gray-50 text-gray-300 border border-dashed border-gray-200",
+                clickable && "cursor-pointer hover:shadow-md hover:scale-105 active:scale-95",
+                !clickable && "cursor-default",
+                isActive && "ring-2 ring-indigo-400 ring-offset-1 shadow-md scale-105"
+              )}
             >
               {letter}
-            </div>
+              {done && bookCount > 1 && (
+                <span className={cn(
+                  "absolute -top-1 -right-1 flex items-center justify-center h-3.5 min-w-3.5 rounded-full text-[9px] font-bold leading-none px-0.5",
+                  isActive
+                    ? "bg-indigo-800 text-white"
+                    : "bg-white text-indigo-700 shadow-sm border border-indigo-200"
+                )}>
+                  {bookCount}
+                </span>
+              )}
+            </button>
           );
         })}
       </div>
