@@ -24,12 +24,17 @@ export type HometownBonusKey = "state_setting" | "state_name" | "city_name";
 
 export type BookEntryStatus = "reading" | "completed" | "did_not_finish";
 
+export type ViewMode = "default" | "detail";
+
+export type ReviewVisibility = "public" | "private";
+
 export interface Profile {
   id: string;
   display_name: string;
   about_text: string | null;
   goodreads_url: string | null;
   storygraph_url: string | null;
+  default_view: ViewMode;
   created_at: string;
 }
 
@@ -135,9 +140,20 @@ export interface FlaggedEntry {
   created_at: string;
 }
 
+export interface BookReview {
+  id: string;
+  book_entry_id: string;
+  user_id: string;
+  review_text: string;
+  visibility: ReviewVisibility;
+  created_at: string;
+  updated_at: string;
+}
+
 // Joined types for UI convenience
 export interface BookEntryWithBook extends BookEntry {
   book: Book;
+  review?: BookReview | null;
 }
 
 export interface LeaderboardPlayer {
@@ -149,6 +165,7 @@ export interface LeaderboardPlayer {
   completed_count: number;
   reading_count: number;
   page_count: number;
+  book_page_count: number;
   rank: number;
   unique_letters: number;
   covered_genre_count: number;

@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { updateMyProfile, changePassword } from "@/lib/actions/profile";
-import { User, BookOpen, Lock, ExternalLink } from "lucide-react";
+import { User, Lock, ExternalLink, Eye } from "lucide-react";
+import { useViewMode } from "@/components/view-mode-provider";
+import { ViewModeToggle } from "@/components/view-mode-toggle";
+import type { ViewMode } from "@/types/database";
 
 interface SettingsFormProps {
   email: string;
@@ -17,11 +20,13 @@ interface SettingsFormProps {
     about_text: string;
     goodreads_url: string;
     storygraph_url: string;
+    default_view: ViewMode;
   };
 }
 
 export function SettingsForm({ email, profile }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
+  const { savedDefault } = useViewMode();
 
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [aboutText, setAboutText] = useState(profile.about_text);
@@ -39,6 +44,7 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
         about_text: aboutText || null,
         goodreads_url: goodreadsUrl || null,
         storygraph_url: storygraphUrl || null,
+        default_view: savedDefault,
       });
       if (result.error) {
         toast.error(result.error);
@@ -153,6 +159,24 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
           >
             {isPending ? "Saving..." : "Save Profile"}
           </Button>
+        </div>
+      </section>
+
+      {/* Preferences section */}
+      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+        <div className="flex items-center gap-2">
+          <Eye className="h-4.5 w-4.5 text-indigo-500" />
+          <h2 className="font-semibold text-gray-900">Preferences</h2>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <Label>Default View</Label>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Choose whether pages show compact or expanded information by default.
+            </p>
+          </div>
+          <ViewModeToggle />
         </div>
       </section>
 

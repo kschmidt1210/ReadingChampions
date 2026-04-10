@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, X, ChevronDown, BookOpen, Trophy, Star } from "lucide-react";
 import type { LeaderboardPlayer } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { useViewMode } from "@/components/view-mode-provider";
+import { ViewModeToggle } from "@/components/view-mode-toggle";
 
 type SortKey = "points" | "books" | "pages" | "countries" | "series";
 type SortDir = "asc" | "desc";
@@ -137,6 +139,13 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
       <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
         {/* Performance stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          {player.book_page_count !== player.page_count && (
+            <StatCard
+              label="Book Only Pages"
+              value={player.book_page_count.toLocaleString()}
+              sub={`of ${player.page_count.toLocaleString()} total`}
+            />
+          )}
           <StatCard
             label="Avg Book Length"
             value={`${Math.round(player.avg_book_length).toLocaleString()} pg`}
@@ -219,10 +228,21 @@ export function LeaderboardTable({
   players: LeaderboardPlayer[];
   currentUserId: string;
 }) {
+  const { viewMode } = useViewMode();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("points");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(() =>
+    viewMode === "detail" ? new Set(players.map((p) => p.user_id)) : new Set()
+  );
+
+  useEffect(() => {
+    if (viewMode === "detail") {
+      setExpandedRows(new Set(players.map((p) => p.user_id)));
+    } else {
+      setExpandedRows(new Set());
+    }
+  }, [viewMode, players]);
 
   const toggleExpand = useCallback((userId: string) => {
     setExpandedRows((prev) => {
@@ -273,28 +293,31 @@ export function LeaderboardTable({
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      {/* Search */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="relative">
-          <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-          <input
-            id="leaderboard-search"
-            type="text"
-            placeholder="Search players..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 active:text-gray-700 p-1.5 rounded-md"
-              aria-label="Clear search"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+      {/* Search & View Toggle */}
+      <div className="px-4 pt-3 pb-2 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <input
+              id="leaderboard-search"
+              type="text"
+              placeholder="Search players..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 active:text-gray-700 p-1.5 rounded-md"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <ViewModeToggle />
         </div>
       </div>
 

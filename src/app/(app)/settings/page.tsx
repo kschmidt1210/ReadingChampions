@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/settings-form";
+import type { ViewMode } from "@/types/database";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, about_text, goodreads_url, storygraph_url")
+    .select("display_name, about_text, goodreads_url, storygraph_url, default_view")
     .eq("id", user.id)
     .single();
 
@@ -21,6 +22,9 @@ export default async function SettingsPage() {
     user.user_metadata?.display_name ||
     user.email?.split("@")[0] ||
     "";
+
+  const defaultView: ViewMode =
+    profile?.default_view === "detail" ? "detail" : "default";
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 space-y-8">
@@ -32,6 +36,7 @@ export default async function SettingsPage() {
           about_text: profile?.about_text ?? "",
           goodreads_url: profile?.goodreads_url ?? "",
           storygraph_url: profile?.storygraph_url ?? "",
+          default_view: defaultView,
         }}
       />
     </div>

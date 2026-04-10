@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { BookOpen, ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
@@ -19,9 +19,10 @@ import { HometownBonusChips } from "./hometown-bonus-chips";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
 import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries, getSeasonSeriesNames } from "@/lib/actions/books";
+import { createOrUpdateReview, deleteReview, adminSetReviewPrivate } from "@/lib/actions/reviews";
 import { toast } from "sonner";
 import type { ParsedBook } from "@/lib/books-api";
-import type { BookEntryStatus, BookEntryWithBook, BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig } from "@/types/database";
+import type { BookEntryStatus, BookEntryWithBook, BonusKey, DeductionKey, HometownBonusKey, ScoringRulesConfig, ReviewVisibility } from "@/types/database";
 
 const DEFAULT_SCORING_CONFIG: ScoringRulesConfig = {
   base_points: { fiction: 0.71, nonfiction: 1.26 },
@@ -50,6 +51,8 @@ interface BookEntryPanelProps {
   entry?: BookEntryWithBook;
   canEdit?: boolean;
   canDelete?: boolean;
+  isEntryOwner?: boolean;
+  isAdmin?: boolean;
 }
 
 function DetailsSection({
@@ -99,6 +102,217 @@ function DetailsSection({
   );
 }
 
+function ReviewSection({
+  reviewText,
+  reviewVisibility,
+  onReviewTextChange,
+  onVisibilityChange,
+  canEditReview,
+  isAdmin,
+  existingReview,
+  orgId,
+  onReviewDeleted,
+  confirmingDelete,
+  onConfirmingDeleteChange,
+  deletingReview,
+  onDeletingReviewChange,
+}: {
+  reviewText: string;
+  reviewVisibility: ReviewVisibility;
+  onReviewTextChange: (v: string) => void;
+  onVisibilityChange: (v: ReviewVisibility) => void;
+  canEditReview: boolean;
+  isAdmin: boolean;
+  existingReview: BookEntryWithBook["review"];
+  orgId: string;
+  onReviewDeleted: () => void;
+  confirmingDelete: boolean;
+  onConfirmingDeleteChange: (v: boolean) => void;
+  deletingReview: boolean;
+  onDeletingReviewChange: (v: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasReview = !!existingReview || reviewText.trim().length > 0;
+
+  useEffect(() => {
+    if (hasReview) setOpen(true);
+  }, [hasReview]);
+
+  async function handleAdminMakePrivate() {
+    if (!existingReview || !orgId) return;
+    try {
+      await adminSetReviewPrivate(existingReview.id, orgId);
+      toast.success("Review set to private.");
+    } catch {
+      toast.error("Failed to update review visibility.");
+    }
+  }
+
+  async function handleAdminDelete() {
+    if (!existingReview || !orgId) return;
+    onDeletingReviewChange(true);
+    try {
+      await deleteReview(existingReview.id, orgId);
+      toast.success("Review deleted.");
+      onReviewDeleted();
+    } catch {
+      toast.error("Failed to delete review.");
+    } finally {
+      onDeletingReviewChange(false);
+      onConfirmingDeleteChange(false);
+    }
+  }
+
+  if (!canEditReview && !existingReview) return null;
+
+  if (!canEditReview && existingReview) {
+    return (
+      <div className="rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 flex items-center gap-2">
+          <MessageSquareText className="h-4 w-4 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">Review</span>
+          {existingReview.visibility === "private" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-500 px-2 py-0.5 text-xs font-medium">
+              <Lock className="h-3 w-3" />
+              Private
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+              <Globe className="h-3 w-3" />
+              Public
+            </span>
+          )}
+        </div>
+        <div className="px-4 pb-3 border-t border-gray-100 pt-3">
+          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {existingReview.review_text}
+          </p>
+        </div>
+        {isAdmin && existingReview.visibility === "public" && (
+          <div className="px-4 pb-3 flex gap-2 border-t border-gray-100 pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={handleAdminMakePrivate}
+            >
+              <EyeOff className="h-3.5 w-3.5 mr-1.5" />
+              Make Private
+            </Button>
+            {confirmingDelete ? (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="text-xs"
+                  onClick={handleAdminDelete}
+                  disabled={deletingReview}
+                >
+                  {deletingReview ? "Deleting..." : "Confirm"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => onConfirmingDeleteChange(false)}
+                  disabled={deletingReview}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs text-destructive hover:text-destructive"
+                onClick={() => onConfirmingDeleteChange(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                Delete Review
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          <MessageSquareText className="h-4 w-4 text-gray-400" />
+          {hasReview ? "Review" : "Write a review"}
+          {hasReview && (
+            <span className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-semibold">
+              {reviewVisibility === "public" ? "Public" : "Private"}
+            </span>
+          )}
+        </span>
+        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+          <div className="space-y-1.5">
+            <textarea
+              value={reviewText}
+              onChange={(e) => onReviewTextChange(e.target.value)}
+              placeholder="What did you think of this book?"
+              maxLength={5000}
+              rows={4}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors resize-y min-h-[100px]"
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">
+                {reviewText.length.toLocaleString()} / 5,000
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium text-gray-700">Visibility</Label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-200/60 p-1">
+              <button
+                type="button"
+                onClick={() => onVisibilityChange("private")}
+                className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
+                  reviewVisibility === "private"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Private
+              </button>
+              <button
+                type="button"
+                onClick={() => onVisibilityChange("public")}
+                className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
+                  reviewVisibility === "public"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                Public
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              {reviewVisibility === "private"
+                ? "Only visible to you."
+                : "Visible to other players in your competition."}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BookEntryPanel({
   open,
   onClose,
@@ -108,6 +322,8 @@ export function BookEntryPanel({
   entry,
   canEdit = false,
   canDelete = false,
+  isEntryOwner = false,
+  isAdmin = false,
 }: BookEntryPanelProps) {
   const { currentOrgId } = useOrg();
   const isEditMode = !!entry;
@@ -134,6 +350,11 @@ export function BookEntryPanel({
   const [seasonSeries, setSeasonSeries] = useState<string[]>([]);
   const [detectedSeries, setDetectedSeries] = useState<string | null>(null);
 
+  const [reviewText, setReviewText] = useState("");
+  const [reviewVisibility, setReviewVisibility] = useState<ReviewVisibility>("private");
+  const [confirmingReviewDelete, setConfirmingReviewDelete] = useState(false);
+  const [deletingReview, setDeletingReview] = useState(false);
+
   const populateFromEntry = useCallback((e: BookEntryWithBook) => {
     setPages(e.book.pages);
     setFiction(e.fiction);
@@ -148,6 +369,8 @@ export function BookEntryPanel({
     setBonuses([e.bonus_1, e.bonus_2, e.bonus_3]);
     setHometownBonus(e.hometown_bonus);
     setDeduction(e.deduction);
+    setReviewText(e.review?.review_text ?? "");
+    setReviewVisibility(e.review?.visibility ?? "private");
   }, []);
 
   useEffect(() => {
@@ -217,6 +440,10 @@ export function BookEntryPanel({
     setDeduction(null);
     setConfirmingDelete(false);
     setDetectedSeries(null);
+    setReviewText("");
+    setReviewVisibility("private");
+    setConfirmingReviewDelete(false);
+    setDeletingReview(false);
   }
 
   function handleClose() {
@@ -254,6 +481,8 @@ export function BookEntryPanel({
 
     setSaving(true);
     try {
+      let entryId: string;
+
       if (isEditMode) {
         await updateBookEntry(entry.id, currentOrgId, seasonId, {
           status,
@@ -272,7 +501,7 @@ export function BookEntryPanel({
           pagesRead: status !== "completed" ? parsedPagesRead : null,
           country: country || null,
         });
-        toast.success("Book entry updated!");
+        entryId = entry.id;
       } else {
         if (!selectedBook) return;
         const bookId = await findOrCreateBook({
@@ -285,7 +514,7 @@ export function BookEntryPanel({
           cover_url: selectedBook.cover_url,
         });
 
-        await createBookEntry({
+        entryId = await createBookEntry({
           seasonId,
           orgId: currentOrgId,
           bookId,
@@ -305,8 +534,20 @@ export function BookEntryPanel({
           pagesRead: status !== "completed" ? parsedPagesRead : null,
           country: country || null,
         });
-        toast.success("Book entry saved!");
       }
+
+      if (isEntryOwner || !isEditMode) {
+        const trimmedReview = reviewText.trim();
+        const hadReview = isEditMode && !!entry.review;
+
+        if (trimmedReview) {
+          await createOrUpdateReview(entryId, trimmedReview, reviewVisibility);
+        } else if (hadReview && entry.review) {
+          await deleteReview(entry.review.id, currentOrgId);
+        }
+      }
+
+      toast.success(isEditMode ? "Book entry updated!" : "Book entry saved!");
       handleClose();
     } catch (err) {
       toast.error(isEditMode ? "Failed to update book entry." : "Failed to save book entry.");
@@ -495,6 +736,25 @@ export function BookEntryPanel({
               onDeductionChange={setDeduction}
             />
           )}
+
+          <ReviewSection
+            reviewText={reviewText}
+            reviewVisibility={reviewVisibility}
+            onReviewTextChange={setReviewText}
+            onVisibilityChange={setReviewVisibility}
+            canEditReview={isEntryOwner || !isEditMode}
+            isAdmin={isAdmin && !isEntryOwner}
+            existingReview={entry?.review ?? null}
+            orgId={currentOrgId ?? ""}
+            onReviewDeleted={() => {
+              setReviewText("");
+              setConfirmingReviewDelete(false);
+            }}
+            confirmingDelete={confirmingReviewDelete}
+            onConfirmingDeleteChange={setConfirmingReviewDelete}
+            deletingReview={deletingReview}
+            onDeletingReviewChange={setDeletingReview}
+          />
 
           <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] space-y-3 border-t border-gray-100">
             <ScorePreview breakdown={scoreBreakdown} status={status} />

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ViewMode } from "@/types/database";
 
 const MAX_ABOUT_LENGTH = 500;
 
@@ -47,6 +48,7 @@ export async function updateMyProfile(data: {
   about_text: string | null;
   goodreads_url: string | null;
   storygraph_url: string | null;
+  default_view: ViewMode;
 }) {
   const supabase = await createClient();
   const {
@@ -66,6 +68,8 @@ export async function updateMyProfile(data: {
   const sg = validateProfileUrl("storygraph_url", data.storygraph_url);
   if (sg.error) return { error: sg.error };
 
+  const view = data.default_view === "detail" ? "detail" : "default";
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -73,6 +77,7 @@ export async function updateMyProfile(data: {
       about_text: about,
       goodreads_url: gr.value,
       storygraph_url: sg.value,
+      default_view: view,
     })
     .eq("id", user.id);
 
@@ -82,6 +87,30 @@ export async function updateMyProfile(data: {
   revalidatePath("/settings");
   revalidatePath("/leaderboard");
   revalidatePath(`/player/${user.id}`);
+  return { success: true };
+}
+
+const VALID_VIEW_MODES: ViewMode[] = ["default", "detail"];
+
+export async function updateDefaultView(view: ViewMode) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  if (!VALID_VIEW_MODES.includes(view)) {
+    return { error: "Invalid view mode" };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ default_view: view })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
   return { success: true };
 }
 

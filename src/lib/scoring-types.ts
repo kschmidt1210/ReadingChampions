@@ -31,6 +31,15 @@ export const DEDUCTION_LABELS: Record<DeductionKey, string> = {
   audiobook_reread: "Audiobook Re-read",
 };
 
+export const NON_BOOK_DEDUCTIONS: ReadonlySet<DeductionKey> = new Set([
+  "graphic_novel",
+  "comics_manga",
+]);
+
+export function isBookEntry(deduction: DeductionKey | null): boolean {
+  return deduction === null || !NON_BOOK_DEDUCTIONS.has(deduction);
+}
+
 export const HOMETOWN_BONUS_LABELS: Record<HometownBonusKey, string> = {
   state_setting: "Set in Florida / My State",
   state_name: '"Florida" / "Hometown State" in title',

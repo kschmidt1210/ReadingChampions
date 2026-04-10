@@ -29,7 +29,9 @@ import { BookEntryCard } from "@/components/book-entry-card";
 import { BookEntryPanel } from "@/components/book-entry-panel";
 import { GenreGrid } from "@/components/genre-grid";
 import { AlphabetGrid } from "@/components/alphabet-grid";
+import { ReadingStats } from "@/components/reading-stats";
 import type { BookEntryWithBook } from "@/types/database";
+import { isBookEntry } from "@/lib/scoring-types";
 import { cn } from "@/lib/utils";
 
 export interface ScoreBreakdownInfo {
@@ -475,6 +477,16 @@ export function PlayerBooksView({
     },
     0
   );
+  const bookPages = allFinished
+    .filter((e) => isBookEntry(e.deduction))
+    .reduce(
+      (sum, e) => {
+        if (e.status === "did_not_finish") return sum + (e.pages_read ?? 0);
+        return sum + (e.book?.pages ?? 0);
+      },
+      0
+    );
+  const hasNonBookPages = bookPages !== totalPages;
   const ratedEntries = allFinished.filter((e) => e.rating !== null);
   const avgRating =
     ratedEntries.length > 0
@@ -528,6 +540,38 @@ export function PlayerBooksView({
       }
     }
     return counts;
+  }, [allCompleted]);
+
+  const countryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of allCompleted) {
+      const c = entry.book?.country;
+      if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return counts;
+  }, [allCompleted]);
+
+  const genreCountsForChart = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of allCompleted) {
+      const name = entry.genre_name;
+      if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([name, count]) => ({ name, count }));
+  }, [allCompleted]);
+
+  const timeTravelData = useMemo(() => {
+    const sorted = [...allCompleted]
+      .filter((e) => e.book?.year_published != null)
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    return sorted.map((e, i) => ({
+      index: i + 1,
+      year: e.book.year_published!,
+      title: e.book.title,
+    }));
   }, [allCompleted]);
 
   const scrollToBooks = useCallback(() => {
@@ -637,6 +681,11 @@ export function PlayerBooksView({
             <div className="text-xs font-medium text-gray-500 mt-1">
               {stat.key}
             </div>
+            {stat.key === "Pages" && hasNonBookPages && (
+              <div className="text-xs text-gray-400 mt-1">
+                {bookPages.toLocaleString()} book only
+              </div>
+            )}
             {stat.key === "Points" && pendingPoints > 0 && (
               <div className="flex items-center gap-1 mt-1.5">
                 <BookMarked className="h-3 w-3 text-amber-500" />
@@ -902,6 +951,15 @@ export function PlayerBooksView({
         </div>
       </div>
 
+      {/* Reading Insights */}
+      {allCompleted.length >= 3 && (
+        <ReadingStats
+          countryCounts={countryCounts}
+          genreCounts={genreCountsForChart}
+          timeTravelData={timeTravelData}
+        />
+      )}
+
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
         <div ref={bookListRef} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
@@ -1044,6 +1102,7 @@ export function PlayerBooksView({
                 </button>
               </>
             )}
+
           </div>
 
           {/* Active challenge filter chip */}
@@ -1095,6 +1154,7 @@ export function PlayerBooksView({
                 entry={entry}
                 genreName={entry.genre_name ?? undefined}
                 onClick={() => handleCardClick(entry)}
+                detailed
               />
             ))}
           </div>
@@ -1143,6 +1203,7 @@ export function PlayerBooksView({
                 entry={entry}
                 genreName={entry.genre_name ?? undefined}
                 onClick={() => handleCardClick(entry)}
+                detailed
               />
             ))}
           </div>
@@ -1169,6 +1230,7 @@ export function PlayerBooksView({
                 entry={entry}
                 genreName={entry.genre_name ?? undefined}
                 onClick={() => handleCardClick(entry)}
+                detailed
               />
             ))}
           </div>
@@ -1183,6 +1245,8 @@ export function PlayerBooksView({
         entry={selectedEntry ?? undefined}
         canEdit={canModify}
         canDelete={canModify}
+        isEntryOwner={isCurrentUser}
+        isAdmin={isAdmin}
       />
     </div>
   );

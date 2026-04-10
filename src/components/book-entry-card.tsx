@@ -1,16 +1,32 @@
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, MessageSquareText, Lock } from "lucide-react";
 import type { BookEntryWithBook } from "@/types/database";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import {
+  BONUS_LABELS,
+  DEDUCTION_LABELS,
+  HOMETOWN_BONUS_LABELS,
+} from "@/lib/scoring-types";
+import type { BonusKey, HometownBonusKey, DeductionKey } from "@/types/database";
+
+function DetailBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200/60">
+      {children}
+    </span>
+  );
+}
 
 export function BookEntryCard({
   entry,
   genreName,
   onClick,
+  detailed = false,
 }: {
   entry: BookEntryWithBook;
   genreName?: string;
   onClick?: () => void;
+  detailed?: boolean;
 }) {
   const status = entry.status;
   const points = Number(entry.points);
@@ -44,6 +60,25 @@ export function BookEntryCard({
   const pageDisplay = (isReading || isDnf) && entry.pages_read
     ? `${entry.pages_read} / ${entry.book.pages} pages`
     : `${entry.book.pages} pages`;
+
+  const bonuses: string[] = [];
+  if (entry.bonus_1) bonuses.push(BONUS_LABELS[entry.bonus_1 as BonusKey]);
+  if (entry.bonus_2) bonuses.push(BONUS_LABELS[entry.bonus_2 as BonusKey]);
+  if (entry.bonus_3) bonuses.push(BONUS_LABELS[entry.bonus_3 as BonusKey]);
+  if (entry.hometown_bonus)
+    bonuses.push(HOMETOWN_BONUS_LABELS[entry.hometown_bonus as HometownBonusKey]);
+
+  const deductionLabel = entry.deduction
+    ? DEDUCTION_LABELS[entry.deduction as DeductionKey]
+    : null;
+
+  const hasDetailContent =
+    detailed &&
+    (bonuses.length > 0 ||
+      deductionLabel ||
+      entry.series_name ||
+      entry.book.country ||
+      entry.book.year_published);
 
   return (
     <button
@@ -91,7 +126,54 @@ export function BookEntryCard({
               {format(new Date(entry.date_finished), "MMM d, yyyy")}
             </span>
           )}
+          {entry.review && (
+            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+              <MessageSquareText className="h-3 w-3" />
+              {entry.review.visibility === "private" && (
+                <Lock className="h-2.5 w-2.5" />
+              )}
+            </span>
+          )}
         </div>
+
+        {detailed && entry.review && (
+          <p className="text-xs text-gray-500 mt-1.5 line-clamp-1 italic">
+            &ldquo;{entry.review.review_text}&rdquo;
+          </p>
+        )}
+
+        {detailed && (
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            <DetailBadge>{entry.fiction ? "Fiction" : "Nonfiction"}</DetailBadge>
+            {entry.book.year_published && (
+              <DetailBadge>{entry.book.year_published}</DetailBadge>
+            )}
+            {entry.book.country && (
+              <DetailBadge>{entry.book.country}</DetailBadge>
+            )}
+            {entry.series_name && (
+              <DetailBadge>{entry.series_name}</DetailBadge>
+            )}
+          </div>
+        )}
+
+        {hasDetailContent && (bonuses.length > 0 || deductionLabel) && (
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {bonuses.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60"
+              >
+                +{label}
+              </span>
+            ))}
+            {deductionLabel && (
+              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/60">
+                {deductionLabel}
+              </span>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="text-right">
