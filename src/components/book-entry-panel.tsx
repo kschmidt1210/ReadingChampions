@@ -55,53 +55,6 @@ interface BookEntryPanelProps {
   isAdmin?: boolean;
 }
 
-function DetailsSection({
-  bonuses,
-  hometownBonus,
-  deduction,
-  onBonusChange,
-  onHometownChange,
-  onDeductionChange,
-}: {
-  bonuses: (BonusKey | null)[];
-  hometownBonus: HometownBonusKey | null;
-  deduction: DeductionKey | null;
-  onBonusChange: (v: (BonusKey | null)[]) => void;
-  onHometownChange: (v: HometownBonusKey | null) => void;
-  onDeductionChange: (v: DeductionKey | null) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const activeBonusCount = bonuses.filter((b) => b !== null).length;
-  const totalActive = activeBonusCount + (hometownBonus ? 1 : 0) + (deduction ? 1 : 0);
-
-  return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-      >
-        <span>
-          Add details
-          {totalActive > 0 && (
-            <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-semibold">
-              {totalActive} selected
-            </span>
-          )}
-        </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
-          <BonusChips selected={bonuses} onChange={onBonusChange} />
-          <HometownBonusChips selected={hometownBonus} onChange={onHometownChange} />
-          <DeductionChips selected={deduction} onChange={onDeductionChange} />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function ReviewSection({
   reviewText,
   reviewVisibility,
@@ -726,15 +679,12 @@ export function BookEntryPanel({
             <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g., United States" disabled={readOnly} />
           </div>
 
-          {readOnly ? null : (
-            <DetailsSection
-              bonuses={bonuses}
-              hometownBonus={hometownBonus}
-              deduction={deduction}
-              onBonusChange={setBonuses}
-              onHometownChange={setHometownBonus}
-              onDeductionChange={setDeduction}
-            />
+          {!readOnly && (
+            <div className="space-y-4">
+              <BonusChips selected={bonuses} onChange={setBonuses} />
+              <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
+              <DeductionChips selected={deduction} onChange={setDeduction} />
+            </div>
           )}
 
           <ReviewSection
