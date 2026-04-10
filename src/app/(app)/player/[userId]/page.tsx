@@ -71,6 +71,17 @@ export default async function PlayerPage({
     const idx = sorted.findIndex((p) => p.user_id === userId);
     const rank = idx + 1;
     const playerAbove = idx > 0 ? sorted[idx - 1] : null;
+    const playerBelow = idx < sorted.length - 1 ? sorted[idx + 1] : null;
+
+    const neighborStart = Math.max(0, idx - 2);
+    const neighborEnd = Math.min(sorted.length, idx + 3);
+    const neighbors = sorted.slice(neighborStart, neighborEnd).map((p, i) => ({
+      rank: neighborStart + i + 1,
+      displayName: p.display_name,
+      totalPoints: p.total_points,
+      userId: p.user_id,
+    }));
+
     rankContext = {
       rank,
       totalPlayers: sorted.length,
@@ -78,6 +89,14 @@ export default async function PlayerPage({
         ? playerAbove.total_points - playerLeaderboard.total_points
         : null,
       nextRankName: playerAbove?.display_name ?? null,
+      nextRankRank: playerAbove ? idx : null,
+      pointsAheadOfBehind: playerBelow
+        ? playerLeaderboard.total_points - playerBelow.total_points
+        : null,
+      behindRankName: playerBelow?.display_name ?? null,
+      behindRankRank: playerBelow ? idx + 2 : null,
+      neighbors,
+      currentUserId: userId,
     };
   }
 
