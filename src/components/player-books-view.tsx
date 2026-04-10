@@ -494,10 +494,11 @@ export function PlayerBooksView({
         ratedEntries.length
       : 0;
 
+  const displayPoints = scoreBreakdown ? scoreBreakdown.grandTotal : confirmedPoints;
   const statValues = [
     totalBooks,
     totalPages.toLocaleString(),
-    confirmedPoints.toFixed(1),
+    displayPoints.toFixed(1),
     avgRating.toFixed(1),
   ];
 
