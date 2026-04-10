@@ -55,7 +55,7 @@ export default function RootLayout({
       >
         <SerwistProvider swUrl="/serwist/sw.js">
           {children}
-          <Toaster richColors closeButton />
+          <Toaster richColors closeButton position="top-center" />
         </SerwistProvider>
       </body>
     </html>

@@ -232,7 +232,7 @@ export async function getLeaderboardData(
       best_series_count: bestSeries.count,
       country_rank: 0,
       series_rank: 0,
-      pre_bonus_total: preBonusTotal,
+      pre_bonus_total: confirmedPoints,
       country_bonus: 0,
       series_bonus: 0,
       longest_book_title: longestBookTitle,
