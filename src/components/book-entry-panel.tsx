@@ -16,6 +16,7 @@ import { ScorePreview } from "./score-preview";
 import { BonusChips } from "./bonus-chips";
 import { DeductionChips } from "./deduction-chips";
 import { HometownBonusChips } from "./hometown-bonus-chips";
+import { CountryPicker } from "./country-picker";
 import { calculateBookScore } from "@/lib/scoring";
 import { useOrg } from "./providers";
 import { findOrCreateBook, createBookEntry, updateBookEntry, deleteBookEntry, getUserSeasonCountries, getSeasonSeriesNames } from "@/lib/actions/books";
@@ -374,6 +375,26 @@ export function BookEntryPanel({
     if (book.series_name && !seriesName) {
       setSeriesName(book.series_name);
     }
+
+    if (book.year_published) {
+      const year = book.year_published;
+      const currentYear = new Date().getFullYear();
+      let autoBonus: BonusKey | null = null;
+      if (year < 1750) autoBonus = "classics_pre1750";
+      else if (year <= 1900) autoBonus = "classics_1750";
+      else if (year === currentYear) autoBonus = "current_year";
+
+      if (autoBonus) {
+        setBonuses((prev) => {
+          const active = prev.filter((k): k is BonusKey => k !== null);
+          if (active.includes(autoBonus)) return prev;
+          const next = [...prev] as (BonusKey | null)[];
+          const emptyIdx = next.findIndex((k) => k === null);
+          if (emptyIdx !== -1) next[emptyIdx] = autoBonus;
+          return next;
+        });
+      }
+    }
   }
 
   function resetForm() {
@@ -676,7 +697,7 @@ export function BookEntryPanel({
 
           <div className="space-y-1.5">
             <Label>Country (author origin)</Label>
-            <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g., United States" disabled={readOnly} />
+            <CountryPicker value={country} onChange={setCountry} disabled={readOnly} />
           </div>
 
           {!readOnly && (
