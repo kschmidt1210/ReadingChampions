@@ -210,7 +210,7 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
               title={player.highest_rated_book_title}
               detail={
                 player.highest_rated_book_rating != null
-                  ? `${player.highest_rated_book_rating} / 5`
+                  ? `${player.highest_rated_book_rating} / 10`
                   : ""
               }
             />
