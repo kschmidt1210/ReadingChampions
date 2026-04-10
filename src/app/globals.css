@@ -137,3 +137,7 @@
     padding-top: env(safe-area-inset-top, 0px);
   }
 }
+
+[data-sonner-toaster][data-y-position="top"] {
+  top: env(safe-area-inset-top, 0px) !important;
+}

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff } from "lucide-react";
+import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -779,10 +779,16 @@ export function BookEntryPanel({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
-        <SheetContent side="bottom" className="max-h-[90dvh] flex flex-col rounded-t-2xl pb-[env(safe-area-inset-bottom)]" showCloseButton={false}>
+        <SheetContent side="bottom" className="max-h-[90dvh] flex flex-col rounded-t-2xl" showCloseButton={false}>
           <SheetHeader className="px-4 pt-1 pb-0">
             <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 mb-2" />
-            <SheetTitle>{dialogTitle}</SheetTitle>
+            <div className="flex items-center justify-between">
+              <SheetTitle>{dialogTitle}</SheetTitle>
+              <SheetClose className="rounded-full p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </SheetClose>
+            </div>
           </SheetHeader>
           <div className="px-4 flex-1 overflow-y-auto">
             {formContent}
