@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, X, ChevronDown, BookOpen, Trophy, Star } from "lucide-react";
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, X, ChevronDown, BookOpen, Trophy, Star, User } from "lucide-react";
 import type { LeaderboardPlayer } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/components/view-mode-provider";
@@ -216,6 +216,45 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
   );
 }
 
+/** Experimental: floating "Find me" button. To revert, delete this component and its render line. */
+function FindMeButton({
+  targetRef,
+  visible,
+}: {
+  targetRef: React.RefObject<HTMLDivElement | null>;
+  visible: boolean;
+}) {
+  const [isTargetVisible, setIsTargetVisible] = useState(false);
+
+  useEffect(() => {
+    const el = targetRef.current;
+    if (!el || !visible) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsTargetVisible(entry.isIntersecting),
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [targetRef, visible]);
+
+  if (!visible || isTargetVisible) return null;
+
+  return (
+    <div className="sticky bottom-4 flex justify-end px-4 pb-1 pointer-events-none">
+      <button
+        type="button"
+        onClick={() =>
+          targetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+        className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+      >
+        <User className="h-3.5 w-3.5" />
+        Find me
+      </button>
+    </div>
+  );
+}
+
 export function LeaderboardTable({
   players,
   currentUserId,
@@ -224,6 +263,7 @@ export function LeaderboardTable({
   currentUserId: string;
 }) {
   const { viewMode } = useViewMode();
+  const currentUserRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("points");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -434,7 +474,15 @@ export function LeaderboardTable({
             player.covered_genre_count >= player.total_genre_count;
 
           return (
-            <div key={player.user_id}>
+            <div
+              key={player.user_id}
+              ref={isCurrentUser ? currentUserRef : undefined}
+              className={cn(
+                isExpanded && "mb-3 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-200/60",
+                isCurrentUser && "border-l-4 border-l-indigo-500",
+                isCurrentUser && isExpanded && "ring-indigo-300/50",
+              )}
+            >
               <button
                 type="button"
                 onClick={() => toggleExpand(player.user_id)}
@@ -442,9 +490,10 @@ export function LeaderboardTable({
                 className={cn(
                   "w-full flex items-center px-5 py-4 border-b border-gray-100/80 transition-colors hover:bg-gray-50/60 active:bg-gray-100/60 cursor-pointer text-left",
                   isCurrentUser &&
-                    "bg-indigo-50/50 border-l-[3px] border-l-indigo-500 hover:bg-indigo-50/70",
+                    "bg-indigo-50/80 hover:bg-indigo-50/90",
                   isExpanded && !isCurrentUser && "bg-gray-50/40",
-                  isExpanded && isCurrentUser && "bg-indigo-50/70"
+                  isExpanded && isCurrentUser && "bg-indigo-50",
+                  isExpanded && "sticky top-0 z-10",
                 )}
               >
                 <span className="w-12">
@@ -642,7 +691,7 @@ export function LeaderboardTable({
                 <div
                   className={cn(
                     "border-b border-gray-100/80",
-                    isCurrentUser && "bg-indigo-50/30 border-l-[3px] border-l-indigo-500"
+                    isCurrentUser && "bg-indigo-50/50"
                   )}
                 >
                   <PlayerDetailPanel player={player} />
@@ -652,6 +701,10 @@ export function LeaderboardTable({
           );
         })
       )}
+      <FindMeButton
+        targetRef={currentUserRef}
+        visible={viewMode === "detail" && displayPlayers.length >= 4}
+      />
     </div>
   );
 }
