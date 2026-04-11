@@ -490,9 +490,8 @@ export function PlayerManager({
           <DialogHeader>
             <DialogTitle>Invite Link for {inviteLink?.name}</DialogTitle>
             <DialogDescription>
-              Send this link to {inviteLink?.name}. It will log them in
-              automatically — no password needed. The link expires after a short
-              time.
+              Send this link to {inviteLink?.name}. They&apos;ll be asked to set
+              their own password. The link expires after a short time.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
