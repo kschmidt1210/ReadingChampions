@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -56,4 +57,45 @@ export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const supabase = await createClient();
+  const email = formData.get("email") as string;
+
+  const headerStore = await headers();
+  const origin =
+    headerStore.get("x-forwarded-proto") && headerStore.get("host")
+      ? `${headerStore.get("x-forwarded-proto")}://${headerStore.get("host")}`
+      : headerStore.get("origin") ?? "http://localhost:3000";
+
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+
+  return { success: true };
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Session expired — please request a new reset link." };
+
+  const password = formData.get("password") as string;
+  const confirm = formData.get("confirmPassword") as string;
+
+  if (!password || password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+  if (password !== confirm) {
+    return { error: "Passwords do not match." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  revalidatePath("/", "layout");
+  redirect("/leaderboard");
 }

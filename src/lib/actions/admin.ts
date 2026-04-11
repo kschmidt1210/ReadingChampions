@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import type { Role, ScoringRulesConfig } from "@/types/database";
 import { calculateBookScore } from "@/lib/scoring";
 
@@ -465,9 +466,18 @@ export async function generatePlayerInvite(orgId: string, userId: string) {
     };
   }
 
+  const headerStore = await headers();
+  const origin =
+    headerStore.get("x-forwarded-proto") && headerStore.get("host")
+      ? `${headerStore.get("x-forwarded-proto")}://${headerStore.get("host")}`
+      : headerStore.get("origin") ?? "http://localhost:3000";
+
   const { data, error } = await admin.auth.admin.generateLink({
-    type: "magiclink",
+    type: "recovery",
     email,
+    options: {
+      redirectTo: `${origin}/auth/callback?next=/reset-password`,
+    },
   });
 
   if (error) return { error: error.message };

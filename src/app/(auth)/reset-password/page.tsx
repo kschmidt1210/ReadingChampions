@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useActionState } from "react";
-import { useSearchParams } from "next/navigation";
-import { login } from "@/lib/actions/auth";
+import { useActionState } from "react";
+import { updatePassword } from "@/lib/actions/auth";
 import Link from "next/link";
-import { Loader2, Sparkles } from "lucide-react";
+import { KeyRound, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,13 +15,10 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-function LoginForm() {
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect");
-
+export default function ResetPasswordPage() {
   const [state, formAction, isPending] = useActionState(
     async (_prev: { error: string | null }, formData: FormData) => {
-      const result = await login(formData);
+      const result = await updatePassword(formData);
       if (result?.error) {
         return { error: result.error };
       }
@@ -36,17 +32,16 @@ function LoginForm() {
       <CardHeader className="text-center pb-4">
         <div className="flex justify-center mb-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25">
-            <Sparkles className="h-6 w-6 text-white" />
+            <KeyRound className="h-6 w-6 text-white" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Super Reader Championship</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+        <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+        <CardDescription>
+          Choose a new password for your account.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction}>
-          {redirectTo && (
-            <input type="hidden" name="redirectTo" value={redirectTo} />
-          )}
           <fieldset disabled={isPending} className="space-y-4">
             {state.error && (
               <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600 border border-red-200/60">
@@ -54,32 +49,25 @@ function LoginForm() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-indigo-600 hover:underline"
-                  tabIndex={-1}
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">New Password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 required
-                placeholder="********"
+                minLength={8}
+                placeholder="At least 8 characters"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                minLength={8}
+                placeholder="Type it again"
               />
             </div>
             <button
@@ -90,10 +78,10 @@ function LoginForm() {
               {isPending ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in…
+                  Saving…
                 </span>
               ) : (
-                "Sign In"
+                "Save Password"
               )}
             </button>
           </fieldset>
@@ -101,23 +89,15 @@ function LoginForm() {
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          Remembered your password?{" "}
           <Link
-            href={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : "/signup"}
+            href="/login"
             className="text-indigo-600 font-medium hover:underline"
           >
-            Sign up
+            Sign in
           </Link>
         </p>
       </CardFooter>
     </Card>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }
