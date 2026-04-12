@@ -52,13 +52,13 @@ async function getScoringConfig(orgId: string): Promise<ScoringRulesConfig> {
   return globalRules.config as ScoringRulesConfig;
 }
 
-export async function getUserSeasonCountries(seasonId: string): Promise<string[]> {
+export async function getUserSeasonCountries(seasonId: string, targetUserId?: string): Promise<string[]> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
-  const countries = await getExistingCountries(seasonId, user.id);
+  const countries = await getExistingCountries(seasonId, targetUserId ?? user.id);
   return [...countries];
 }
 
@@ -160,6 +160,7 @@ export async function createBookEntry(input: {
   pages: number;
   pagesRead: number | null;
   country: string | null;
+  onBehalfOfUserId?: string;
 }) {
   const supabase = await createClient();
   const {
@@ -168,9 +169,24 @@ export async function createBookEntry(input: {
 
   if (!user) throw new Error("Not authenticated");
 
+  const targetUserId = input.onBehalfOfUserId ?? user.id;
+  const isOnBehalf = targetUserId !== user.id;
+
+  if (isOnBehalf) {
+    const { data: link } = await supabase
+      .from("managed_players")
+      .select("id")
+      .eq("parent_user_id", user.id)
+      .eq("managed_user_id", targetUserId)
+      .eq("org_id", input.orgId)
+      .single();
+
+    if (!link) throw new Error("Not authorized to log books for this player");
+  }
+
   const [config, existingCountries] = await Promise.all([
     getScoringConfig(input.orgId),
-    getExistingCountries(input.seasonId, user.id),
+    getExistingCountries(input.seasonId, targetUserId),
   ]);
 
   const isNewCountry = !!input.country && !existingCountries.has(input.country);
@@ -190,11 +206,14 @@ export async function createBookEntry(input: {
     config
   );
 
-  const { data, error } = await supabase
+  const insertClient = isOnBehalf ? createAdminClient() : supabase;
+  if (!insertClient) throw new Error("Admin client not configured");
+
+  const { data, error } = await insertClient
     .from("book_entries")
     .insert({
       season_id: input.seasonId,
-      user_id: user.id,
+      user_id: targetUserId,
       book_id: input.bookId,
       status: input.status,
       fiction: input.fiction,
@@ -216,7 +235,7 @@ export async function createBookEntry(input: {
 
   if (error) throw error;
 
-  await checkAndFlagEntry(data.id, input.seasonId, score.finalScore);
+  await checkAndFlagEntry(data.id, input.seasonId, score.finalScore, targetUserId);
 
   revalidatePath("/", "layout");
   return data.id;
@@ -225,7 +244,8 @@ export async function createBookEntry(input: {
 async function checkAndFlagEntry(
   entryId: string,
   seasonId: string,
-  points: number
+  points: number,
+  entryOwnerId?: string
 ) {
   const supabase = await createClient();
 
@@ -250,9 +270,13 @@ async function checkAndFlagEntry(
     }
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let userId = entryOwnerId;
+  if (!userId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
 
   const { data: entry } = await supabase
     .from("book_entries")
@@ -260,12 +284,12 @@ async function checkAndFlagEntry(
     .eq("id", entryId)
     .single();
 
-  if (entry && user) {
+  if (entry && userId) {
     const { data: duplicates } = await supabase
       .from("book_entries")
       .select("id")
       .eq("season_id", seasonId)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("book_id", entry.book_id)
       .neq("id", entryId);
 
@@ -297,21 +321,36 @@ async function requireOwnerOrAdmin(
 
   if (!entry) throw new Error("Entry not found");
 
-  if (entry.user_id !== user.id) {
-    const { data: membership } = await supabase
-      .from("org_members")
-      .select("role")
+  const isOwner = entry.user_id === user.id;
+  let isManagedPlayerParent = false;
+
+  if (!isOwner) {
+    const { data: link } = await supabase
+      .from("managed_players")
+      .select("id")
+      .eq("parent_user_id", user.id)
+      .eq("managed_user_id", entry.user_id)
       .eq("org_id", orgId)
-      .eq("user_id", user.id)
       .single();
 
-    if (!membership || membership.role !== "admin") {
-      throw new Error("Not authorized to modify this entry");
+    isManagedPlayerParent = !!link;
+
+    if (!isManagedPlayerParent) {
+      const { data: membership } = await supabase
+        .from("org_members")
+        .select("role")
+        .eq("org_id", orgId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (!membership || membership.role !== "admin") {
+        throw new Error("Not authorized to modify this entry");
+      }
     }
   }
 
-  const isOwner = entry.user_id === user.id;
-  return { supabase, user, entryOwnerId: entry.user_id, isOwner };
+  const useOwnClient = isOwner || isManagedPlayerParent;
+  return { supabase, user, entryOwnerId: entry.user_id, isOwner: useOwnClient };
 }
 
 export async function updateBookEntry(

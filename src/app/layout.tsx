@@ -50,46 +50,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ backgroundColor: "#ffffff" }}>
-      <head>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              @keyframes __splash-pulse {
-                0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.7; transform: scale(0.96); }
-              }
-              #__splash {
-                position: fixed;
-                inset: 0;
-                z-index: 99999;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                background: #ffffff;
-              }
-              #__splash svg {
-                animation: __splash-pulse 2s ease-in-out infinite;
-              }
-              #__splash p {
-                margin-top: 20px;
-                font-family: system-ui, -apple-system, sans-serif;
-                font-size: 15px;
-                font-weight: 500;
-                color: #94a3b8;
-                letter-spacing: 0.02em;
-              }
-              /* Hide splash once the app shell has streamed in */
-              body:has([data-app-shell]) #__splash { display: none; }
-            `,
-          }}
-        />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ backgroundColor: "#ffffff" }}
       >
-        <div id="__splash">
+        <div
+          id="__splash"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#ffffff",
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 100 100"
@@ -110,7 +87,18 @@ export default function RootLayout({
               <path d="M-25,21 C-25,21 -12,15 0,21 C12,15 25,21 25,21" />
             </g>
           </svg>
-          <p>Super Reader</p>
+          <p
+            style={{
+              marginTop: 20,
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              fontSize: 15,
+              fontWeight: 500,
+              color: "#94a3b8",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Super Reader
+          </p>
         </div>
         <SerwistProvider swUrl="/serwist/sw.js">
           {children}

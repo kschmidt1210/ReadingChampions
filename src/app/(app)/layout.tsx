@@ -6,6 +6,7 @@ import {
   getActiveSeason,
   getOrgGenres,
 } from "@/lib/queries/organizations";
+import { getManagedPlayers } from "@/lib/actions/managed-players";
 import { OrgProvider } from "@/components/providers";
 import { ViewModeProvider } from "@/components/view-mode-provider";
 import { AppShell } from "./app-shell";
@@ -32,7 +33,7 @@ export default async function AppLayout({
   const currentOrg = await getCurrentOrg(orgs);
   const initialOrgId = currentOrg?.id ?? null;
 
-  const [season, genres, profileResult] = await Promise.all([
+  const [season, genres, profileResult, managedPlayersList] = await Promise.all([
     initialOrgId ? getActiveSeason(initialOrgId) : null,
     initialOrgId ? getOrgGenres(initialOrgId) : [],
     supabase
@@ -40,6 +41,7 @@ export default async function AppLayout({
       .select("default_view")
       .eq("id", user.id)
       .single(),
+    initialOrgId ? getManagedPlayers(initialOrgId) : [],
   ]);
 
   const defaultView: ViewMode =
@@ -51,6 +53,10 @@ export default async function AppLayout({
       initialOrgId={initialOrgId}
       seasonId={season?.id ?? null}
       genres={genres.map((g) => ({ id: g.id, name: g.name }))}
+      managedPlayers={managedPlayersList.map((mp) => ({
+        userId: mp.managed_user_id,
+        displayName: mp.display_name,
+      }))}
     >
       <ViewModeProvider initialMode={defaultView}>
         <AppShell>{children}</AppShell>

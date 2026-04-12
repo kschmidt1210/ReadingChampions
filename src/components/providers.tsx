@@ -11,6 +11,11 @@ import {
 import { useRouter } from "next/navigation";
 import { switchOrg } from "@/lib/actions/organizations";
 
+export interface ManagedPlayerInfo {
+  userId: string;
+  displayName: string;
+}
+
 interface OrgContextValue {
   currentOrgId: string | null;
   currentOrgName: string | null;
@@ -19,6 +24,7 @@ interface OrgContextValue {
   orgs: Array<{ id: string; name: string; role: string; invite_code: string }>;
   seasonId: string | null;
   genres: Array<{ id: string; name: string }>;
+  managedPlayers: ManagedPlayerInfo[];
   isSwitching: boolean;
 }
 
@@ -30,6 +36,7 @@ const OrgContext = createContext<OrgContextValue>({
   orgs: [],
   seasonId: null,
   genres: [],
+  managedPlayers: [],
   isSwitching: false,
 });
 
@@ -43,18 +50,21 @@ export function OrgProvider({
   initialOrgId,
   seasonId: initialSeasonId,
   genres: initialGenres,
+  managedPlayers: initialManagedPlayers = [],
 }: {
   children: ReactNode;
   orgs: Array<{ id: string; name: string; role: string; invite_code: string }>;
   initialOrgId: string | null;
   seasonId: string | null;
   genres: Array<{ id: string; name: string }>;
+  managedPlayers?: ManagedPlayerInfo[];
 }) {
   const [currentOrgId, setCurrentOrgId] = useState(
     initialOrgId ?? orgs[0]?.id ?? null
   );
   const [seasonId, setSeasonId] = useState(initialSeasonId);
   const [genres, setGenres] = useState(initialGenres);
+  const [managedPlayers, setManagedPlayers] = useState(initialManagedPlayers);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -68,6 +78,7 @@ export function OrgProvider({
         if (result) {
           setSeasonId(result.seasonId);
           setGenres(result.genres);
+          setManagedPlayers(result.managedPlayers);
         }
         router.refresh();
       });
@@ -85,6 +96,7 @@ export function OrgProvider({
         orgs,
         seasonId,
         genres,
+        managedPlayers,
         isSwitching: isPending,
       }}
     >

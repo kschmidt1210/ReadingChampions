@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff, X } from "lucide-react";
+import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff, X, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
@@ -43,6 +43,11 @@ const DEFAULT_SCORING_CONFIG: ScoringRulesConfig = {
   longest_road: { countries: [10, 7, 4], series: [8, 5, 3] },
 };
 
+export interface ManagedPlayerOption {
+  userId: string;
+  displayName: string;
+}
+
 interface BookEntryPanelProps {
   open: boolean;
   onClose: () => void;
@@ -54,6 +59,7 @@ interface BookEntryPanelProps {
   canDelete?: boolean;
   isEntryOwner?: boolean;
   isAdmin?: boolean;
+  managedPlayers?: ManagedPlayerOption[];
 }
 
 function ReviewSection({
@@ -278,10 +284,13 @@ export function BookEntryPanel({
   canDelete = false,
   isEntryOwner = false,
   isAdmin = false,
+  managedPlayers = [],
 }: BookEntryPanelProps) {
   const { currentOrgId } = useOrg();
   const isEditMode = !!entry;
   const readOnly = isEditMode && !canEdit;
+  const [targetUserId, setTargetUserId] = useState<string | null>(null);
+  const hasManagedPlayers = managedPlayers.length > 0 && !isEditMode;
 
   const [selectedBook, setSelectedBook] = useState<ParsedBook | null>(null);
   const [pages, setPages] = useState(0);
@@ -335,10 +344,10 @@ export function BookEntryPanel({
 
   useEffect(() => {
     if (open && seasonId) {
-      getUserSeasonCountries(seasonId).then(setExistingCountries);
+      getUserSeasonCountries(seasonId, targetUserId ?? undefined).then(setExistingCountries);
       getSeasonSeriesNames(seasonId).then(setSeasonSeries);
     }
-  }, [open, seasonId]);
+  }, [open, seasonId, targetUserId]);
 
   const isNewCountry = useMemo(
     () => !!country && !existingCountries.includes(country),
@@ -418,6 +427,7 @@ export function BookEntryPanel({
     setReviewVisibility("private");
     setConfirmingReviewDelete(false);
     setDeletingReview(false);
+    setTargetUserId(null);
   }
 
   function handleClose() {
@@ -507,6 +517,7 @@ export function BookEntryPanel({
           pages: finalPages,
           pagesRead: status !== "completed" ? parsedPagesRead : null,
           country: country || null,
+          onBehalfOfUserId: targetUserId ?? undefined,
         });
       }
 
@@ -550,12 +561,54 @@ export function BookEntryPanel({
 
   const isMobile = useIsMobile();
 
+  const selectedPlayerName = targetUserId
+    ? managedPlayers.find((p) => p.userId === targetUserId)?.displayName
+    : null;
+
   const dialogTitle = isEditMode
     ? entry.book.title
-    : "Add a Book";
+    : selectedPlayerName
+      ? `Add a Book for ${selectedPlayerName}`
+      : "Add a Book";
 
   const formContent = (
         <div className="space-y-5">
+          {hasManagedPlayers && (
+            <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-800">Logging for</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTargetUserId(null)}
+                  className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
+                    !targetUserId
+                      ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
+                      : "text-amber-700 hover:bg-white/50"
+                  }`}
+                >
+                  Myself
+                </button>
+                {managedPlayers.map((mp) => (
+                  <button
+                    key={mp.userId}
+                    type="button"
+                    onClick={() => setTargetUserId(mp.userId)}
+                    className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
+                      targetUserId === mp.userId
+                        ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
+                        : "text-amber-700 hover:bg-white/50"
+                    }`}
+                  >
+                    {mp.displayName}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {isEditMode ? (
             <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
               {entry.book.cover_url ? (
@@ -633,7 +686,7 @@ export function BookEntryPanel({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 [&>div]:min-w-0">
             <div className="space-y-1.5">
               <Label>Pages</Label>
               <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} disabled={readOnly} />
@@ -670,7 +723,7 @@ export function BookEntryPanel({
             )}
             <div className="space-y-1.5">
               <Label>Rating (0-10)</Label>
-              <Input type="number" min="0" max="10" step="0.5" value={rating} onChange={(e) => setRating(e.target.value)} disabled={readOnly} />
+              <Input type="number" min="0" max="10" step="0.01" value={rating} onChange={(e) => setRating(e.target.value)} disabled={readOnly} />
             </div>
           </div>
 

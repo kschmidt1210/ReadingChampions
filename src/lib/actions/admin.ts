@@ -427,20 +427,19 @@ export async function updatePlayerEmail(
   const admin = createAdminClient();
   if (!admin) return { error: "Service role key not configured" };
 
-  const { data: usersData } = await admin.auth.admin.listUsers();
-  const conflict = usersData?.users?.find(
-    (u) => u.email === trimmed && u.id !== userId
-  );
-  if (conflict) {
-    return { error: "That email is already used by another account" };
-  }
-
   const { error } = await admin.auth.admin.updateUserById(userId, {
     email: trimmed,
     email_confirm: true,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message?.toLowerCase().includes("already been registered") ||
+        error.message?.toLowerCase().includes("already exists") ||
+        error.status === 422) {
+      return { error: "That email is already used by another account" };
+    }
+    return { error: error.message };
+  }
 
   revalidatePath("/admin/players");
   return { email: trimmed };

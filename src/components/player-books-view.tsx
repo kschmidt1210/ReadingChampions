@@ -152,6 +152,7 @@ interface PlayerBooksViewProps {
   entries: BookEntryWithBook[];
   genres: Array<{ id: string; name: string }>;
   isCurrentUser: boolean;
+  isManagedPlayer?: boolean;
   isAdmin?: boolean;
   seasonId: string;
   profile?: PlayerProfile;
@@ -457,6 +458,7 @@ export function PlayerBooksView({
   entries,
   genres,
   isCurrentUser,
+  isManagedPlayer = false,
   isAdmin = false,
   seasonId,
   profile,
@@ -666,7 +668,7 @@ export function PlayerBooksView({
 
   const [bookListExpanded, setBookListExpanded] = useState(false);
 
-  const canModify = isCurrentUser || isAdmin;
+  const canModify = isCurrentUser || isManagedPlayer || isAdmin;
   const title = isCurrentUser ? "My Books" : `${playerName}'s Books`;
 
   function handleCardClick(entry: BookEntryWithBook) {
@@ -1317,7 +1319,7 @@ export function PlayerBooksView({
         entry={selectedEntry ?? undefined}
         canEdit={canModify}
         canDelete={canModify}
-        isEntryOwner={isCurrentUser}
+        isEntryOwner={isCurrentUser || isManagedPlayer}
         isAdmin={isAdmin}
       />
     </div>

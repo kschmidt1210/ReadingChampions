@@ -19,16 +19,43 @@ export async function createOrUpdateReview(
 
   const { data: entry } = await supabase
     .from("book_entries")
-    .select("user_id")
+    .select("user_id, season_id")
     .eq("id", bookEntryId)
     .single();
 
   if (!entry) throw new Error("Book entry not found");
-  if (entry.user_id !== user.id) throw new Error("Not authorized");
+
+  const isOwner = entry.user_id === user.id;
+  let isManagedPlayerParent = false;
+
+  if (!isOwner) {
+    const { data: season } = await supabase
+      .from("seasons")
+      .select("org_id")
+      .eq("id", entry.season_id)
+      .single();
+
+    if (season) {
+      const { data: link } = await supabase
+        .from("managed_players")
+        .select("id")
+        .eq("parent_user_id", user.id)
+        .eq("managed_user_id", entry.user_id)
+        .eq("org_id", season.org_id)
+        .single();
+
+      isManagedPlayerParent = !!link;
+    }
+
+    if (!isManagedPlayerParent) throw new Error("Not authorized");
+  }
 
   const trimmed = reviewText.trim();
   if (!trimmed) throw new Error("Review text cannot be empty");
   if (trimmed.length > 5000) throw new Error("Review text too long (max 5000 characters)");
+
+  const writeClient = isManagedPlayerParent ? createAdminClient() : supabase;
+  if (!writeClient) throw new Error("Admin client not configured");
 
   const { data: existing } = await supabase
     .from("book_reviews")
@@ -37,7 +64,7 @@ export async function createOrUpdateReview(
     .single();
 
   if (existing) {
-    const { error } = await supabase
+    const { error } = await writeClient
       .from("book_reviews")
       .update({
         review_text: trimmed,
@@ -48,11 +75,11 @@ export async function createOrUpdateReview(
 
     if (error) throw error;
   } else {
-    const { error } = await supabase
+    const { error } = await writeClient
       .from("book_reviews")
       .insert({
         book_entry_id: bookEntryId,
-        user_id: user.id,
+        user_id: entry.user_id,
         review_text: trimmed,
         visibility,
       });
