@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getUserOrganizations, getCurrentOrg } from "@/lib/queries/organizations";
+import { getManagedPlayers } from "@/lib/actions/managed-players";
 import { SettingsForm } from "@/components/settings-form";
+import { ManagedPlayersSettings } from "@/components/managed-players-settings";
 import type { ViewMode } from "@/types/database";
 
 export default async function SettingsPage() {
@@ -11,11 +14,19 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, about_text, goodreads_url, storygraph_url, default_view")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, orgs] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("display_name, about_text, goodreads_url, storygraph_url, default_view")
+      .eq("id", user.id)
+      .single(),
+    getUserOrganizations(),
+  ]);
+
+  const currentOrg = await getCurrentOrg(orgs);
+  const managedPlayersList = currentOrg
+    ? await getManagedPlayers(currentOrg.id)
+    : [];
 
   const displayName =
     profile?.display_name ||
@@ -39,6 +50,18 @@ export default async function SettingsPage() {
           default_view: defaultView,
         }}
       />
+      {currentOrg && (
+        <>
+          <hr className="border-gray-200" />
+          <ManagedPlayersSettings
+            orgId={currentOrg.id}
+            managedPlayers={managedPlayersList.map((mp) => ({
+              managedUserId: mp.managed_user_id,
+              displayName: mp.display_name,
+            }))}
+          />
+        </>
+      )}
     </div>
   );
 }

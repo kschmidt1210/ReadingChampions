@@ -115,6 +115,8 @@ export async function joinOrganization(inviteCode: string) {
 }
 
 export async function switchOrg(orgId: string) {
+  const { getManagedPlayers } = await import("@/lib/actions/managed-players");
+
   const cookieStore = await cookies();
   cookieStore.set("currentOrgId", orgId, {
     path: "/",
@@ -122,14 +124,21 @@ export async function switchOrg(orgId: string) {
     sameSite: "lax",
   });
 
-  const season = await getActiveSeason(orgId);
-  const genres = await getOrgGenres(orgId);
+  const [season, genres, managedPlayersList] = await Promise.all([
+    getActiveSeason(orgId),
+    getOrgGenres(orgId),
+    getManagedPlayers(orgId),
+  ]);
 
   revalidatePath("/", "layout");
 
   return {
     seasonId: season?.id ?? null,
     genres: genres.map((g) => ({ id: g.id, name: g.name })),
+    managedPlayers: managedPlayersList.map((mp) => ({
+      userId: mp.managed_user_id,
+      displayName: mp.display_name,
+    })),
   };
 }
 

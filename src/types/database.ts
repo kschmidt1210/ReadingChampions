@@ -150,6 +150,18 @@ export interface BookReview {
   updated_at: string;
 }
 
+export interface ManagedPlayer {
+  id: string;
+  parent_user_id: string;
+  managed_user_id: string;
+  org_id: string;
+  created_at: string;
+}
+
+export interface ManagedPlayerWithProfile extends ManagedPlayer {
+  display_name: string;
+}
+
 // Joined types for UI convenience
 export interface BookEntryWithBook extends BookEntry {
   book: Book;

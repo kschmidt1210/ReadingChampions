@@ -8,12 +8,20 @@ import {
   getScoringConfig,
 } from "@/lib/queries/organizations";
 import { getLeaderboardData } from "@/lib/queries/leaderboard";
+import { getManagedPlayers } from "@/lib/actions/managed-players";
 import { calculateSeasonBonuses } from "@/lib/scoring";
 import { PlayerBooksView } from "@/components/player-books-view";
+import { ManagedPlayerTabs } from "@/components/managed-player-tabs";
 import type { BookEntryWithBook } from "@/types/database";
 import type { ScoreBreakdownInfo, RankContext } from "@/components/player-books-view";
 
-export default async function MyBooksPage() {
+export default async function MyBooksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ player?: string }>;
+}) {
+  const { player: selectedPlayerId } = await searchParams;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,20 +45,35 @@ export default async function MyBooksPage() {
       </div>
     );
 
-  const [entries, genres, config, leaderboard, { data: profile }] =
-    await Promise.all([
-      getUserBookEntries(season.id, user.id) as Promise<BookEntryWithBook[]>,
-      getOrgGenres(currentOrg.id),
-      getScoringConfig(currentOrg.id),
-      getLeaderboardData(season.id, currentOrg.id),
-      supabase
-        .from("profiles")
-        .select("about_text, goodreads_url, storygraph_url")
-        .eq("id", user.id)
-        .single(),
-    ]);
+  const managedPlayersList = await getManagedPlayers(currentOrg.id);
+  const managedPlayersForTabs = managedPlayersList.map((mp) => ({
+    userId: mp.managed_user_id,
+    displayName: mp.display_name,
+  }));
 
-  const playerLeaderboard = leaderboard.find((p) => p.user_id === user.id);
+  const isViewingManaged = !!selectedPlayerId && managedPlayersList.some(
+    (mp) => mp.managed_user_id === selectedPlayerId
+  );
+  const viewUserId = isViewingManaged ? selectedPlayerId : user.id;
+
+  const [entries, genres, config, leaderboard] = await Promise.all([
+    getUserBookEntries(season.id, viewUserId) as Promise<BookEntryWithBook[]>,
+    getOrgGenres(currentOrg.id),
+    getScoringConfig(currentOrg.id),
+    getLeaderboardData(season.id, currentOrg.id),
+  ]);
+
+  let profileData: { about_text: string | null; goodreads_url: string | null; storygraph_url: string | null } | null = null;
+  if (!isViewingManaged) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("about_text, goodreads_url, storygraph_url")
+      .eq("id", user.id)
+      .single();
+    profileData = profile;
+  }
+
+  const playerLeaderboard = leaderboard.find((p) => p.user_id === viewUserId);
 
   let scoreBreakdown: ScoreBreakdownInfo | null = null;
   let rankContext: RankContext | undefined;
@@ -59,7 +82,7 @@ export default async function MyBooksPage() {
     const sorted = [...leaderboard].sort(
       (a, b) => b.total_points - a.total_points
     );
-    const idx = sorted.findIndex((p) => p.user_id === user.id);
+    const idx = sorted.findIndex((p) => p.user_id === viewUserId);
     const rank = idx + 1;
     const playerAbove = idx > 0 ? sorted[idx - 1] : null;
     const playerBelow = idx < sorted.length - 1 ? sorted[idx + 1] : null;
@@ -90,7 +113,7 @@ export default async function MyBooksPage() {
       behindRankRank: playerBelow ? idx + 2 : null,
       neighbors,
       allPlayers,
-      currentUserId: user.id,
+      currentUserId: viewUserId,
     };
   }
 
@@ -134,21 +157,34 @@ export default async function MyBooksPage() {
     };
   }
 
+  const viewingPlayerName = isViewingManaged
+    ? managedPlayersList.find((mp) => mp.managed_user_id === selectedPlayerId)?.display_name ?? ""
+    : "";
+
   return (
-    <PlayerBooksView
-      playerName=""
-      entries={entries}
-      genres={genres}
-      isCurrentUser={true}
-      isAdmin={currentOrg.role === "admin"}
-      seasonId={season.id}
-      profile={{
-        about_text: profile?.about_text ?? null,
-        goodreads_url: profile?.goodreads_url ?? null,
-        storygraph_url: profile?.storygraph_url ?? null,
-      }}
-      scoreBreakdown={scoreBreakdown ?? undefined}
-      rankContext={rankContext}
-    />
+    <>
+      {managedPlayersForTabs.length > 0 && (
+        <ManagedPlayerTabs
+          managedPlayers={managedPlayersForTabs}
+          activePlayerId={isViewingManaged ? selectedPlayerId : null}
+        />
+      )}
+      <PlayerBooksView
+        playerName={viewingPlayerName}
+        entries={entries}
+        genres={genres}
+        isCurrentUser={!isViewingManaged}
+        isManagedPlayer={isViewingManaged}
+        isAdmin={currentOrg.role === "admin"}
+        seasonId={season.id}
+        profile={{
+          about_text: profileData?.about_text ?? null,
+          goodreads_url: profileData?.goodreads_url ?? null,
+          storygraph_url: profileData?.storygraph_url ?? null,
+        }}
+        scoreBreakdown={scoreBreakdown ?? undefined}
+        rankContext={rankContext}
+      />
+    </>
   );
 }

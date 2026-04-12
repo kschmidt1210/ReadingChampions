@@ -12,6 +12,8 @@ import {
   Copy,
   Check,
   Pencil,
+  Users,
+  Unlink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,10 @@ import {
   updatePlayerEmail,
   generatePlayerInvite,
 } from "@/lib/actions/admin";
+import {
+  linkManagedPlayer,
+  unlinkManagedPlayer,
+} from "@/lib/actions/managed-players";
 
 interface Member {
   id: string;
@@ -77,14 +83,22 @@ function EmailStatus({ email }: { email: string | null }) {
   );
 }
 
+interface ManagedLink {
+  id: string;
+  parentUserId: string;
+  managedUserId: string;
+}
+
 export function PlayerManager({
   orgId,
   initialMembers,
   currentUserId,
+  managedPlayerLinks: initialLinks = [],
 }: {
   orgId: string;
   initialMembers: Member[];
   currentUserId: string;
+  managedPlayerLinks?: ManagedLink[];
 }) {
   const [members, setMembers] = useState(initialMembers);
   const [search, setSearch] = useState("");
@@ -96,6 +110,10 @@ export function PlayerManager({
   const [newEmail, setNewEmail] = useState("");
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<{ link: string; name: string } | null>(null);
+  const [managedLinks, setManagedLinks] = useState<ManagedLink[]>(initialLinks);
+  const [linkChildTarget, setLinkChildTarget] = useState<Member | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
+  const [parentSearch, setParentSearch] = useState("");
 
   const filtered = useMemo(() => {
     if (!search.trim()) return members;
@@ -221,6 +239,72 @@ export function PlayerManager({
     }
   }
 
+  function getParentOf(userId: string): Member | null {
+    const link = managedLinks.find((l) => l.managedUserId === userId);
+    if (!link) return null;
+    return members.find((m) => m.user_id === link.parentUserId) ?? null;
+  }
+
+  function isChildOf(userId: string): boolean {
+    return managedLinks.some((l) => l.managedUserId === userId);
+  }
+
+  function openLinkDialog(child: Member) {
+    setLinkChildTarget(child);
+    setSelectedParentId("");
+    setParentSearch("");
+  }
+
+  function handleLinkChild() {
+    if (!linkChildTarget || !selectedParentId) return;
+    const child = linkChildTarget;
+    startTransition(async () => {
+      const result = await linkManagedPlayer(orgId, selectedParentId, child.user_id);
+      if (result?.error) {
+        toast.error(typeof result.error === "string" ? result.error : "Failed to link player");
+      } else {
+        const parentName = members.find((m) => m.user_id === selectedParentId)?.profile?.display_name ?? "parent";
+        setManagedLinks((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), parentUserId: selectedParentId, managedUserId: child.user_id },
+        ]);
+        toast.success(`${child.profile?.display_name ?? "Player"} is now managed by ${parentName}`);
+      }
+      setLinkChildTarget(null);
+      setSelectedParentId("");
+    });
+  }
+
+  function handleUnlinkChild(managedUserId: string) {
+    const child = members.find((m) => m.user_id === managedUserId);
+    startTransition(async () => {
+      const result = await unlinkManagedPlayer(orgId, managedUserId);
+      if (result?.error) {
+        toast.error(typeof result.error === "string" ? result.error : "Failed to unlink player");
+      } else {
+        setManagedLinks((prev) => prev.filter((l) => l.managedUserId !== managedUserId));
+        toast.success(`${child?.profile?.display_name ?? "Player"} is no longer a managed player`);
+      }
+    });
+  }
+
+  const parentPickerPool = useMemo(() => {
+    if (!linkChildTarget) return [];
+    return members.filter((m) => {
+      if (m.user_id === linkChildTarget.user_id) return false;
+      if (managedLinks.some((l) => l.managedUserId === m.user_id)) return false;
+      return true;
+    });
+  }, [members, linkChildTarget, managedLinks]);
+
+  const parentPickerCandidates = useMemo(() => {
+    const q = parentSearch.toLowerCase().trim();
+    if (!q) return parentPickerPool;
+    return parentPickerPool.filter((m) =>
+      (m.profile?.display_name ?? "").toLowerCase().includes(q)
+    );
+  }, [parentPickerPool, parentSearch]);
+
   const adminCount = members.filter((m) => m.role === "admin").length;
   const placeholderCount = members.filter((m) => isPlaceholderEmail(m.email)).length;
 
@@ -269,8 +353,18 @@ export function PlayerManager({
                       </span>
                     )}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <EmailStatus email={member.email} />
+                    {(() => {
+                      const parent = getParentOf(member.user_id);
+                      if (!parent) return null;
+                      return (
+                        <Badge variant="outline" className="text-xs font-normal text-indigo-600 border-indigo-200 bg-indigo-50">
+                          <Users className="h-3 w-3 mr-1" />
+                          Managed by {parent.profile?.display_name ?? "Unknown"}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -317,6 +411,26 @@ export function PlayerManager({
                           <Link2 className="h-4 w-4 mr-1.5" />
                         )}
                         Copy Invite Link
+                      </DropdownMenuItem>
+                    )}
+
+                    {!isCurrentUser && !isChildOf(member.user_id) && (
+                      <DropdownMenuItem
+                        disabled={isPending}
+                        onClick={() => openLinkDialog(member)}
+                      >
+                        <Users className="h-4 w-4 mr-1.5" />
+                        Link as child of...
+                      </DropdownMenuItem>
+                    )}
+
+                    {isChildOf(member.user_id) && (
+                      <DropdownMenuItem
+                        disabled={isPending}
+                        onClick={() => handleUnlinkChild(member.user_id)}
+                      >
+                        <Unlink className="h-4 w-4 mr-1.5" />
+                        Unlink from parent
                       </DropdownMenuItem>
                     )}
 
@@ -551,6 +665,103 @@ export function PlayerManager({
               disabled={isPending}
             >
               {isPending ? "Removing..." : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link as Child Dialog */}
+      <Dialog
+        open={!!linkChildTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLinkChildTarget(null);
+            setSelectedParentId("");
+            setParentSearch("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Link {linkChildTarget?.profile?.display_name ?? "Player"} as a
+              managed child
+            </DialogTitle>
+            <DialogDescription>
+              Select a parent player who will manage{" "}
+              {linkChildTarget?.profile?.display_name ?? "this player"}&apos;s
+              books. The parent will be able to log and edit book entries on
+              their behalf.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {parentPickerPool.length > 5 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  value={parentSearch}
+                  onChange={(e) => setParentSearch(e.target.value)}
+                  placeholder="Search for parent..."
+                  className="pl-9"
+                />
+              </div>
+            )}
+            <div className="max-h-60 overflow-y-auto divide-y rounded-lg border">
+              {parentPickerCandidates.map((m) => (
+                <button
+                  key={m.user_id}
+                  type="button"
+                  onClick={() => setSelectedParentId(m.user_id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                    selectedParentId === m.user_id
+                      ? "bg-indigo-50 ring-1 ring-inset ring-indigo-200"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-semibold text-indigo-600">
+                      {(m.profile?.display_name ?? "?").charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {m.profile?.display_name ?? "Unknown"}
+                    </p>
+                    {m.email && !isPlaceholderEmail(m.email) && (
+                      <p className="text-xs text-gray-400 truncate">{m.email}</p>
+                    )}
+                  </div>
+                  {selectedParentId === m.user_id && (
+                    <Check className="h-4 w-4 text-indigo-600 ml-auto shrink-0" />
+                  )}
+                </button>
+              ))}
+              {parentPickerCandidates.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-6">
+                  No eligible parents found.
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedParentId("");
+                    setParentSearch("");
+                  }}
+                />
+              }
+            >
+              Cancel
+            </DialogClose>
+            <Button
+              onClick={handleLinkChild}
+              disabled={isPending || !selectedParentId}
+            >
+              {isPending ? "Linking..." : "Link Player"}
             </Button>
           </DialogFooter>
         </DialogContent>
