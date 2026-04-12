@@ -49,10 +49,69 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ backgroundColor: "#ffffff" }}>
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes __splash-pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.7; transform: scale(0.96); }
+              }
+              #__splash {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: #ffffff;
+              }
+              #__splash svg {
+                animation: __splash-pulse 2s ease-in-out infinite;
+              }
+              #__splash p {
+                margin-top: 20px;
+                font-family: system-ui, -apple-system, sans-serif;
+                font-size: 15px;
+                font-weight: 500;
+                color: #94a3b8;
+                letter-spacing: 0.02em;
+              }
+              /* Hide splash once the app shell has streamed in */
+              body:has([data-app-shell]) #__splash { display: none; }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{ backgroundColor: "#ffffff" }}
       >
+        <div id="__splash">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 100 100"
+            width="80"
+            height="80"
+          >
+            <rect width="100" height="100" rx="20" fill="#4f46e5" />
+            <g
+              transform="translate(50,50)"
+              fill="none"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M-25,21 L-25,-17 C-25,-17 -12,-23 0,-17 C12,-23 25,-17 25,-17 L25,21" />
+              <path d="M0,-17 L0,21" />
+              <path d="M-25,21 C-25,21 -12,15 0,21 C12,15 25,21 25,21" />
+            </g>
+          </svg>
+          <p>Super Reader</p>
+        </div>
         <SerwistProvider swUrl="/serwist/sw.js">
           {children}
           <Toaster richColors closeButton position="top-center" />

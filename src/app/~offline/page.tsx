@@ -2,7 +2,7 @@
 
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 text-center">
+    <div data-app-shell className="flex min-h-dvh flex-col items-center justify-center px-4 text-center">
       <div className="text-6xl">📚</div>
       <h1 className="mt-6 text-2xl font-bold tracking-tight">
         You&apos;re offline
