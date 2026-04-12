@@ -8,7 +8,9 @@ export function DismissSplash() {
     if (!splash) return;
     splash.style.transition = "opacity 0.2s ease-out";
     splash.style.opacity = "0";
-    const timer = setTimeout(() => splash.remove(), 200);
+    const timer = setTimeout(() => {
+      splash.style.display = "none";
+    }, 200);
     return () => clearTimeout(timer);
   }, []);
   return null;
