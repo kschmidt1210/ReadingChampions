@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Shield,
@@ -100,6 +101,7 @@ export function PlayerManager({
   currentUserId: string;
   managedPlayerLinks?: ManagedLink[];
 }) {
+  const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -269,6 +271,7 @@ export function PlayerManager({
           { id: crypto.randomUUID(), parentUserId: selectedParentId, managedUserId: child.user_id },
         ]);
         toast.success(`${child.profile?.display_name ?? "Player"} is now managed by ${parentName}`);
+        router.refresh();
       }
       setLinkChildTarget(null);
       setSelectedParentId("");
@@ -284,6 +287,7 @@ export function PlayerManager({
       } else {
         setManagedLinks((prev) => prev.filter((l) => l.managedUserId !== managedUserId));
         toast.success(`${child?.profile?.display_name ?? "Player"} is no longer a managed player`);
+        router.refresh();
       }
     });
   }
