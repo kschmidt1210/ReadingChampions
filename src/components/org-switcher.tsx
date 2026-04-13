@@ -34,7 +34,7 @@ export function OrgSwitcher() {
       </SelectTrigger>
       <SelectContent>
         {orgs.map((org) => (
-          <SelectItem key={org.id} value={org.id}>
+          <SelectItem key={org.id} value={org.id} label={org.name}>
             {org.name}
           </SelectItem>
         ))}

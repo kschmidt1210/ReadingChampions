@@ -313,12 +313,12 @@ export function ImportManager({
                 <div className="space-y-1.5">
                   <Label>Player</Label>
                   <Select value={selectedPlayerId} onValueChange={(v) => setSelectedPlayerId(v ?? "")}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-52">
                       <SelectValue placeholder="Select player" />
                     </SelectTrigger>
                     <SelectContent>
                       {members.map((m) => (
-                        <SelectItem key={m.userId} value={m.userId}>
+                        <SelectItem key={m.userId} value={m.userId} label={m.displayName}>
                           {m.displayName}
                         </SelectItem>
                       ))}
