@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useTransition,
   useCallback,
   ReactNode,
@@ -66,6 +67,12 @@ export function OrgProvider({
   const [genres, setGenres] = useState(initialGenres);
   const [managedPlayers, setManagedPlayers] = useState(initialManagedPlayers);
   const [isPending, startTransition] = useTransition();
+
+  const managedPlayersKey = JSON.stringify(initialManagedPlayers);
+  useEffect(() => {
+    setManagedPlayers(initialManagedPlayers);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [managedPlayersKey]);
   const router = useRouter();
 
   const currentOrg = orgs.find((o) => o.id === currentOrgId) ?? null;
