@@ -67,7 +67,7 @@ export function LeaderboardPodium({
               {player.display_name}
             </Link>
             <div className={`${style.points} font-extrabold ${style.score} mt-1.5`}>
-              {player.total_points.toFixed(1)}
+              {player.total_points.toFixed(2)}
             </div>
             <div className="text-xs font-medium text-gray-400 mt-1">
               {player.book_count} {player.book_count === 1 ? "book" : "books"}

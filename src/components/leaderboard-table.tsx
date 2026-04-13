@@ -171,14 +171,14 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
           {player.country_bonus > 0 && (
             <StatCard
               label="Country Bonus"
-              value={`+${player.country_bonus.toFixed(1)} pts`}
+              value={`+${player.country_bonus.toFixed(2)} pts`}
               sub={`Rank #${player.country_rank} in countries`}
             />
           )}
           {player.series_bonus > 0 && (
             <StatCard
               label="Series Bonus"
-              value={`+${player.series_bonus.toFixed(1)} pts`}
+              value={`+${player.series_bonus.toFixed(2)} pts`}
               sub={`Rank #${player.series_rank} in series`}
             />
           )}
@@ -674,7 +674,7 @@ export function LeaderboardTable({
                   </span>
                   {player.pending_points > 0 && (
                     <span className="block text-xs font-medium text-amber-500 mt-0.5">
-                      +{player.pending_points.toFixed(1)} pending
+                      +{player.pending_points.toFixed(2)} pending
                     </span>
                   )}
                 </span>

@@ -85,10 +85,11 @@ function getFirstLetter(title: string): string {
 }
 
 /**
- * Season-level bonuses are a % of the player's sum of PRE-BONUS points
- * (per spec: "% of player's sum of pre-bonus points").
- * Each entry must provide preBonusTotal (base + page points, before
- * bonus multipliers and deductions).
+ * Season-level bonuses are a % of the player's total points before
+ * season-level bonuses (per spec: "% of player's sum of pre-bonus points").
+ * Each entry's preBonusTotal should be its final per-book score (the stored
+ * `points` value, which includes per-book bonuses, deductions, and
+ * multipliers) — NOT just base + page points.
  */
 export function calculateSeasonBonuses(
   entries: Array<{ preBonusTotal: number; genre_id: string | null; book: { title: string } }>,
