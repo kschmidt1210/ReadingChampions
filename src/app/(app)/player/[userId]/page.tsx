@@ -105,21 +105,11 @@ export default async function PlayerPage({
 
   if (config && playerLeaderboard) {
     const completedEntries = entries.filter((e) => e.status === "completed");
-    const enriched = completedEntries.map((e) => {
-      const pages = e.book?.pages ?? 0;
-      const roundedPages = Math.round(pages / 50) * 50;
-      const base = e.fiction
-        ? config.base_points.fiction
-        : config.base_points.nonfiction;
-      const pagePoints =
-        Math.min(roundedPages, 100) * config.page_points.first_100_rate +
-        Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
-      return {
-        preBonusTotal: base + pagePoints,
-        genre_id: e.genre_id,
-        book: { title: e.book.title },
-      };
-    });
+    const enriched = completedEntries.map((e) => ({
+      preBonusTotal: Number(e.points),
+      genre_id: e.genre_id,
+      book: { title: e.book.title },
+    }));
     const seasonBonuses = calculateSeasonBonuses(
       enriched,
       genres.map((g) => g.id),

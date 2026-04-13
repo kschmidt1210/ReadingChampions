@@ -153,27 +153,17 @@ export async function getLeaderboardData(
       }
     }
 
-    // Season bonuses (completed entries only, consistent with challengeEntries)
+    // Season bonuses (completed entries only, consistent with challengeEntries).
+    // preBonusTotal per entry = stored per-book score (after per-book bonuses/
+    // deductions, but before season-level bonuses). This matches the source
+    // spreadsheet's "Pre-Bonus Points" definition.
     let seasonBonus = 0;
-    let preBonusTotal = 0;
     if (config) {
-      const enriched = challengeEntries.map((e) => {
-          const pages = (e as any).book?.pages ?? 0;
-          const roundedPages = Math.round(pages / 50) * 50;
-          const fiction = e.fiction;
-          const base = fiction
-            ? config.base_points.fiction
-            : config.base_points.nonfiction;
-          const pagePoints =
-            Math.min(roundedPages, 100) * config.page_points.first_100_rate +
-            Math.max(roundedPages - 100, 0) * config.page_points.beyond_100_rate;
-          return {
-            preBonusTotal: base + pagePoints,
-            genre_id: e.genre_id,
-            book: { title: (e as any).book?.title ?? "" },
-          };
-        });
-      preBonusTotal = enriched.reduce((sum, e) => sum + e.preBonusTotal, 0);
+      const enriched = challengeEntries.map((e) => ({
+        preBonusTotal: Number(e.points),
+        genre_id: e.genre_id,
+        book: { title: (e as any).book?.title ?? "" },
+      }));
       const bonuses = calculateSeasonBonuses(enriched, genreIds, config);
       seasonBonus = bonuses.totalSeasonBonus;
     }

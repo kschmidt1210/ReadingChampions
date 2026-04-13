@@ -290,7 +290,7 @@ function StandingsRow({
           isMe ? "text-indigo-700" : "text-gray-600"
         )}
       >
-        {neighbor.totalPoints.toFixed(1)}
+        {neighbor.totalPoints.toFixed(2)}
       </span>
       {gap !== null && (
         <span
@@ -301,7 +301,7 @@ function StandingsRow({
               : "text-amber-600"
           )}
         >
-          {neighbor.rank < currentUserRank ? `+${gap.toFixed(1)}` : `-${gap.toFixed(1)}`}
+          {neighbor.rank < currentUserRank ? `+${gap.toFixed(2)}` : `-${gap.toFixed(2)}`}
         </span>
       )}
       {isMe && <span className="w-16" />}
@@ -344,7 +344,7 @@ function NearbyStandings({
       <span key="ahead" className="inline-flex items-center gap-1 text-gray-500">
         <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
         <span className="tabular-nums font-medium text-gray-700">
-          {rankContext.pointsToNextRank.toFixed(1)}
+          {rankContext.pointsToNextRank.toFixed(2)}
         </span>{" "}
         pts behind{" "}
         <span className="font-medium text-gray-700">
@@ -359,7 +359,7 @@ function NearbyStandings({
       <span key="behind" className="inline-flex items-center gap-1 text-gray-500">
         <ArrowDownRight className="h-3.5 w-3.5 text-amber-500 shrink-0" />
         <span className="tabular-nums font-medium text-gray-700">
-          {rankContext.pointsAheadOfBehind.toFixed(1)}
+          {rankContext.pointsAheadOfBehind.toFixed(2)}
         </span>{" "}
         pts ahead of{" "}
         <span className="font-medium text-gray-700">
@@ -571,7 +571,7 @@ export function PlayerBooksView({
   const statValues = [
     totalBooks,
     totalPages.toLocaleString(),
-    displayPoints.toFixed(1),
+    displayPoints.toFixed(2),
     avgRating.toFixed(1),
   ];
 
@@ -764,7 +764,7 @@ export function PlayerBooksView({
               <div className="flex items-center gap-1 mt-1.5">
                 <BookMarked className="h-3 w-3 text-amber-500" />
                 <span className="text-xs text-amber-600 font-medium">
-                  +{pendingPoints.toFixed(1)} pending
+                  +{pendingPoints.toFixed(2)} pending
                 </span>
               </div>
             )}
@@ -786,7 +786,7 @@ export function PlayerBooksView({
               <h3 className="font-semibold text-white">Score Breakdown</h3>
             </div>
             <span className="text-xl font-extrabold text-white">
-              {scoreBreakdown.grandTotal.toFixed(1)}
+              {scoreBreakdown.grandTotal.toFixed(2)}
             </span>
           </div>
 
@@ -810,7 +810,7 @@ export function PlayerBooksView({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900 text-sm">
-                    {confirmedPoints.toFixed(1)}
+                    {confirmedPoints.toFixed(2)}
                   </span>
                   {bookListExpanded ? (
                     <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
@@ -836,7 +836,7 @@ export function PlayerBooksView({
                           )}
                         </span>
                         <span className="font-medium text-gray-700 tabular-nums shrink-0">
-                          {Number(entry.points).toFixed(1)}
+                          {Number(entry.points).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -859,7 +859,7 @@ export function PlayerBooksView({
                   {(
                     scoreBreakdown.seasonBonuses.genreComplete +
                     scoreBreakdown.seasonBonuses.alphabet
-                  ).toFixed(1)}
+                  ).toFixed(2)}
                 </span>
               </div>
               <div className="ml-9 space-y-1.5">
@@ -878,7 +878,7 @@ export function PlayerBooksView({
                       : "text-gray-400"
                   )}>
                     {scoreBreakdown.seasonBonuses.genreComplete > 0
-                      ? `+${scoreBreakdown.seasonBonuses.genreComplete.toFixed(1)}`
+                      ? `+${scoreBreakdown.seasonBonuses.genreComplete.toFixed(2)}`
                       : "—"}
                   </span>
                 </div>
@@ -901,7 +901,7 @@ export function PlayerBooksView({
                       : "text-gray-400"
                   )}>
                     {scoreBreakdown.seasonBonuses.alphabet > 0
-                      ? `+${scoreBreakdown.seasonBonuses.alphabet.toFixed(1)}`
+                      ? `+${scoreBreakdown.seasonBonuses.alphabet.toFixed(2)}`
                       : "—"}
                   </span>
                 </div>
@@ -925,7 +925,7 @@ export function PlayerBooksView({
                     {(
                       scoreBreakdown.longestRoad.countryBonus +
                       scoreBreakdown.longestRoad.seriesBonus
-                    ).toFixed(1)}
+                    ).toFixed(2)}
                   </span>
                 </div>
                 <div className="ml-9 space-y-1.5">
@@ -938,7 +938,7 @@ export function PlayerBooksView({
                         </span>
                       </span>
                       <span className="font-medium text-emerald-700 tabular-nums">
-                        +{scoreBreakdown.longestRoad.countryBonus.toFixed(1)}
+                        +{scoreBreakdown.longestRoad.countryBonus.toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -953,7 +953,7 @@ export function PlayerBooksView({
                         )}
                       </span>
                       <span className="font-medium text-emerald-700 tabular-nums">
-                        +{scoreBreakdown.longestRoad.seriesBonus.toFixed(1)}
+                        +{scoreBreakdown.longestRoad.seriesBonus.toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -968,7 +968,7 @@ export function PlayerBooksView({
                   Total Points
                 </span>
                 <span className="font-bold text-indigo-700 text-base">
-                  {scoreBreakdown.grandTotal.toFixed(1)}
+                  {scoreBreakdown.grandTotal.toFixed(2)}
                 </span>
               </div>
             </div>
