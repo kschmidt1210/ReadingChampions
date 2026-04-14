@@ -11,7 +11,7 @@ import type { BonusKey, HometownBonusKey, DeductionKey } from "@/types/database"
 
 function DetailBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200/60">
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground border border-border/60">
       {children}
     </span>
   );
@@ -36,8 +36,8 @@ export function BookEntryCard({
   const cardBg = isReading
     ? "bg-amber-50/40 border-amber-200/60"
     : isDnf
-      ? "bg-gray-50/60 border-gray-200/60"
-      : "bg-white border-gray-100";
+      ? "bg-muted/60 border-border/60"
+      : "bg-card border-border";
 
   const coverFallbackBg = isReading
     ? "bg-gradient-to-br from-amber-100 to-orange-100"
@@ -48,13 +48,13 @@ export function BookEntryCard({
   const coverFallbackIcon = isReading
     ? "text-amber-400"
     : isDnf
-      ? "text-gray-400"
+      ? "text-muted-foreground"
       : "text-indigo-400";
 
   const pointsPillStyle = isReading
     ? "bg-amber-50 text-amber-700 border border-dashed border-amber-300"
     : isDnf
-      ? "bg-gray-100 text-gray-500"
+      ? "bg-muted text-muted-foreground"
       : "bg-indigo-50 text-indigo-700";
 
   const pageDisplay = (isReading || isDnf) && entry.pages_read
@@ -98,12 +98,12 @@ export function BookEntryCard({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate text-[0.95rem]">
+        <h3 className="font-semibold text-foreground truncate text-[0.95rem]">
           {entry.book.title}
         </h3>
-        <p className="text-sm text-gray-500">{entry.book.author}</p>
+        <p className="text-sm text-muted-foreground">{entry.book.author}</p>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <span className="text-xs text-gray-400 font-medium">
+          <span className="text-xs text-muted-foreground font-medium">
             {pageDisplay}
           </span>
           {isReading && (
@@ -112,7 +112,7 @@ export function BookEntryCard({
             </Badge>
           )}
           {isDnf && (
-            <Badge variant="outline" className="text-xs font-medium text-gray-500 border-gray-300 bg-gray-50">
+            <Badge variant="outline" className="text-xs font-medium text-muted-foreground border-border bg-muted">
               DNF
             </Badge>
           )}
@@ -122,12 +122,12 @@ export function BookEntryCard({
             </Badge>
           )}
           {entry.date_finished && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {format(new Date(entry.date_finished), "MMM d, yyyy")}
             </span>
           )}
           {entry.review && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <MessageSquareText className="h-3 w-3" />
               {entry.review.visibility === "private" && (
                 <Lock className="h-2.5 w-2.5" />
@@ -137,7 +137,7 @@ export function BookEntryCard({
         </div>
 
         {detailed && entry.review && (
-          <p className="text-xs text-gray-500 mt-1.5 line-clamp-1 italic">
+          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-1 italic">
             &ldquo;{entry.review.review_text}&rdquo;
           </p>
         )}
@@ -180,16 +180,16 @@ export function BookEntryCard({
           <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-bold ${pointsPillStyle}`}>
             {points.toFixed(2)}
           </span>
-          <div className="text-xs text-gray-400 mt-1 text-center">
+          <div className="text-xs text-muted-foreground mt-1 text-center">
             {isReading ? "pending" : "pts"}
           </div>
           {entry.rating !== null && (
-            <div className="text-xs text-gray-500 mt-0.5 text-center">
+            <div className="text-xs text-muted-foreground mt-0.5 text-center">
               {entry.rating}/10
             </div>
           )}
         </div>
-        <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-muted-foreground transition-colors" />
       </div>
     </button>
   );

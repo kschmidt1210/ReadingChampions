@@ -264,13 +264,13 @@ function StandingsRow({
         "flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm",
         isMe
           ? "bg-indigo-50 border border-indigo-200/60"
-          : "hover:bg-gray-50"
+          : "hover:bg-muted"
       )}
     >
       <span
         className={cn(
           "w-8 text-right font-bold tabular-nums text-sm",
-          isMe ? "text-indigo-700" : "text-gray-400"
+          isMe ? "text-indigo-700" : "text-muted-foreground"
         )}
       >
         #{neighbor.rank}
@@ -279,7 +279,7 @@ function StandingsRow({
         href={nameLink}
         className={cn(
           "flex-1 truncate font-medium hover:underline decoration-1 underline-offset-2",
-          isMe ? "text-indigo-700" : "text-gray-700"
+          isMe ? "text-indigo-700" : "text-foreground"
         )}
       >
         {nameContent}
@@ -287,7 +287,7 @@ function StandingsRow({
       <span
         className={cn(
           "tabular-nums font-semibold text-sm",
-          isMe ? "text-indigo-700" : "text-gray-600"
+          isMe ? "text-indigo-700" : "text-muted-foreground"
         )}
       >
         {neighbor.totalPoints.toFixed(2)}
@@ -341,13 +341,13 @@ function NearbyStandings({
 
   if (rankContext.pointsToNextRank !== null && rankContext.nextRankName && rankContext.nextRankRank !== null) {
     summaryParts.push(
-      <span key="ahead" className="inline-flex items-center gap-1 text-gray-500">
+      <span key="ahead" className="inline-flex items-center gap-1 text-muted-foreground">
         <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-        <span className="tabular-nums font-medium text-gray-700">
+        <span className="tabular-nums font-medium text-foreground">
           {rankContext.pointsToNextRank.toFixed(2)}
         </span>{" "}
         pts behind{" "}
-        <span className="font-medium text-gray-700">
+        <span className="font-medium text-foreground">
           #{rankContext.nextRankRank} {rankContext.nextRankName}
         </span>
       </span>
@@ -356,13 +356,13 @@ function NearbyStandings({
 
   if (rankContext.pointsAheadOfBehind !== null && rankContext.behindRankName && rankContext.behindRankRank !== null) {
     summaryParts.push(
-      <span key="behind" className="inline-flex items-center gap-1 text-gray-500">
+      <span key="behind" className="inline-flex items-center gap-1 text-muted-foreground">
         <ArrowDownRight className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-        <span className="tabular-nums font-medium text-gray-700">
+        <span className="tabular-nums font-medium text-foreground">
           {rankContext.pointsAheadOfBehind.toFixed(2)}
         </span>{" "}
         pts ahead of{" "}
-        <span className="font-medium text-gray-700">
+        <span className="font-medium text-foreground">
           #{rankContext.behindRankRank} {rankContext.behindRankName}
         </span>
       </span>
@@ -379,18 +379,18 @@ function NearbyStandings({
   const hasMorePlayers = allPlayers.length > neighbors.length;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full px-4 py-3 flex items-start gap-2.5 text-left hover:bg-gray-50/60 active:bg-gray-100/40 transition-colors cursor-pointer"
+        className="w-full px-4 py-3 flex items-start gap-2.5 text-left hover:bg-muted/60 active:bg-muted/40 transition-colors cursor-pointer"
       >
         <Trophy className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm">
-              <span className="font-bold text-gray-900">#{rank}</span>{" "}
-              <span className="text-gray-500">of {totalPlayers}</span>
+              <span className="font-bold text-foreground">#{rank}</span>{" "}
+              <span className="text-muted-foreground">of {totalPlayers}</span>
             </span>
             {summaryParts.length > 0 && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
@@ -403,16 +403,16 @@ function NearbyStandings({
         </div>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-gray-300 shrink-0 mt-0.5 transition-transform duration-200",
-            expanded && "rotate-180 text-gray-500"
+            "h-4 w-4 text-muted-foreground shrink-0 mt-0.5 transition-transform duration-200",
+            expanded && "rotate-180 text-muted-foreground"
           )}
         />
       </button>
 
       {expanded && neighbors.length > 0 && (
-        <div className="border-t border-gray-100 px-4 pb-3 pt-2">
+        <div className="border-t border-border px-4 pb-3 pt-2">
           <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {showAll ? "Full Standings" : "Nearby Standings"}
             </p>
             {hasMorePlayers && (
@@ -688,12 +688,12 @@ export function PlayerBooksView({
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
 
         {showProfileBlock && (
           <div className="mt-3 space-y-2">
             {hasAbout && (
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {profile.about_text}
               </p>
             )}
@@ -729,7 +729,7 @@ export function PlayerBooksView({
         {isCurrentUser && !showProfileBlock && (
           <Link
             href="/settings"
-            className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-indigo-600 transition-colors"
           >
             <Settings className="h-3 w-3" />
             Add a bio or reading profile links
@@ -742,7 +742,7 @@ export function PlayerBooksView({
         {statConfig.map((stat, i) => (
           <div
             key={stat.key}
-            className="relative overflow-hidden bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+            className="relative overflow-hidden bg-card rounded-2xl p-4 shadow-sm border border-border"
           >
             <div
               className={`absolute top-3 right-3 ${stat.bg} rounded-lg p-1.5`}
@@ -752,11 +752,11 @@ export function PlayerBooksView({
             <div className={`text-2xl font-bold ${stat.text}`}>
               {statValues[i]}
             </div>
-            <div className="text-xs font-medium text-gray-500 mt-1">
+            <div className="text-xs font-medium text-muted-foreground mt-1">
               {stat.key}
             </div>
             {stat.key === "Pages" && hasNonBookPages && (
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 {bookPages.toLocaleString()} book only
               </div>
             )}
@@ -779,7 +779,7 @@ export function PlayerBooksView({
 
       {/* Score Breakdown */}
       {scoreBreakdown && allFinished.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
           <div className="px-5 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Star className="h-4.5 w-4.5 text-indigo-200" />
@@ -790,7 +790,7 @@ export function PlayerBooksView({
             </span>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border">
             {/* Book Points */}
             <div className="px-5 py-4">
               <button
@@ -801,21 +801,21 @@ export function PlayerBooksView({
                   <div className="bg-indigo-50 rounded-lg p-1.5">
                     <BookOpen className="h-4 w-4 text-indigo-600" />
                   </div>
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Book Points
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     ({allFinished.length} {allFinished.length === 1 ? "book" : "books"})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900 text-sm">
+                  <span className="font-semibold text-foreground text-sm">
                     {confirmedPoints.toFixed(2)}
                   </span>
                   {bookListExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-muted-foreground transition-colors" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-muted-foreground transition-colors" />
                   )}
                 </div>
               </button>
@@ -829,13 +829,13 @@ export function PlayerBooksView({
                         key={entry.id}
                         className="flex items-center justify-between text-xs"
                       >
-                        <span className="text-gray-600 truncate mr-3">
+                        <span className="text-muted-foreground truncate mr-3">
                           {entry.book.title}
                           {entry.status === "did_not_finish" && (
-                            <span className="text-gray-400 ml-1">(DNF)</span>
+                            <span className="text-muted-foreground ml-1">(DNF)</span>
                           )}
                         </span>
-                        <span className="font-medium text-gray-700 tabular-nums shrink-0">
+                        <span className="font-medium text-foreground tabular-nums shrink-0">
                           {Number(entry.points).toFixed(2)}
                         </span>
                       </div>
@@ -851,11 +851,11 @@ export function PlayerBooksView({
                   <div className="bg-amber-50 rounded-lg p-1.5">
                     <Trophy className="h-4 w-4 text-amber-600" />
                   </div>
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Challenge Bonuses
                   </span>
                 </div>
-                <span className="font-semibold text-gray-900 text-sm">
+                <span className="font-semibold text-foreground text-sm">
                   {(
                     scoreBreakdown.seasonBonuses.genreComplete +
                     scoreBreakdown.seasonBonuses.alphabet
@@ -865,7 +865,7 @@ export function PlayerBooksView({
               <div className="ml-9 space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className={cn(
-                    "text-gray-600",
+                    "text-muted-foreground",
                     scoreBreakdown.seasonBonuses.genreComplete > 0 && "text-emerald-700"
                   )}>
                     Genre Challenge
@@ -875,7 +875,7 @@ export function PlayerBooksView({
                     "font-medium tabular-nums",
                     scoreBreakdown.seasonBonuses.genreComplete > 0
                       ? "text-emerald-700"
-                      : "text-gray-400"
+                      : "text-muted-foreground"
                   )}>
                     {scoreBreakdown.seasonBonuses.genreComplete > 0
                       ? `+${scoreBreakdown.seasonBonuses.genreComplete.toFixed(2)}`
@@ -884,7 +884,7 @@ export function PlayerBooksView({
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className={cn(
-                    "text-gray-600",
+                    "text-muted-foreground",
                     scoreBreakdown.seasonBonuses.alphabet > 0 && "text-emerald-700"
                   )}>
                     Alphabet Challenge
@@ -898,7 +898,7 @@ export function PlayerBooksView({
                     "font-medium tabular-nums",
                     scoreBreakdown.seasonBonuses.alphabet > 0
                       ? "text-emerald-700"
-                      : "text-gray-400"
+                      : "text-muted-foreground"
                   )}>
                     {scoreBreakdown.seasonBonuses.alphabet > 0
                       ? `+${scoreBreakdown.seasonBonuses.alphabet.toFixed(2)}`
@@ -917,11 +917,11 @@ export function PlayerBooksView({
                     <div className="bg-violet-50 rounded-lg p-1.5">
                       <Route className="h-4 w-4 text-violet-600" />
                     </div>
-                    <span className="font-medium text-gray-900 text-sm">
+                    <span className="font-medium text-foreground text-sm">
                       Longest Road Bonuses
                     </span>
                   </div>
-                  <span className="font-semibold text-gray-900 text-sm">
+                  <span className="font-semibold text-foreground text-sm">
                     {(
                       scoreBreakdown.longestRoad.countryBonus +
                       scoreBreakdown.longestRoad.seriesBonus
@@ -933,7 +933,7 @@ export function PlayerBooksView({
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-emerald-700">
                         Most Countries
-                        <span className="text-gray-400 ml-1">
+                        <span className="text-muted-foreground ml-1">
                           (#{scoreBreakdown.longestRoad.countryRank})
                         </span>
                       </span>
@@ -947,7 +947,7 @@ export function PlayerBooksView({
                       <span className="text-emerald-700">
                         Longest Series
                         {scoreBreakdown.longestRoad.bestSeriesName && (
-                          <span className="text-gray-400 ml-1">
+                          <span className="text-muted-foreground ml-1">
                             ({scoreBreakdown.longestRoad.bestSeriesName}, #{scoreBreakdown.longestRoad.seriesRank})
                           </span>
                         )}
@@ -962,9 +962,9 @@ export function PlayerBooksView({
             )}
 
             {/* Grand Total */}
-            <div className="px-5 py-3 bg-gray-50/80">
+            <div className="px-5 py-3 bg-muted/80">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-gray-900 text-sm">
+                <span className="font-semibold text-foreground text-sm">
                   Total Points
                 </span>
                 <span className="font-bold text-indigo-700 text-base">
@@ -977,7 +977,7 @@ export function PlayerBooksView({
       )}
 
       {/* Genre Challenge */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
         <GenreGrid
           genres={genres}
           coveredGenreIds={coveredGenreIds}
@@ -988,7 +988,7 @@ export function PlayerBooksView({
       </div>
 
       {/* Alphabet Challenge */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
         <AlphabetGrid
           coveredLetters={coveredLetters}
           letterBookCounts={letterBookCounts}
@@ -998,11 +998,11 @@ export function PlayerBooksView({
       </div>
 
       {/* Countries */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+      <div className="bg-card rounded-2xl p-5 shadow-sm border border-border space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-4.5 w-4.5 text-violet-500" />
-            <h3 className="font-semibold text-gray-900">Countries Read</h3>
+            <h3 className="font-semibold text-foreground">Countries Read</h3>
           </div>
           <span className="text-sm font-medium text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">
             {countries.length} unique
@@ -1018,7 +1018,7 @@ export function PlayerBooksView({
             </span>
           ))}
           {countries.length === 0 && (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               No countries recorded yet.
             </p>
           )}
@@ -1036,22 +1036,22 @@ export function PlayerBooksView({
 
       {/* Filter & Sort Toolbar */}
       {(totalBooks > 0 || allCurrentlyReading.length > 0) && (
-        <div ref={bookListRef} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+        <div ref={bookListRef} className="bg-card rounded-2xl p-4 shadow-sm border border-border space-y-3">
           {/* Search + mobile filter toggle */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search by title or author..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
+                className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-border bg-muted/50 placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 active:text-gray-700 p-1.5 rounded-md"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground active:text-foreground p-1.5 rounded-md"
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4" />
@@ -1064,7 +1064,7 @@ export function PlayerBooksView({
                 "md:hidden flex items-center gap-1.5 h-11 px-3 rounded-lg border text-xs font-medium transition-colors shrink-0",
                 filtersOpen || hasActiveFilters
                   ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                  : "border-gray-200 text-gray-500"
+                  : "border-border text-muted-foreground"
               )}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
@@ -1086,7 +1086,7 @@ export function PlayerBooksView({
             <div className="flex items-center gap-1.5">
               <label
                 htmlFor="book-sort"
-                className="text-xs font-medium text-gray-500"
+                className="text-xs font-medium text-muted-foreground"
               >
                 Sort:
               </label>
@@ -1096,7 +1096,7 @@ export function PlayerBooksView({
                 onChange={(e) =>
                   handleSortChange(e.target.value as BookSortKey)
                 }
-                className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
+                className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-border bg-card text-foreground focus:outline-none focus:border-indigo-300 cursor-pointer"
               >
                 {(Object.keys(sortLabels) as BookSortKey[]).map((key) => (
                   <option key={key} value={key}>
@@ -1108,7 +1108,7 @@ export function PlayerBooksView({
                 onClick={() =>
                   setSortDir((d) => (d === "desc" ? "asc" : "desc"))
                 }
-                className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-gray-500 transition-colors"
+                className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-md border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors"
                 aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
               >
                 {sortDir === "desc" ? (
@@ -1119,10 +1119,10 @@ export function PlayerBooksView({
               </button>
             </div>
 
-            <div className="h-5 w-px bg-gray-200" />
+            <div className="h-5 w-px bg-muted" />
 
             {/* Fiction filter */}
-            <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden">
+            <div className="flex items-center rounded-lg border border-border overflow-hidden">
               {(["all", "fiction", "nonfiction"] as FictionFilter[]).map(
                 (f) => (
                   <button
@@ -1132,7 +1132,7 @@ export function PlayerBooksView({
                       "px-3 py-2 md:py-1 text-xs font-medium transition-colors",
                       fictionFilter === f
                         ? "bg-indigo-100 text-indigo-700"
-                        : "text-gray-500 hover:bg-gray-50"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                   >
                     {f === "all"
@@ -1148,11 +1148,11 @@ export function PlayerBooksView({
             {/* Genre filter */}
             {genres.length > 0 && (
               <>
-                <div className="h-5 w-px bg-gray-200 hidden sm:block" />
+                <div className="h-5 w-px bg-muted hidden sm:block" />
                 <select
                   value={genreFilter}
                   onChange={(e) => setGenreFilter(e.target.value)}
-                  className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-gray-200 bg-white text-gray-700 focus:outline-none focus:border-indigo-300 cursor-pointer"
+                  className="text-xs h-11 md:h-7 pl-2 pr-6 rounded-md border border-border bg-card text-foreground focus:outline-none focus:border-indigo-300 cursor-pointer"
                 >
                   <option value="">All Genres</option>
                   {genres.map((g) => (
@@ -1167,7 +1167,7 @@ export function PlayerBooksView({
             {/* Clear filters */}
             {hasActiveFilters && (
               <>
-                <div className="h-5 w-px bg-gray-200" />
+                <div className="h-5 w-px bg-muted" />
                 <button
                   onClick={clearFilters}
                   className="text-xs font-medium text-indigo-600 hover:text-indigo-800 active:text-indigo-900 transition-colors py-2 px-1"
@@ -1182,7 +1182,7 @@ export function PlayerBooksView({
           {/* Active challenge filter chip */}
           {(letterFilter || genreFilter) && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Showing:</span>
+              <span className="text-xs text-muted-foreground">Showing:</span>
               {genreFilter && (
                 <button
                   onClick={() => setGenreFilter("")}
@@ -1213,7 +1213,7 @@ export function PlayerBooksView({
         <div>
           <div className="flex items-center gap-2 mb-3">
             <BookMarked className="h-4.5 w-4.5 text-amber-500" />
-            <h2 className="font-semibold text-gray-900">
+            <h2 className="font-semibold text-foreground">
               Currently Reading ({filteredReading.length}
               {hasActiveFilters &&
                 filteredReading.length !== allCurrentlyReading.length &&
@@ -1239,7 +1239,7 @@ export function PlayerBooksView({
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Library className="h-4.5 w-4.5 text-indigo-500" />
-          <h2 className="font-semibold text-gray-900">
+          <h2 className="font-semibold text-foreground">
             Completed ({filteredCompleted.length}
             {hasActiveFilters &&
               filteredCompleted.length !== allCompleted.length &&
@@ -1248,22 +1248,22 @@ export function PlayerBooksView({
           </h2>
         </div>
         {entries.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
-            <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">
+          <div className="text-center py-16 bg-card rounded-2xl border border-dashed border-border">
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">
               {isCurrentUser
                 ? "No books logged yet"
                 : `${playerName} hasn\u2019t logged any books yet`}
             </p>
             {isCurrentUser && (
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Tap &ldquo;Add Book&rdquo; to get started!
               </p>
             )}
           </div>
         ) : filteredCompleted.length === 0 ? (
-          <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">
-            <p className="text-sm text-gray-400">
+          <div className="text-center py-8 bg-card rounded-2xl border border-dashed border-border">
+            <p className="text-sm text-muted-foreground">
               {hasActiveFilters
                 ? "No books match your filters."
                 : "No completed books yet."}
@@ -1288,8 +1288,8 @@ export function PlayerBooksView({
       {filteredDnf.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="h-4.5 w-4.5 text-gray-400" />
-            <h2 className="font-semibold text-gray-900">
+            <BookOpen className="h-4.5 w-4.5 text-muted-foreground" />
+            <h2 className="font-semibold text-foreground">
               Did Not Finish ({filteredDnf.length}
               {hasActiveFilters &&
                 filteredDnf.length !== allDnf.length &&
