@@ -345,66 +345,64 @@ export function LeaderboardTable({
     <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border">
       {/* Search, Sort & View Toggle */}
       <div className="px-4 pt-3 pb-2 space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              id="leaderboard-search"
-              type="text"
-              placeholder="Search players..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-border bg-muted/50 placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground active:text-foreground p-1.5 rounded-md"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="leaderboard-sort" className="sr-only">Sort by</label>
-            <div className="relative">
-              <SlidersHorizontal className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
-              <select
-                id="leaderboard-sort"
-                value={sortKey}
-                onChange={(e) => {
-                  const key = e.target.value as SortKey;
-                  setSortKey(key);
-                  setSortDir("desc");
-                }}
-                className={cn(
-                  "text-xs h-11 md:h-8 pl-7 pr-6 rounded-lg border bg-muted/50 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer transition-colors",
-                  !columnSortKeys.has(sortKey)
-                    ? "border-indigo-300 text-indigo-700"
-                    : "border-border text-foreground"
-                )}
-              >
-                {(Object.keys(sortLabels) as SortKey[]).map((key) => (
-                  <option key={key} value={key}>
-                    {sortLabels[key]}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="relative">
+          <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            id="leaderboard-search"
+            type="text"
+            placeholder="Search players..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-border bg-muted/50 placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
+          />
+          {search && (
             <button
-              onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-              className="h-11 w-11 md:h-8 md:w-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors"
-              aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
+              onClick={() => setSearch("")}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground active:text-foreground p-1.5 rounded-md"
+              aria-label="Clear search"
             >
-              {sortDir === "desc" ? (
-                <ArrowDown className="h-3.5 w-3.5" />
-              ) : (
-                <ArrowUp className="h-3.5 w-3.5" />
-              )}
+              <X className="h-4 w-4" />
             </button>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <label htmlFor="leaderboard-sort" className="sr-only">Sort by</label>
+          <div className="relative flex-1">
+            <SlidersHorizontal className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+            <select
+              id="leaderboard-sort"
+              value={sortKey}
+              onChange={(e) => {
+                const key = e.target.value as SortKey;
+                setSortKey(key);
+                setSortDir("desc");
+              }}
+              className={cn(
+                "text-xs w-full h-11 md:h-8 pl-7 pr-6 rounded-lg border bg-muted/50 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer transition-colors",
+                !columnSortKeys.has(sortKey)
+                  ? "border-indigo-300 text-indigo-700"
+                  : "border-border text-foreground"
+              )}
+            >
+              {(Object.keys(sortLabels) as SortKey[]).map((key) => (
+                <option key={key} value={key}>
+                  {sortLabels[key]}
+                </option>
+              ))}
+            </select>
           </div>
+          <button
+            onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+            className="h-11 w-11 md:h-8 md:w-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors shrink-0"
+            aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
+          >
+            {sortDir === "desc" ? (
+              <ArrowDown className="h-3.5 w-3.5" />
+            ) : (
+              <ArrowUp className="h-3.5 w-3.5" />
+            )}
+          </button>
           <ViewModeToggle />
         </div>
       </div>

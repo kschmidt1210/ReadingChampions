@@ -15,10 +15,12 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
   const pathname = usePathname();
   const { currentRole } = useOrg();
 
-  const tabs: Tab[] = [
+  const leftTabs: NavTab[] = [
     { href: "/leaderboard", label: "Board", icon: Trophy, activeColor: "text-amber-500" },
     { href: "/my-books", label: "Books", icon: BookOpen, activeColor: "text-indigo-600" },
-    { label: "Add", icon: Plus, isAction: true },
+  ];
+
+  const rightTabs: NavTab[] = [
     { href: "/rules", label: "Rules", icon: Scale, activeColor: "text-teal-500" },
     ...(currentRole === "admin"
       ? [{ href: "/admin/settings", label: "Admin", icon: Settings, activeColor: "text-rose-500" } as NavTab]
@@ -26,37 +28,42 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
     { href: "/settings", label: "Account", icon: UserCog, activeColor: "text-muted-foreground" },
   ];
 
+  function renderNavLink(tab: NavTab) {
+    return (
+      <Link
+        key={tab.href}
+        href={tab.href}
+        className={cn(
+          "flex flex-col items-center gap-0.5 px-2 py-2 text-xs font-medium transition-colors min-w-[44px] min-h-[44px] justify-center",
+          pathname === tab.href || pathname.startsWith(tab.href + "/")
+            ? tab.activeColor
+            : "text-muted-foreground"
+        )}
+      >
+        <tab.icon className="h-5 w-5" />
+        <span>{tab.label}</span>
+      </Link>
+    );
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur-sm shadow-[0_-2px_10px_rgba(0,0,0,0.06)] md:hidden pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around py-1.5">
-        {tabs.map((tab) =>
-          "isAction" in tab ? (
-            <button
-              key="add"
-              onClick={onAddBook}
-              aria-label="Add book"
-              className="flex flex-col items-center gap-0.5 px-3 py-1"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 transition-all duration-200">
-                <Plus className="h-5 w-5" />
-              </div>
-            </button>
-          ) : (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-2 text-xs font-medium transition-colors min-w-[44px] min-h-[44px] justify-center",
-                pathname === tab.href || pathname.startsWith(tab.href + "/")
-                  ? tab.activeColor
-                  : "text-muted-foreground"
-              )}
-            >
-              <tab.icon className="h-5 w-5" />
-              <span>{tab.label}</span>
-            </Link>
-          )
-        )}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5">
+        <div className="flex items-center justify-around">
+          {leftTabs.map(renderNavLink)}
+        </div>
+        <button
+          onClick={onAddBook}
+          aria-label="Add book"
+          className="flex flex-col items-center gap-0.5 px-3 py-1"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 transition-all duration-200">
+            <Plus className="h-5 w-5" />
+          </div>
+        </button>
+        <div className="flex items-center justify-around">
+          {rightTabs.map(renderNavLink)}
+        </div>
       </div>
     </nav>
   );
