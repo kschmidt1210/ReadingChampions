@@ -30,7 +30,12 @@ export function OrgSwitcher() {
       }}
     >
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select competition" />
+        <SelectValue placeholder="Select competition">
+          {(value: string) => {
+            const org = orgs.find((o) => o.id === value);
+            return org?.name ?? value;
+          }}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {orgs.map((org) => (

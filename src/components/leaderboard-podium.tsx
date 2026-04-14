@@ -5,9 +5,9 @@ const medals = ["\u{1F3C6}", "\u{1F948}", "\u{1F949}"];
 
 const podiumStyles = [
   {
-    card: "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/40 dark:via-yellow-950/30 dark:to-orange-950/20 border-2 border-amber-300/60 dark:border-amber-700/40 shadow-xl shadow-amber-500/10",
-    glow: "bg-amber-400/20",
-    points: "text-amber-700",
+    card: "bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 dark:from-yellow-900/50 dark:via-amber-900/40 dark:to-yellow-950/30 border-2 border-yellow-400/60 dark:border-yellow-600/50 shadow-xl shadow-yellow-500/10",
+    glow: "bg-yellow-400/20",
+    points: "text-yellow-600 dark:text-yellow-400",
     size: "flex-[1.25] min-w-0 sm:flex-none sm:w-[12rem] pb-7 pt-6 sm:pb-9 sm:pt-8",
     medal: "text-5xl sm:text-6xl",
     name: "text-base sm:text-xl",
@@ -23,9 +23,9 @@ const podiumStyles = [
     score: "text-lg sm:text-2xl",
   },
   {
-    card: "bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/40 dark:via-amber-950/30 dark:to-yellow-950/20 border border-orange-200/60 dark:border-orange-800/40 shadow-lg shadow-orange-500/5",
+    card: "bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/40 dark:via-amber-950/30 dark:to-orange-950/20 border border-orange-300/60 dark:border-orange-800/40 shadow-lg shadow-orange-500/5",
     glow: "bg-orange-400/15",
-    points: "text-orange-700",
+    points: "text-orange-700 dark:text-orange-400",
     size: "flex-1 min-w-0 sm:flex-none sm:w-40 pb-4 pt-3 sm:pb-5 sm:pt-5",
     medal: "text-3xl sm:text-[2.75rem]",
     name: "text-sm sm:text-base",

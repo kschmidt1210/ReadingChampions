@@ -246,12 +246,12 @@ export function ImportManager({
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Wipe All */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 space-y-3">
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/30 p-4 space-y-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-amber-900">Wipe All &amp; Re-import</p>
-                  <p className="text-xs text-amber-700 mt-0.5">
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Wipe All &amp; Re-import</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                     Deletes all book entries for the current season and replaces them from the spreadsheet.
                   </p>
                 </div>
@@ -296,14 +296,14 @@ export function ImportManager({
             </div>
 
             {/* Wipe Player */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 space-y-3">
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/30 p-4 space-y-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-amber-900">
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
                     Wipe Player &amp; Re-import
                   </p>
-                  <p className="text-xs text-amber-700 mt-0.5">
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                     Deletes one player&apos;s entries for the current season and re-imports from
                     their sheet tab.
                   </p>
@@ -314,7 +314,13 @@ export function ImportManager({
                   <Label>Player</Label>
                   <Select value={selectedPlayerId} onValueChange={(v) => setSelectedPlayerId(v ?? "")}>
                     <SelectTrigger className="w-52">
-                      <SelectValue placeholder="Select player" />
+                      <SelectValue placeholder="Select player">
+                        {(value: string) => {
+                          if (!value) return "Select player";
+                          const player = members.find((m) => m.userId === value);
+                          return player?.displayName ?? value;
+                        }}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {members.map((m) => (

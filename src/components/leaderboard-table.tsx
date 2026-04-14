@@ -344,9 +344,9 @@ export function LeaderboardTable({
   return (
     <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border">
       {/* Search, Sort & View Toggle */}
-      <div className="px-4 pt-3 pb-2 space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 basis-48">
             <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
@@ -395,7 +395,7 @@ export function LeaderboardTable({
             </div>
             <button
               onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-              className="h-11 w-11 md:h-8 md:w-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors"
+              className="h-11 w-11 md:h-8 md:w-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors shrink-0"
               aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
             >
               {sortDir === "desc" ? (
@@ -404,8 +404,8 @@ export function LeaderboardTable({
                 <ArrowUp className="h-3.5 w-3.5" />
               )}
             </button>
+            <ViewModeToggle />
           </div>
-          <ViewModeToggle />
         </div>
       </div>
 
