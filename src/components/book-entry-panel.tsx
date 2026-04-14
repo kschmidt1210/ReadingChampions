@@ -741,9 +741,9 @@ export function BookEntryPanel({
           </div>
         )}
         {status !== "reading" && (
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 overflow-hidden">
             <Label>Date Finished</Label>
-            <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
+            <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} className="max-w-full" />
           </div>
         )}
         <div className="space-y-1.5">
