@@ -6,12 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { updateMyProfile, changePassword } from "@/lib/actions/profile";
-import { User, Lock, ExternalLink, Eye } from "lucide-react";
+import { updateMyProfile, changePassword, updateThemePreference } from "@/lib/actions/profile";
+import { User, Lock, ExternalLink, Eye, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useViewMode } from "@/components/view-mode-provider";
 import { ViewModeToggle } from "@/components/view-mode-toggle";
-import type { ViewMode } from "@/types/database";
+import type { ViewMode, ThemePreference } from "@/types/database";
 
 interface SettingsFormProps {
   email: string;
@@ -24,9 +26,16 @@ interface SettingsFormProps {
   };
 }
 
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+];
+
 export function SettingsForm({ email, profile }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
   const { savedDefault } = useViewMode();
+  const { theme, setTheme } = useTheme();
 
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [aboutText, setAboutText] = useState(profile.about_text);
@@ -78,10 +87,10 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
   return (
     <div className="space-y-8">
       {/* Profile section */}
-      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+      <section className="bg-card rounded-2xl p-5 shadow-sm border border-border space-y-5">
         <div className="flex items-center gap-2">
           <User className="h-4.5 w-4.5 text-indigo-500" />
-          <h2 className="font-semibold text-gray-900">Profile</h2>
+          <h2 className="font-semibold text-foreground">Profile</h2>
         </div>
 
         <div className="space-y-4">
@@ -98,7 +107,7 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" value={email} disabled />
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Contact an admin to change your email address.
             </p>
           </div>
@@ -113,7 +122,7 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
               maxLength={500}
               rows={3}
             />
-            <p className="text-xs text-gray-400 text-right">
+            <p className="text-xs text-muted-foreground text-right">
               {aboutText.length}/500
             </p>
           </div>
@@ -124,7 +133,7 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <ExternalLink className="h-4 w-4 text-indigo-500" />
-            <h3 className="text-sm font-medium text-gray-700">
+            <h3 className="text-sm font-medium text-foreground">
               Reading Profiles
             </h3>
           </div>
@@ -163,28 +172,62 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
       </section>
 
       {/* Preferences section */}
-      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+      <section className="bg-card rounded-2xl p-5 shadow-sm border border-border space-y-5">
         <div className="flex items-center gap-2">
           <Eye className="h-4.5 w-4.5 text-indigo-500" />
-          <h2 className="font-semibold text-gray-900">Preferences</h2>
+          <h2 className="font-semibold text-foreground">Preferences</h2>
         </div>
 
-        <div className="space-y-3">
-          <div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
             <Label>Default View</Label>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Choose whether pages show compact or expanded information by default.
             </p>
           </div>
           <ViewModeToggle />
         </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <Label>Appearance</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Choose your preferred color theme.
+            </p>
+          </div>
+          <div className="inline-flex items-center rounded-lg border border-border overflow-hidden">
+            {THEME_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setTheme(option.value);
+                  startTransition(async () => {
+                    await updateThemePreference(option.value);
+                  });
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 md:py-1.5 text-xs font-medium transition-colors",
+                  theme === option.value
+                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+                    : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                <option.icon className="h-3.5 w-3.5" />
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Security section */}
-      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
+      <section className="bg-card rounded-2xl p-5 shadow-sm border border-border space-y-5">
         <div className="flex items-center gap-2">
           <Lock className="h-4.5 w-4.5 text-indigo-500" />
-          <h2 className="font-semibold text-gray-900">Change Password</h2>
+          <h2 className="font-semibold text-foreground">Change Password</h2>
         </div>
 
         <div className="space-y-4">
