@@ -972,7 +972,8 @@ export function BookEntryPanel({
             )}
 
             {formFields}
-
+          </div>
+          <div className="sticky bottom-0 bg-background pt-3 border-t border-gray-100">
             <ScorePreview breakdown={scoreBreakdown} status={status} />
           </div>
         </div>
