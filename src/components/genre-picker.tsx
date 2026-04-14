@@ -144,7 +144,7 @@ export function GenrePicker({ value, onChange, genres, disabled }: GenrePickerPr
 
       {open && !disabled && filtered.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
-          <div className="px-2.5 py-1.5 text-[0.65rem] font-medium text-gray-400 uppercase tracking-wider">
+          <div className="px-2.5 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
             Genre Challenge
           </div>
           {filtered.map((genre, i) => (

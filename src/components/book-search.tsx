@@ -2,15 +2,17 @@
 
 import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, BookOpen } from "lucide-react";
+import { Search, Loader2, BookOpen, RefreshCw } from "lucide-react";
 import type { ParsedBook } from "@/lib/books-api";
 import { extractSeriesFromSubjects } from "@/lib/books-api";
 
-export function BookSearch({
-  onSelect,
-}: {
+interface BookSearchProps {
   onSelect: (book: ParsedBook) => void;
-}) {
+  selectedBook?: ParsedBook | null;
+  onClear?: () => void;
+}
+
+export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ParsedBook[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,8 +55,48 @@ export function BookSearch({
     setTimer(setTimeout(() => search(value), 400));
   }
 
+  function handleClear() {
+    setQuery("");
+    setResults([]);
+    onClear?.();
+  }
+
+  if (selectedBook) {
+    return (
+      <div className="flex items-start gap-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+        {selectedBook.cover_url ? (
+          <img
+            src={selectedBook.cover_url}
+            alt=""
+            className="w-12 h-[4.25rem] object-cover rounded-lg shadow-sm"
+          />
+        ) : (
+          <div className="w-12 h-[4.25rem] rounded-lg bg-white/60 flex items-center justify-center">
+            <BookOpen className="h-5 w-5 text-indigo-400" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-900 leading-tight">{selectedBook.title}</p>
+          <p className="text-sm text-gray-500">{selectedBook.author}</p>
+          <div className="text-xs text-gray-400 mt-0.5">
+            {selectedBook.pages > 0 ? `${selectedBook.pages} pages` : "Pages unknown"}
+            {selectedBook.year_published ? ` \u00B7 ${selectedBook.year_published}` : ""}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleClear}
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-white/60 active:bg-white/80 transition-colors"
+        >
+          <RefreshCw className="h-3 w-3" />
+          Change
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-2">
+    <div className="relative">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
@@ -62,13 +104,14 @@ export function BookSearch({
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Search by title or ISBN..."
           className="pl-10"
+          autoFocus
         />
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />
         )}
       </div>
       {results.length > 0 && (
-        <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-64 overflow-y-auto shadow-sm">
+        <div className="absolute z-50 mt-1 inset-x-0 border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-64 overflow-y-auto shadow-lg bg-white">
           {results.map((book, i) => (
             <button
               key={`${book.isbn}-${i}`}
@@ -77,7 +120,7 @@ export function BookSearch({
                 setQuery(book.title);
                 setResults([]);
               }}
-              className="w-full flex items-start gap-3 p-3 text-left hover:bg-indigo-50/50 transition-colors"
+              className="w-full flex items-start gap-3 p-3 text-left hover:bg-indigo-50/50 active:bg-indigo-50 transition-colors"
             >
               {book.cover_url ? (
                 <img

@@ -19,13 +19,18 @@ Every data-rich screen should have three disclosure layers:
 
 **Use expandable rows, collapsible sections, and drill-through navigation to move between layers — not separate pages or hidden modes.**
 
-## The 30-Second Book Entry
+## The Book Entry Experience
 
-Required fields only: title, author, pages, fiction/nonfiction, genre, status. Everything else (bonuses, deductions, hometown, series, rating, date) goes in collapsible sections. Score preview updates live as fields change.
+All fields — status, pages, type, genre, series, country, rating, bonuses, deductions, hometown bonuses, and review — are part of the core experience. Present them elegantly together, not hidden behind progressive disclosure. These fields drive scoring and competition strategy; hiding them undermines The Competitor and The Explorer.
 
 - Default status to "Completed," fiction to true
-- Auto-fill from book search when possible
+- Auto-fill from book search when possible (pages, country, series, year-based bonuses)
 - Bonus/deduction selection uses toggle chips (scannable, fast), not dropdowns
+- Score preview updates live as fields change
+- **Desktop:** Split layout — sticky left sidebar with book cover, title, author, and live score preview; scrollable right panel with all form fields grouped into sections (Book Details, Classification, Scoring Modifiers, Review)
+- **Mobile:** Full-height bottom sheet with all fields in a single scroll; score preview at the bottom
+- Group related fields into visually distinct card sections for scannability
+- The goal is a fast, complete flow — not a minimal one. Every field earns its place.
 
 ## Scoring Transparency
 

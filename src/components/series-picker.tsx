@@ -150,7 +150,7 @@ export function SeriesPicker({
       {open && !disabled && filtered.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
           {filtered.some((s) => s.source === "detected") && (
-            <div className="px-2.5 py-1.5 text-[0.65rem] font-medium text-gray-400 uppercase tracking-wider">
+            <div className="px-2.5 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
               Detected from Open Library
             </div>
           )}
@@ -181,7 +181,7 @@ export function SeriesPicker({
               );
             })}
           {filtered.some((s) => s.source === "season") && (
-            <div className="px-2.5 py-1.5 text-[0.65rem] font-medium text-gray-400 uppercase tracking-wider border-t border-gray-100">
+            <div className="px-2.5 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider border-t border-gray-100">
               Used this season
             </div>
           )}

@@ -8,7 +8,6 @@ import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookSearch } from "./book-search";
 import { GenrePicker } from "./genre-picker";
 import { SeriesPicker } from "./series-picker";
@@ -293,6 +292,8 @@ export function BookEntryPanel({
   const hasManagedPlayers = managedPlayers.length > 0 && !isEditMode;
 
   const [selectedBook, setSelectedBook] = useState<ParsedBook | null>(null);
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualAuthor, setManualAuthor] = useState("");
   const [pages, setPages] = useState(0);
   const [fiction, setFiction] = useState(true);
   const [status, setStatus] = useState<BookEntryStatus>("completed");
@@ -406,8 +407,21 @@ export function BookEntryPanel({
     }
   }
 
+  function handleBookClear() {
+    setSelectedBook(null);
+    setPages(0);
+    setCountry("");
+    setDetectedSeries(null);
+    setSeriesName("");
+    setBonuses([null, null, null]);
+    setManualTitle("");
+    setManualAuthor("");
+  }
+
   function resetForm() {
     setSelectedBook(null);
+    setManualTitle("");
+    setManualAuthor("");
     setPages(0);
     setFiction(true);
     setStatus("completed");
@@ -463,6 +477,14 @@ export function BookEntryPanel({
 
     const isFinished = status === "completed" || status === "did_not_finish";
 
+    const bookTitle = selectedBook?.title || manualTitle.trim();
+    const bookAuthorName = selectedBook?.author || manualAuthor.trim() || "Unknown";
+
+    if (!isEditMode && !bookTitle) {
+      toast.error("Please search for a book or enter a title.");
+      return;
+    }
+
     setSaving(true);
     try {
       let entryId: string;
@@ -487,15 +509,14 @@ export function BookEntryPanel({
         });
         entryId = entry.id;
       } else {
-        if (!selectedBook) return;
         const bookId = await findOrCreateBook({
-          isbn: selectedBook.isbn,
-          title: selectedBook.title,
-          author: selectedBook.author,
+          isbn: selectedBook?.isbn ?? null,
+          title: bookTitle,
+          author: bookAuthorName,
           pages: finalPages,
-          year_published: selectedBook.year_published,
+          year_published: selectedBook?.year_published ?? null,
           country: country || null,
-          cover_url: selectedBook.cover_url,
+          cover_url: selectedBook?.cover_url ?? null,
         });
 
         entryId = await createBookEntry({
@@ -571,268 +592,291 @@ export function BookEntryPanel({
       ? `Add a Book for ${selectedPlayerName}`
       : "Add a Book";
 
-  const formContent = (
-        <div className="space-y-5">
-          {hasManagedPlayers && (
-            <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-medium text-amber-800">Logging for</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setTargetUserId(null)}
-                  className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
-                    !targetUserId
-                      ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
-                      : "text-amber-700 hover:bg-white/50"
-                  }`}
-                >
-                  Myself
-                </button>
-                {managedPlayers.map((mp) => (
-                  <button
-                    key={mp.userId}
-                    type="button"
-                    onClick={() => setTargetUserId(mp.userId)}
-                    className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
-                      targetUserId === mp.userId
-                        ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
-                        : "text-amber-700 hover:bg-white/50"
-                    }`}
-                  >
-                    {mp.displayName}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+  const hasSearchResult = !!selectedBook;
 
-          {isEditMode ? (
-            <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
-              {entry.book.cover_url ? (
-                <img
-                  src={entry.book.cover_url}
-                  alt={entry.book.title}
-                  className="w-14 h-20 object-cover rounded-lg shadow-sm"
-                />
-              ) : (
-                <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-indigo-400" />
-                </div>
-              )}
-              <div className="min-w-0 pt-0.5">
-                <p className="font-semibold text-gray-900">{entry.book.title}</p>
-                <p className="text-sm text-gray-500">{entry.book.author}</p>
-                {entry.book.pages > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
-              <BookSearch onSelect={handleBookSelect} />
-              {selectedBook && (
-                <div className="flex items-start gap-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
-                  {selectedBook.cover_url && (
-                    <img src={selectedBook.cover_url} alt="" className="w-10 h-14 object-cover rounded-lg shadow-sm" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900">{selectedBook.title}</p>
-                    <p className="text-sm text-gray-500">{selectedBook.author}</p>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+  const managedPlayerPicker = hasManagedPlayers ? (
+    <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-amber-600" />
+        <span className="text-sm font-medium text-amber-800">Logging for</span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => setTargetUserId(null)}
+          className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
+            !targetUserId
+              ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
+              : "text-amber-700 hover:bg-white/50"
+          }`}
+        >
+          Myself
+        </button>
+        {managedPlayers.map((mp) => (
+          <button
+            key={mp.userId}
+            type="button"
+            onClick={() => setTargetUserId(mp.userId)}
+            className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
+              targetUserId === mp.userId
+                ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
+                : "text-amber-700 hover:bg-white/50"
+            }`}
+          >
+            {mp.displayName}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : null;
 
-          {!readOnly && (
-            <div className="rounded-xl bg-gray-50 px-4 py-3 border border-gray-100 space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Reading Status</Label>
-              <div role="radiogroup" aria-label="Reading status" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
-                {([
-                  { value: "reading" as const, label: "Reading" },
-                  { value: "completed" as const, label: "Completed" },
-                  { value: "did_not_finish" as const, label: "DNF" },
-                ]).map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={status === opt.value}
-                    onClick={() => setStatus(opt.value)}
-                    className={`rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
-                      status === opt.value
-                        ? opt.value === "reading"
-                          ? "bg-amber-500 text-white shadow-sm"
-                          : opt.value === "did_not_finish"
-                            ? "bg-gray-500 text-white shadow-sm"
-                            : "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-400 mt-1">
-                {status === "completed"
-                  ? "Full points with completion bonus"
-                  : status === "reading"
-                    ? "Points will count once you finish"
-                    : "Page points based on pages read, no completion bonus"}
-              </p>
-            </div>
-          )}
+  const statusSection = !readOnly ? (
+    <div className="rounded-xl bg-gray-50 px-4 py-3 border border-gray-100 space-y-1.5">
+      <Label className="text-sm font-medium text-gray-700">Reading Status</Label>
+      <div role="radiogroup" aria-label="Reading status" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
+        {([
+          { value: "reading" as const, label: "Reading" },
+          { value: "completed" as const, label: "Completed" },
+          { value: "did_not_finish" as const, label: "DNF" },
+        ]).map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={status === opt.value}
+            onClick={() => setStatus(opt.value)}
+            className={`rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
+              status === opt.value
+                ? opt.value === "reading"
+                  ? "bg-amber-500 text-white shadow-sm"
+                  : opt.value === "did_not_finish"
+                    ? "bg-gray-500 text-white shadow-sm"
+                    : "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-gray-400 mt-1">
+        {status === "completed"
+          ? "Full points with completion bonus"
+          : status === "reading"
+            ? "Points will count once you finish"
+            : "Page points based on pages read, no completion bonus"}
+      </p>
+    </div>
+  ) : null;
 
-          <div className="grid grid-cols-2 gap-4 [&>div]:min-w-0">
-            <div className="space-y-1.5">
-              <Label>Pages</Label>
-              <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} disabled={readOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Type</Label>
-              <Select value={fiction ? "fiction" : "nonfiction"} onValueChange={(v) => setFiction(v === "fiction")} disabled={readOnly}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fiction">Fiction</SelectItem>
-                  <SelectItem value="nonfiction">Nonfiction</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {status !== "completed" && (
-              <div className="space-y-1.5">
-                <Label>Pages Read{status === "did_not_finish" ? " *" : ""}</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max={pages || undefined}
-                  value={pagesRead}
-                  onChange={(e) => setPagesRead(e.target.value)}
-                  placeholder={status === "did_not_finish" ? "Required" : "Optional"}
-                  disabled={readOnly}
-                />
-              </div>
-            )}
-            {status !== "reading" && (
-              <div className="space-y-1.5">
-                <Label>Date Finished</Label>
-                <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label>Rating (0-10)</Label>
-              <Input type="number" min="0" max="10" step="0.01" value={rating} onChange={(e) => setRating(e.target.value)} disabled={readOnly} />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Genre</Label>
-            <GenrePicker
-              value={genreName}
-              onChange={(name, id) => { setGenreName(name); setGenreId(id); }}
-              genres={genres}
-              disabled={readOnly}
+  const bookDetailsSection = (
+    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Book Details</p>
+      {!isEditMode && !hasSearchResult && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Title</Label>
+            <Input
+              value={manualTitle}
+              onChange={(e) => setManualTitle(e.target.value)}
+              placeholder="Book title"
             />
           </div>
-
-          <div className="space-y-1.5">
-            <Label>Series Name (optional)</Label>
-            <SeriesPicker
-              value={seriesName}
-              onChange={setSeriesName}
-              seasonSeries={seasonSeries}
-              detectedSeries={detectedSeries}
-              disabled={readOnly}
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Author</Label>
+            <Input
+              value={manualAuthor}
+              onChange={(e) => setManualAuthor(e.target.value)}
+              placeholder="Author name (optional)"
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Country (author origin)</Label>
-            <CountryPicker value={country} onChange={setCountry} disabled={readOnly} />
-          </div>
-
-          {!readOnly && (
-            <div className="space-y-4">
-              <BonusChips selected={bonuses} onChange={setBonuses} />
-              <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
-              <DeductionChips selected={deduction} onChange={setDeduction} />
-            </div>
-          )}
-
-          <ReviewSection
-            reviewText={reviewText}
-            reviewVisibility={reviewVisibility}
-            onReviewTextChange={setReviewText}
-            onVisibilityChange={setReviewVisibility}
-            canEditReview={isEntryOwner || !isEditMode}
-            isAdmin={isAdmin && !isEntryOwner}
-            existingReview={entry?.review ?? null}
-            orgId={currentOrgId ?? ""}
-            onReviewDeleted={() => {
-              setReviewText("");
-              setConfirmingReviewDelete(false);
-            }}
-            confirmingDelete={confirmingReviewDelete}
-            onConfirmingDeleteChange={setConfirmingReviewDelete}
-            deletingReview={deletingReview}
-            onDeletingReviewChange={setDeletingReview}
-          />
-
-          <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] space-y-3 border-t border-gray-100">
-            <ScorePreview breakdown={scoreBreakdown} status={status} />
-
-            {!readOnly && (
-              <button
-                onClick={handleSave}
-                disabled={saving || (!isEditMode && !selectedBook)}
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 md:py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:brightness-95 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving
-                  ? (isEditMode ? "Updating..." : "Saving...")
-                  : (isEditMode ? "Update Book Entry" : "Save Book Entry")}
-              </button>
-            )}
-
-            {canDelete && isEditMode && (
-              confirmingDelete ? (
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={handleDelete}
-                    disabled={deleting}
-                  >
-                    {deleting ? "Deleting..." : "Confirm Delete"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setConfirmingDelete(false)}
-                    disabled={deleting}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="w-full text-destructive hover:text-destructive"
-                  onClick={() => setConfirmingDelete(true)}
-                >
-                  Delete Book Entry
-                </Button>
-              )
-            )}
           </div>
         </div>
+      )}
+      <div className="grid grid-cols-2 gap-4 [&>div]:min-w-0">
+        <div className="space-y-1.5">
+          <Label>Pages</Label>
+          <Input type="number" min="1" value={pages || ""} onChange={(e) => setPages(Math.max(0, parseInt(e.target.value) || 0))} disabled={readOnly} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Type</Label>
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-200/60 p-1 min-h-11 md:min-h-8">
+            <button
+              type="button"
+              onClick={() => !readOnly && setFiction(true)}
+              disabled={readOnly}
+              className={`rounded-md text-sm font-medium transition-all ${
+                fiction
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              } disabled:opacity-50`}
+            >
+              Fiction
+            </button>
+            <button
+              type="button"
+              onClick={() => !readOnly && setFiction(false)}
+              disabled={readOnly}
+              className={`rounded-md text-sm font-medium transition-all ${
+                !fiction
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              } disabled:opacity-50`}
+            >
+              Nonfiction
+            </button>
+          </div>
+        </div>
+        {status !== "completed" && (
+          <div className="space-y-1.5">
+            <Label>Pages Read{status === "did_not_finish" ? " *" : ""}</Label>
+            <Input
+              type="number"
+              min="1"
+              max={pages || undefined}
+              value={pagesRead}
+              onChange={(e) => setPagesRead(e.target.value)}
+              placeholder={status === "did_not_finish" ? "Required" : "Optional"}
+              disabled={readOnly}
+            />
+          </div>
+        )}
+        {status !== "reading" && (
+          <div className="space-y-1.5">
+            <Label>Date Finished</Label>
+            <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} />
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <Label>Rating (0-10)</Label>
+          <Input type="number" min="0" max="10" step="0.01" value={rating} onChange={(e) => setRating(e.target.value)} disabled={readOnly} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const classificationSection = (
+    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Classification</p>
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label>Genre</Label>
+          <GenrePicker
+            value={genreName}
+            onChange={(name, id) => { setGenreName(name); setGenreId(id); }}
+            genres={genres}
+            disabled={readOnly}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Series Name (optional)</Label>
+          <SeriesPicker
+            value={seriesName}
+            onChange={setSeriesName}
+            seasonSeries={seasonSeries}
+            detectedSeries={detectedSeries}
+            disabled={readOnly}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Country (author origin)</Label>
+          <CountryPicker value={country} onChange={setCountry} disabled={readOnly} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const scoringModifiersSection = !readOnly ? (
+    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Scoring Modifiers</p>
+      <BonusChips selected={bonuses} onChange={setBonuses} />
+      <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
+      <DeductionChips selected={deduction} onChange={setDeduction} />
+    </div>
+  ) : null;
+
+  const reviewSection = (
+    <ReviewSection
+      reviewText={reviewText}
+      reviewVisibility={reviewVisibility}
+      onReviewTextChange={setReviewText}
+      onVisibilityChange={setReviewVisibility}
+      canEditReview={isEntryOwner || !isEditMode}
+      isAdmin={isAdmin && !isEntryOwner}
+      existingReview={entry?.review ?? null}
+      orgId={currentOrgId ?? ""}
+      onReviewDeleted={() => {
+        setReviewText("");
+        setConfirmingReviewDelete(false);
+      }}
+      confirmingDelete={confirmingReviewDelete}
+      onConfirmingDeleteChange={setConfirmingReviewDelete}
+      deletingReview={deletingReview}
+      onDeletingReviewChange={setDeletingReview}
+    />
+  );
+
+  const actionButtons = (
+    <div className="space-y-3">
+      {!readOnly && (
+        <button
+          onClick={handleSave}
+          disabled={saving || (!isEditMode && !selectedBook && !manualTitle.trim())}
+          className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 md:py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:brightness-95 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving
+            ? (isEditMode ? "Updating..." : "Saving...")
+            : (isEditMode ? "Update Book Entry" : "Save Book Entry")}
+        </button>
+      )}
+
+      {canDelete && isEditMode && (
+        confirmingDelete ? (
+          <div className="flex gap-2">
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Confirm Delete"}
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setConfirmingDelete(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full text-destructive hover:text-destructive"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            Delete Book Entry
+          </Button>
+        )
+      )}
+    </div>
+  );
+
+  const formFields = (
+    <div className="space-y-5">
+      {statusSection}
+      {bookDetailsSection}
+      {classificationSection}
+      {scoringModifiersSection}
+      {reviewSection}
+      {actionButtons}
+    </div>
   );
 
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
-        <SheetContent side="bottom" className="max-h-[90dvh] flex flex-col rounded-t-2xl" showCloseButton={false}>
+        <SheetContent side="bottom" className="max-h-[95dvh] flex flex-col rounded-t-2xl" showCloseButton={false}>
           <SheetHeader className="px-4 pt-1 pb-0">
             <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 mb-2" />
             <div className="flex items-center justify-between">
@@ -844,7 +888,44 @@ export function BookEntryPanel({
             </div>
           </SheetHeader>
           <div className="px-4 flex-1 overflow-y-auto">
-            {formContent}
+            <div className="space-y-5 pb-4">
+              {managedPlayerPicker}
+
+              {isEditMode ? (
+                <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+                  {entry.book.cover_url ? (
+                    <img
+                      src={entry.book.cover_url}
+                      alt={entry.book.title}
+                      className="w-14 h-20 object-cover rounded-lg shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
+                      <BookOpen className="h-6 w-6 text-indigo-400" />
+                    </div>
+                  )}
+                  <div className="min-w-0 pt-0.5">
+                    <p className="font-semibold text-gray-900">{entry.book.title}</p>
+                    <p className="text-sm text-gray-500">{entry.book.author}</p>
+                    {entry.book.pages > 0 && (
+                      <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <BookSearch
+                  onSelect={handleBookSelect}
+                  selectedBook={selectedBook}
+                  onClear={handleBookClear}
+                />
+              )}
+
+              {formFields}
+
+              <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] border-t border-gray-100">
+                <ScorePreview breakdown={scoreBreakdown} status={status} />
+              </div>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -858,7 +939,43 @@ export function BookEntryPanel({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto pr-1">
-          {formContent}
+          <div className="space-y-5 pb-2">
+            {managedPlayerPicker}
+
+            {isEditMode ? (
+              <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+                {entry.book.cover_url ? (
+                  <img
+                    src={entry.book.cover_url}
+                    alt={entry.book.title}
+                    className="w-14 h-20 object-cover rounded-lg shadow-sm"
+                  />
+                ) : (
+                  <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-indigo-400" />
+                  </div>
+                )}
+                <div className="min-w-0 pt-0.5">
+                  <p className="font-semibold text-gray-900">{entry.book.title}</p>
+                  <p className="text-sm text-gray-500">{entry.book.author}</p>
+                  {entry.book.pages > 0 && (
+                    <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <BookSearch
+                onSelect={handleBookSelect}
+                selectedBook={selectedBook}
+                onClear={handleBookClear}
+              />
+            )}
+
+            {formFields}
+          </div>
+          <div className="sticky bottom-0 bg-background pt-3 border-t border-gray-100">
+            <ScorePreview breakdown={scoreBreakdown} status={status} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
