@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 min-w-0 pt-safe-top md:pt-0 pb-safe-bottom md:pb-0 md:ml-64">
         {children}
         <footer className="px-4 py-6 text-center text-xs text-muted-foreground/70">
-          Made with blood, sweat, and cum by Josh Graves and Kody Schmidt. This app is provided
+          Made with love by Josh and Kody. This app is provided
           free of charge.{" "}
           <a
             href="#donate"
