@@ -47,12 +47,12 @@ export function DangerZone({
   }
 
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50/50 p-5">
+    <div className="rounded-xl border border-red-200 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/30 p-5">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+        <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5 shrink-0" />
         <div className="flex-1">
-          <h3 className="font-semibold text-red-900">Danger Zone</h3>
-          <p className="text-sm text-red-700 mt-1">
+          <h3 className="font-semibold text-red-900 dark:text-red-200">Danger Zone</h3>
+          <p className="text-sm text-red-700 dark:text-red-400 mt-1">
             Deleting the organization is permanent. All seasons, book entries,
             genres, and member data will be lost.
           </p>

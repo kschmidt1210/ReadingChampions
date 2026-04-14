@@ -74,11 +74,11 @@ function NotesSection({
   if (!isAdmin && !saved) return null;
 
   return (
-    <Card className="border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 to-violet-50/30">
+    <Card className="border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50/50 to-violet-50/30 dark:from-indigo-950/30 dark:to-violet-950/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-indigo-900">
-            <StickyNote className="h-4.5 w-4.5 text-indigo-500" />
+          <CardTitle className="flex items-center gap-2 text-indigo-900 dark:text-indigo-200">
+            <StickyNote className="h-4.5 w-4.5 text-indigo-500 dark:text-indigo-400" />
             Notes
           </CardTitle>
           {isAdmin && !editing && (
@@ -86,7 +86,7 @@ function NotesSection({
               variant="ghost"
               size="sm"
               onClick={() => setEditing(true)}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100/50"
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100/50 dark:text-indigo-400 dark:hover:text-indigo-300 dark:hover:bg-indigo-900/40"
             >
               <Pencil className="h-3.5 w-3.5 mr-1" />
               Edit
@@ -102,7 +102,7 @@ function NotesSection({
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Add notes about rules, tips, or announcements for players..."
               rows={5}
-              className="w-full rounded-lg border border-indigo-200 bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 resize-y"
+              className="w-full rounded-lg border border-indigo-200 dark:border-indigo-800 bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-600 resize-y"
             />
             <div className="flex justify-end gap-2">
               <Button
@@ -163,10 +163,10 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
     preBonusTotal * deductionMult * newCountryMult;
 
   return (
-    <Card className="border-indigo-200/60 bg-gradient-to-br from-indigo-50/40 to-violet-50/20">
+    <Card className="border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50/40 to-violet-50/20 dark:from-indigo-950/30 dark:to-violet-950/20">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Calculator className="h-4.5 w-4.5 text-indigo-500" />
+          <Calculator className="h-4.5 w-4.5 text-indigo-500 dark:text-indigo-400" />
           Full Scoring Example
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -201,7 +201,7 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
               <PointRow
                 label="Final score"
                 value={finalWithBonus.toFixed(2)}
-                className="font-bold text-indigo-700"
+                className="font-bold text-indigo-700 dark:text-indigo-300"
               />
             </div>
           </div>
@@ -229,7 +229,7 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
               <PointRow
                 label="Final score"
                 value={finalWithDeduction.toFixed(2)}
-                className="font-bold text-indigo-700"
+                className="font-bold text-indigo-700 dark:text-indigo-300"
               />
             </div>
           </div>
