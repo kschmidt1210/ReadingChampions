@@ -131,7 +131,9 @@
 
 @layer utilities {
   .pb-safe-bottom {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+    @media (width < 768px) {
+      padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+    }
   }
   .pt-safe-top {
     padding-top: env(safe-area-inset-top, 0px);
