@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useViewMode } from "@/components/view-mode-provider";
 import { ViewModeToggle } from "@/components/view-mode-toggle";
 
-type SortKey = "points" | "books" | "pages" | "countries" | "series";
+type SortKey = "points" | "books" | "pages" | "book_pages" | "countries" | "series";
 type SortDir = "asc" | "desc";
 
 const rankColors: Record<number, string> = {
@@ -20,6 +20,7 @@ const rankColors: Record<number, string> = {
 const challengeBadges: Record<number, { className: string; label: string }> = {
   1: { className: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", label: "1st" },
   2: { className: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300", label: "2nd" },
+  3: { className: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300", label: "3rd" },
 };
 
 function ProgressPip({
@@ -315,6 +316,9 @@ export function LeaderboardTable({
         case "pages":
           cmp = a.page_count - b.page_count;
           break;
+        case "book_pages":
+          cmp = a.book_page_count - b.book_page_count;
+          break;
         case "countries":
           cmp = a.unique_countries - b.unique_countries;
           break;
@@ -392,6 +396,22 @@ export function LeaderboardTable({
           Pages
           <SortIndicator
             columnKey="pages"
+            activeKey={sortKey}
+            direction={sortDir}
+          />
+        </button>
+        <button
+          onClick={() => toggleSort("book_pages")}
+          className={cn(
+            "group/sort w-20 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
+            sortKey === "book_pages"
+              ? "text-indigo-600"
+              : "text-muted-foreground hover:text-muted-foreground"
+          )}
+        >
+          Book Pg
+          <SortIndicator
+            columnKey="book_pages"
             activeKey={sortKey}
             direction={sortDir}
           />
@@ -617,6 +637,19 @@ export function LeaderboardTable({
                   )}
                 >
                   {player.page_count.toLocaleString()}
+                  {player.pending_page_count > 0 && (
+                    <span className="text-amber-500 text-xs block">
+                      +{player.pending_page_count.toLocaleString()}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "w-20 text-center text-sm font-medium hidden sm:block",
+                    isCurrentUser ? "text-indigo-600/80 dark:text-indigo-400" : "text-muted-foreground"
+                  )}
+                >
+                  {player.book_page_count.toLocaleString()}
                 </span>
                 <div className="w-20 text-center hidden sm:block">
                   {player.unique_countries > 0 ? (
@@ -624,7 +657,7 @@ export function LeaderboardTable({
                       <span
                         className={cn(
                           "text-sm font-semibold tabular-nums",
-                          player.country_rank <= 2
+                          player.country_rank <= 3
                             ? "text-foreground"
                             : isCurrentUser
                               ? "text-indigo-600/80 dark:text-indigo-400"
@@ -645,7 +678,7 @@ export function LeaderboardTable({
                       <span
                         className={cn(
                           "text-sm font-semibold tabular-nums",
-                          player.series_rank <= 2
+                          player.series_rank <= 3
                             ? "text-foreground"
                             : isCurrentUser
                               ? "text-indigo-600/80 dark:text-indigo-400"

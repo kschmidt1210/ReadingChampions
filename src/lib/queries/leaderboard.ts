@@ -87,6 +87,11 @@ export async function getLeaderboardData(
       0
     );
 
+    const pendingPageCount = readingEntries.reduce(
+      (sum, e) => sum + ((e as any).book?.pages ?? 0),
+      0
+    );
+
     const bookPageCount = finishedEntries
       .filter((e) => isBookEntry(e.deduction))
       .reduce(
@@ -204,6 +209,7 @@ export async function getLeaderboardData(
       completed_count: challengeEntries.length,
       reading_count: readingEntries.length,
       page_count: pageCount,
+      pending_page_count: pendingPageCount,
       book_page_count: bookPageCount,
       rank: 0,
       unique_letters: letters.size,
