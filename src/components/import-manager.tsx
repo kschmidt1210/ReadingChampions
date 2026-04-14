@@ -418,7 +418,7 @@ function PreviewResults({ preview }: { preview: PreviewResult }) {
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 p.tabFound
                   ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-500"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {p.tabFound ? (

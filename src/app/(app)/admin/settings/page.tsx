@@ -35,7 +35,7 @@ export default async function AdminSettingsPage() {
         </CardHeader>
         <CardContent>
           <div>
-            <label className="text-sm font-medium text-gray-500">Name</label>
+            <label className="text-sm font-medium text-muted-foreground">Name</label>
             <OrgNameEditor orgId={currentOrg.id} initialName={currentOrg.name} />
           </div>
         </CardContent>

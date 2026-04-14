@@ -34,9 +34,9 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   if (!active || !payload?.[0]) return null;
   const { name, count, pct } = payload[0].payload;
   return (
-    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
-      <span className="text-sm font-medium text-gray-900">{name}</span>
-      <span className="text-sm text-gray-500 ml-1.5">
+    <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 shadow-sm">
+      <span className="text-sm font-medium text-foreground">{name}</span>
+      <span className="text-sm text-muted-foreground ml-1.5">
         {count} ({pct.toFixed(1)}%)
       </span>
     </div>
@@ -87,10 +87,10 @@ export function GenrePieChart({ genreCounts }: GenrePieChartProps) {
               className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
               style={{ backgroundColor: COLORS[i % COLORS.length] }}
             />
-            <span className="text-xs text-gray-600 truncate max-w-[10rem]">
+            <span className="text-xs text-muted-foreground truncate max-w-[10rem]">
               {entry.name}
             </span>
-            <span className="text-xs text-gray-400 tabular-nums">
+            <span className="text-xs text-muted-foreground tabular-nums">
               {entry.pct.toFixed(0)}%
             </span>
           </div>

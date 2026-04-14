@@ -30,9 +30,9 @@ function CustomTooltip({
   if (!active || !payload?.[0]) return null;
   const { title, year } = payload[0].payload;
   return (
-    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm max-w-[200px]">
-      <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-      <p className="text-sm text-gray-500">Published {year}</p>
+    <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 shadow-sm max-w-[200px]">
+      <p className="text-sm font-medium text-foreground truncate">{title}</p>
+      <p className="text-sm text-muted-foreground">Published {year}</p>
     </div>
   );
 }

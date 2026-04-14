@@ -102,7 +102,7 @@ export function OrgNameEditor({
           setEditing(true);
         }}
       >
-        <Pencil className="h-3.5 w-3.5 text-gray-400" />
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
       </Button>
     </div>
   );
@@ -163,19 +163,19 @@ export function InviteCodeSection({
             {copied ? (
               <Check className="h-4 w-4 text-green-500" />
             ) : (
-              <Copy className="h-4 w-4 text-gray-400" />
+              <Copy className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="truncate">{joinUrl}</span>
           <Button
             size="icon-sm"
             variant="ghost"
             onClick={() => handleCopy(joinUrl)}
           >
-            <Copy className="h-3.5 w-3.5 text-gray-400" />
+            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </div>
 

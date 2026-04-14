@@ -23,11 +23,11 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
     ...(currentRole === "admin"
       ? [{ href: "/admin/settings", label: "Admin", icon: Settings, activeColor: "text-rose-500" } as NavTab]
       : []),
-    { href: "/settings", label: "Account", icon: UserCog, activeColor: "text-gray-600" },
+    { href: "/settings", label: "Account", icon: UserCog, activeColor: "text-muted-foreground" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200/80 bg-white/95 backdrop-blur-sm shadow-[0_-2px_10px_rgba(0,0,0,0.06)] md:hidden pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur-sm shadow-[0_-2px_10px_rgba(0,0,0,0.06)] md:hidden pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around py-1.5">
         {tabs.map((tab) =>
           "isAction" in tab ? (
@@ -49,7 +49,7 @@ export function NavBottomTabs({ onAddBook }: { onAddBook: () => void }) {
                 "flex flex-col items-center gap-0.5 px-3 py-2 text-xs font-medium transition-colors min-w-[44px] min-h-[44px] justify-center",
                 pathname === tab.href || pathname.startsWith(tab.href + "/")
                   ? tab.activeColor
-                  : "text-gray-400"
+                  : "text-muted-foreground"
               )}
             >
               <tab.icon className="h-5 w-5" />

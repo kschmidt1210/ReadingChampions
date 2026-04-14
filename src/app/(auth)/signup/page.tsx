@@ -37,7 +37,7 @@ function SignupForm() {
   );
 
   return (
-    <Card className="shadow-xl shadow-indigo-500/5 border-gray-200/80">
+    <Card className="shadow-xl shadow-indigo-500/5 border-border">
       <CardHeader className="text-center pb-4">
         <div className="flex justify-center mb-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25">

@@ -21,7 +21,7 @@ export default async function AdminScoringPage() {
   const config = rules?.config as ScoringRulesConfig | undefined;
 
   if (!rules || !config)
-    return <p className="text-gray-400">No scoring rules found.</p>;
+    return <p className="text-muted-foreground">No scoring rules found.</p>;
 
   const entryCount = season ? await getSeasonEntryCount(season.id) : 0;
 

@@ -33,9 +33,9 @@ export default async function LeaderboardPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex items-center gap-2.5 mb-1">
-          <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">Leaderboard</h1>
         </div>
-        <p className="text-sm font-medium text-gray-500">
+        <p className="text-sm font-medium text-muted-foreground">
           {currentOrg.name} &middot; {season.name}
         </p>
       </div>

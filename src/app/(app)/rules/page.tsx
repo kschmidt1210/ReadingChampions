@@ -35,8 +35,8 @@ export default async function RulesPage() {
   if (!config)
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500 font-medium">Scoring rules haven&apos;t been set up yet.</p>
-        <p className="text-sm text-gray-400 mt-1">Ask your competition organizer to configure the scoring rules.</p>
+        <p className="text-muted-foreground font-medium">Scoring rules haven&apos;t been set up yet.</p>
+        <p className="text-sm text-muted-foreground mt-1">Ask your competition organizer to configure the scoring rules.</p>
       </div>
     );
 
@@ -44,9 +44,9 @@ export default async function RulesPage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex items-center gap-2.5 mb-1">
-          <h1 className="text-2xl font-bold text-gray-900">Rules & Points</h1>
+          <h1 className="text-2xl font-bold text-foreground">Rules & Points</h1>
         </div>
-        <p className="text-sm font-medium text-gray-500">
+        <p className="text-sm font-medium text-muted-foreground">
           {currentOrg.name}
           {season ? <> &middot; {season.name}</> : null}
         </p>

@@ -65,7 +65,7 @@ export function FlaggedEntryCard({
   const hasDetails = book || bonuses.length > 0 || entry?.deduction || entry?.hometown_bonus;
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-200/80 relative overflow-hidden">
+    <div className="bg-card rounded-2xl p-5 shadow-sm border border-amber-200/80 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-400 to-orange-400" />
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 min-w-0">
@@ -77,15 +77,15 @@ export function FlaggedEntryCard({
             )}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-gray-900 truncate">
+            <p className="font-semibold text-foreground truncate">
               {book?.title ?? "Unknown"}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               by {entry?.profile?.display_name ?? "Unknown"}
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Points:{" "}
-              <span className="font-medium text-gray-700">
+              <span className="font-medium text-foreground">
                 {Number(entry?.points ?? 0).toFixed(2)}
               </span>
             </p>
@@ -129,7 +129,7 @@ export function FlaggedEntryCard({
         <div className="mt-3 pl-11">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
           >
             {expanded ? (
               <ChevronDown className="h-3 w-3" />
@@ -139,32 +139,32 @@ export function FlaggedEntryCard({
             Details
           </button>
           {expanded && (
-            <div className="mt-2 space-y-1.5 text-sm text-gray-600">
+            <div className="mt-2 space-y-1.5 text-sm text-muted-foreground">
               {book && (
                 <>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <span className="text-gray-400">Author</span>
+                    <span className="text-muted-foreground">Author</span>
                     <span>{book.author}</span>
-                    <span className="text-gray-400">Pages</span>
+                    <span className="text-muted-foreground">Pages</span>
                     <span>{book.pages}</span>
                     {book.country && (
                       <>
-                        <span className="text-gray-400">Country</span>
+                        <span className="text-muted-foreground">Country</span>
                         <span>{book.country}</span>
                       </>
                     )}
-                    <span className="text-gray-400">Type</span>
+                    <span className="text-muted-foreground">Type</span>
                     <span>{entry.fiction ? "Fiction" : "Nonfiction"}</span>
                     {(entry.genre_name || entry.genre_id) && (
                       <>
-                        <span className="text-gray-400">Genre</span>
+                        <span className="text-muted-foreground">Genre</span>
                         <span>{entry.genre_name ?? entry.genre_id}</span>
                       </>
                     )}
                   </div>
                   {bonuses.length > 0 && (
                     <div className="pt-1">
-                      <span className="text-gray-400 text-xs">Bonuses: </span>
+                      <span className="text-muted-foreground text-xs">Bonuses: </span>
                       {bonuses.map((b: string) => (
                         <Badge
                           key={b}
@@ -178,7 +178,7 @@ export function FlaggedEntryCard({
                   )}
                   {entry.hometown_bonus && (
                     <div>
-                      <span className="text-gray-400 text-xs">Hometown: </span>
+                      <span className="text-muted-foreground text-xs">Hometown: </span>
                       <Badge variant="secondary" className="text-xs">
                         {HOMETOWN_BONUS_LABELS[entry.hometown_bonus as keyof typeof HOMETOWN_BONUS_LABELS] ?? entry.hometown_bonus}
                       </Badge>
@@ -186,7 +186,7 @@ export function FlaggedEntryCard({
                   )}
                   {entry.deduction && (
                     <div>
-                      <span className="text-gray-400 text-xs">Deduction: </span>
+                      <span className="text-muted-foreground text-xs">Deduction: </span>
                       <Badge variant="secondary" className="text-xs bg-red-50 text-red-700">
                         {DEDUCTION_LABELS[entry.deduction as keyof typeof DEDUCTION_LABELS] ?? entry.deduction}
                       </Badge>

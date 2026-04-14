@@ -15,9 +15,9 @@ export function OrgSwitcher() {
   if (orgs.length <= 1) {
     if (!currentOrgName) return null;
     return (
-      <div className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Competition</p>
-        <p className="text-sm font-semibold text-gray-700 truncate">{currentOrgName}</p>
+      <div className="px-3 py-2 rounded-xl bg-muted border border-border">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Competition</p>
+        <p className="text-sm font-semibold text-foreground truncate">{currentOrgName}</p>
       </div>
     );
   }

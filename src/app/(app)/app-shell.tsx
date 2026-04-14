@@ -12,14 +12,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { seasonId, genres, managedPlayers } = useOrg();
 
   return (
-    <div data-app-shell className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+    <div data-app-shell className="flex min-h-screen bg-gradient-to-br from-muted/50 via-background to-indigo-50/30 dark:to-indigo-950/30">
       <NavProgress />
       <div
         aria-hidden
         className="fixed inset-x-0 top-0 z-40 pointer-events-none md:hidden"
         style={{ height: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
-        <div className="h-full bg-gradient-to-b from-white via-white/85 to-transparent" />
+        <div className="h-full bg-gradient-to-b from-background via-background/85 to-transparent" />
       </div>
       <NavSidebar onAddBook={() => setAddBookOpen(true)} />
       <main className="flex-1 min-w-0 pt-safe-top md:pt-0 pb-safe-bottom md:pb-0 md:ml-64">{children}</main>

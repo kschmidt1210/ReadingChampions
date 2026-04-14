@@ -40,8 +40,8 @@ export default async function MyBooksPage({
   if (!season)
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500 font-medium">No active season right now.</p>
-        <p className="text-sm text-gray-400 mt-1">Check back when your organizer starts a new season!</p>
+        <p className="text-muted-foreground font-medium">No active season right now.</p>
+        <p className="text-sm text-muted-foreground mt-1">Check back when your organizer starts a new season!</p>
       </div>
     );
 

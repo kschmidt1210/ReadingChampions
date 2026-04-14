@@ -25,14 +25,14 @@ export function GenreGrid({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4.5 w-4.5 text-emerald-500" />
-          <h3 className="font-semibold text-gray-900">Genre Challenge</h3>
+          <h3 className="font-semibold text-foreground">Genre Challenge</h3>
         </div>
         <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
           {covered}/{total}
         </span>
       </div>
 
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
@@ -56,7 +56,7 @@ export function GenreGrid({
                 "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left",
                 done
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-200/60"
-                  : "bg-gray-50 text-gray-400 border border-dashed border-gray-200",
+                  : "bg-muted text-muted-foreground border border-dashed border-border",
                 clickable && "cursor-pointer hover:shadow-sm hover:border-emerald-300 active:scale-[0.98]",
                 !clickable && "cursor-default",
                 isActive && "ring-2 ring-emerald-500 border-emerald-400 shadow-sm"

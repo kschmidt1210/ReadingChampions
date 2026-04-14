@@ -126,12 +126,12 @@ function ReviewSection({
 
   if (!canEditReview && existingReview) {
     return (
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <div className="rounded-xl border border-border overflow-hidden">
         <div className="px-4 py-3 flex items-center gap-2">
-          <MessageSquareText className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Review</span>
+          <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Review</span>
           {existingReview.visibility === "private" ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-500 px-2 py-0.5 text-xs font-medium">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted text-muted-foreground px-2 py-0.5 text-xs font-medium">
               <Lock className="h-3 w-3" />
               Private
             </span>
@@ -142,13 +142,13 @@ function ReviewSection({
             </span>
           )}
         </div>
-        <div className="px-4 pb-3 border-t border-gray-100 pt-3">
-          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+        <div className="px-4 pb-3 border-t border-border pt-3">
+          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
             {existingReview.review_text}
           </p>
         </div>
         {isAdmin && existingReview.visibility === "public" && (
-          <div className="px-4 pb-3 flex gap-2 border-t border-gray-100 pt-3">
+          <div className="px-4 pb-3 flex gap-2 border-t border-border pt-3">
             <Button
               variant="outline"
               size="sm"
@@ -197,14 +197,14 @@ function ReviewSection({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden">
+    <div className="rounded-xl border border-border overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted active:bg-muted transition-colors"
       >
         <span className="flex items-center gap-2">
-          <MessageSquareText className="h-4 w-4 text-gray-400" />
+          <MessageSquareText className="h-4 w-4 text-muted-foreground" />
           {hasReview ? "Review" : "Write a review"}
           {hasReview && (
             <span className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-semibold">
@@ -212,10 +212,10 @@ function ReviewSection({
             </span>
           )}
         </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
           <div className="space-y-1.5">
             <textarea
               value={reviewText}
@@ -223,25 +223,25 @@ function ReviewSection({
               placeholder="What did you think of this book?"
               maxLength={5000}
               rows={4}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors resize-y min-h-[100px]"
+              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors resize-y min-h-[100px]"
             />
             <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {reviewText.length.toLocaleString()} / 5,000
               </p>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-gray-700">Visibility</Label>
-            <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-200/60 p-1">
+            <Label className="text-sm font-medium text-foreground">Visibility</Label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted/60 p-1">
               <button
                 type="button"
                 onClick={() => onVisibilityChange("private")}
                 className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
                   reviewVisibility === "private"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Lock className="h-3.5 w-3.5" />
@@ -252,15 +252,15 @@ function ReviewSection({
                 onClick={() => onVisibilityChange("public")}
                 className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 md:py-1.5 text-sm font-medium transition-all ${
                   reviewVisibility === "public"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Globe className="h-3.5 w-3.5" />
                 Public
               </button>
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {reviewVisibility === "private"
                 ? "Only visible to you."
                 : "Visible to other players in your competition."}
@@ -606,8 +606,8 @@ export function BookEntryPanel({
           onClick={() => setTargetUserId(null)}
           className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
             !targetUserId
-              ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
-              : "text-amber-700 hover:bg-white/50"
+              ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300"
+              : "text-amber-700 hover:bg-card/50"
           }`}
         >
           Myself
@@ -619,8 +619,8 @@ export function BookEntryPanel({
             onClick={() => setTargetUserId(mp.userId)}
             className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
               targetUserId === mp.userId
-                ? "bg-white text-gray-900 shadow-sm ring-1 ring-amber-300"
-                : "text-amber-700 hover:bg-white/50"
+                ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300"
+                : "text-amber-700 hover:bg-card/50"
             }`}
           >
             {mp.displayName}
@@ -631,9 +631,9 @@ export function BookEntryPanel({
   ) : null;
 
   const statusSection = !readOnly ? (
-    <div className="rounded-xl bg-gray-50 px-4 py-3 border border-gray-100 space-y-1.5">
-      <Label className="text-sm font-medium text-gray-700">Reading Status</Label>
-      <div role="radiogroup" aria-label="Reading status" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-200/60 p-1">
+    <div className="rounded-xl bg-muted px-4 py-3 border border-border space-y-1.5">
+      <Label className="text-sm font-medium text-foreground">Reading Status</Label>
+      <div role="radiogroup" aria-label="Reading status" className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-1">
         {([
           { value: "reading" as const, label: "Reading" },
           { value: "completed" as const, label: "Completed" },
@@ -651,15 +651,15 @@ export function BookEntryPanel({
                   ? "bg-amber-500 text-white shadow-sm"
                   : opt.value === "did_not_finish"
                     ? "bg-gray-500 text-white shadow-sm"
-                    : "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                    : "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {opt.label}
           </button>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         {status === "completed"
           ? "Full points with completion bonus"
           : status === "reading"
@@ -670,8 +670,8 @@ export function BookEntryPanel({
   ) : null;
 
   const bookDetailsSection = (
-    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Book Details</p>
+    <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-4">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Book Details</p>
       {!isEditMode && !hasSearchResult && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5 sm:col-span-2">
@@ -699,15 +699,15 @@ export function BookEntryPanel({
         </div>
         <div className="space-y-1.5">
           <Label>Type</Label>
-          <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-200/60 p-1 min-h-11 md:min-h-8">
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted/60 p-1 min-h-11 md:min-h-8">
             <button
               type="button"
               onClick={() => !readOnly && setFiction(true)}
               disabled={readOnly}
               className={`rounded-md text-sm font-medium transition-all ${
                 fiction
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               } disabled:opacity-50`}
             >
               Fiction
@@ -718,8 +718,8 @@ export function BookEntryPanel({
               disabled={readOnly}
               className={`rounded-md text-sm font-medium transition-all ${
                 !fiction
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               } disabled:opacity-50`}
             >
               Nonfiction
@@ -755,8 +755,8 @@ export function BookEntryPanel({
   );
 
   const classificationSection = (
-    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Classification</p>
+    <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-4">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Classification</p>
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label>Genre</Label>
@@ -786,8 +786,8 @@ export function BookEntryPanel({
   );
 
   const scoringModifiersSection = !readOnly ? (
-    <div className="rounded-xl bg-gray-50/50 border border-gray-100 p-4 space-y-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Scoring Modifiers</p>
+    <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-4">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Scoring Modifiers</p>
       <BonusChips selected={bonuses} onChange={setBonuses} />
       <HometownBonusChips selected={hometownBonus} onChange={setHometownBonus} />
       <DeductionChips selected={deduction} onChange={setDeduction} />
@@ -878,10 +878,10 @@ export function BookEntryPanel({
       <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
         <SheetContent side="bottom" className="max-h-[95dvh] flex flex-col rounded-t-2xl" showCloseButton={false}>
           <SheetHeader className="px-4 pt-1 pb-0">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 mb-2" />
+            <div className="mx-auto w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
             <div className="flex items-center justify-between">
               <SheetTitle>{dialogTitle}</SheetTitle>
-              <SheetClose className="rounded-full p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors">
+              <SheetClose className="rounded-full p-2 -mr-2 text-muted-foreground hover:text-muted-foreground hover:bg-muted active:bg-muted transition-colors">
                 <X className="h-5 w-5" />
                 <span className="sr-only">Close</span>
               </SheetClose>
@@ -900,15 +900,15 @@ export function BookEntryPanel({
                       className="w-14 h-20 object-cover rounded-lg shadow-sm"
                     />
                   ) : (
-                    <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
+                    <div className="w-14 h-20 rounded-lg bg-card/60 flex items-center justify-center">
                       <BookOpen className="h-6 w-6 text-indigo-400" />
                     </div>
                   )}
                   <div className="min-w-0 pt-0.5">
-                    <p className="font-semibold text-gray-900">{entry.book.title}</p>
-                    <p className="text-sm text-gray-500">{entry.book.author}</p>
+                    <p className="font-semibold text-foreground">{entry.book.title}</p>
+                    <p className="text-sm text-muted-foreground">{entry.book.author}</p>
                     {entry.book.pages > 0 && (
-                      <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
+                      <p className="text-xs text-muted-foreground mt-1">{entry.book.pages} pages</p>
                     )}
                   </div>
                 </div>
@@ -922,7 +922,7 @@ export function BookEntryPanel({
 
               {formFields}
 
-              <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] border-t border-gray-100">
+              <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] border-t border-border">
                 <ScorePreview breakdown={scoreBreakdown} status={status} />
               </div>
             </div>
@@ -951,15 +951,15 @@ export function BookEntryPanel({
                     className="w-14 h-20 object-cover rounded-lg shadow-sm"
                   />
                 ) : (
-                  <div className="w-14 h-20 rounded-lg bg-white/60 flex items-center justify-center">
+                  <div className="w-14 h-20 rounded-lg bg-card/60 flex items-center justify-center">
                     <BookOpen className="h-6 w-6 text-indigo-400" />
                   </div>
                 )}
                 <div className="min-w-0 pt-0.5">
-                  <p className="font-semibold text-gray-900">{entry.book.title}</p>
-                  <p className="text-sm text-gray-500">{entry.book.author}</p>
+                  <p className="font-semibold text-foreground">{entry.book.title}</p>
+                  <p className="text-sm text-muted-foreground">{entry.book.author}</p>
                   {entry.book.pages > 0 && (
-                    <p className="text-xs text-gray-400 mt-1">{entry.book.pages} pages</p>
+                    <p className="text-xs text-muted-foreground mt-1">{entry.book.pages} pages</p>
                   )}
                 </div>
               </div>
@@ -973,7 +973,7 @@ export function BookEntryPanel({
 
             {formFields}
           </div>
-          <div className="sticky bottom-0 bg-background pt-3 border-t border-gray-100">
+          <div className="sticky bottom-0 bg-background pt-3 border-t border-border">
             <ScorePreview breakdown={scoreBreakdown} status={status} />
           </div>
         </div>
