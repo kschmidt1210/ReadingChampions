@@ -205,7 +205,10 @@ export function SettingsForm({ email, profile }: SettingsFormProps) {
                 onClick={() => {
                   setTheme(option.value);
                   startTransition(async () => {
-                    await updateThemePreference(option.value);
+                    const result = await updateThemePreference(option.value);
+                    if (result.error) {
+                      toast.error("Failed to save theme preference");
+                    }
                   });
                 }}
                 className={cn(

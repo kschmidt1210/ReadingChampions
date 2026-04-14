@@ -38,7 +38,7 @@ function NumberField({
   if (!editing) {
     return (
       <div className="flex justify-between">
-        <span className="text-gray-500">{label}</span>
+        <span className="text-muted-foreground">{label}</span>
         <strong>
           {prefix}
           {value}
@@ -50,7 +50,7 @@ function NumberField({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-gray-500 text-sm shrink-0">{label}</span>
+      <span className="text-muted-foreground text-sm shrink-0">{label}</span>
       <Input
         type="number"
         step="any"
@@ -76,7 +76,7 @@ function PercentField({
   if (!editing) {
     return (
       <div className="flex justify-between">
-        <span className="text-gray-500">{label}</span>
+        <span className="text-muted-foreground">{label}</span>
         <strong>+{(value * 100).toFixed(1)}%</strong>
       </div>
     );
@@ -84,7 +84,7 @@ function PercentField({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-gray-500 text-sm shrink-0">{label}</span>
+      <span className="text-muted-foreground text-sm shrink-0">{label}</span>
       <div className="flex items-center gap-1">
         <Input
           type="number"
@@ -93,7 +93,7 @@ function PercentField({
           onChange={(e) => onChange((parseFloat(e.target.value) || 0) / 100)}
           className="w-20 text-right"
         />
-        <span className="text-xs text-gray-400">%</span>
+        <span className="text-xs text-muted-foreground">%</span>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ function MultiplierField({
   if (!editing) {
     return (
       <div className="flex justify-between">
-        <span className="text-gray-500">{label}</span>
+        <span className="text-muted-foreground">{label}</span>
         <strong>&times;{value}</strong>
       </div>
     );
@@ -121,9 +121,9 @@ function MultiplierField({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-gray-500 text-sm shrink-0">{label}</span>
+      <span className="text-muted-foreground text-sm shrink-0">{label}</span>
       <div className="flex items-center gap-1">
-        <span className="text-xs text-gray-400">&times;</span>
+        <span className="text-xs text-muted-foreground">&times;</span>
         <Input
           type="number"
           step="0.05"

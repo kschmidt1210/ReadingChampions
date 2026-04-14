@@ -45,15 +45,15 @@ export function FlaggedList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Flagged Entries</h2>
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5">
+        <div className="flex gap-1 rounded-lg bg-muted p-0.5">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFilter(opt.value)}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                 filter === opt.value
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {opt.label}
@@ -63,7 +63,7 @@ export function FlaggedList({
       </div>
 
       {flags.length === 0 ? (
-        <p className="text-gray-400 text-center py-8">
+        <p className="text-muted-foreground text-center py-8">
           {filter === "unresolved"
             ? "No flagged entries. All clear!"
             : filter === "resolved"

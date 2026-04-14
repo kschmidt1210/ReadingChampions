@@ -17,7 +17,7 @@ export default async function SettingsPage() {
   const [{ data: profile }, orgs] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name, about_text, goodreads_url, storygraph_url, default_view")
+      .select("display_name, about_text, goodreads_url, storygraph_url, default_view, theme_preference")
       .eq("id", user.id)
       .single(),
     getUserOrganizations(),
@@ -39,7 +39,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
+      <h1 className="text-2xl font-bold text-foreground">Account Settings</h1>
       <SettingsForm
         email={user.email ?? ""}
         profile={{
@@ -52,7 +52,7 @@ export default async function SettingsPage() {
       />
       {currentOrg && (
         <>
-          <hr className="border-gray-200" />
+          <hr className="border-border" />
           <ManagedPlayersSettings
             orgId={currentOrg.id}
             managedPlayers={managedPlayersList.map((mp) => ({

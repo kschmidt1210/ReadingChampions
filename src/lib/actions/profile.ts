@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { ViewMode } from "@/types/database";
+import type { ViewMode, ThemePreference } from "@/types/database";
 
 const MAX_ABOUT_LENGTH = 500;
 
@@ -106,6 +106,30 @@ export async function updateDefaultView(view: ViewMode) {
   const { error } = await supabase
     .from("profiles")
     .update({ default_view: view })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return { success: true };
+}
+
+const VALID_THEME_PREFERENCES: ThemePreference[] = ["light", "dark", "system"];
+
+export async function updateThemePreference(theme: ThemePreference) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  if (!VALID_THEME_PREFERENCES.includes(theme)) {
+    return { error: "Invalid theme preference" };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ theme_preference: theme })
     .eq("id", user.id);
 
   if (error) return { error: error.message };

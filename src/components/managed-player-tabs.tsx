@@ -37,7 +37,7 @@ export function ManagedPlayerTabs({
       {isPending ? (
         <Loader2 className="h-4 w-4 text-indigo-400 shrink-0 animate-spin" />
       ) : (
-        <Users className="h-4 w-4 text-gray-400 shrink-0" />
+        <Users className="h-4 w-4 text-muted-foreground shrink-0" />
       )}
       <div className="flex gap-1 overflow-x-auto scrollbar-none">
         <button
@@ -46,7 +46,7 @@ export function ManagedPlayerTabs({
           className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
             !activePlayerId
               ? "bg-indigo-100 text-indigo-700"
-              : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           } ${isPending ? "opacity-60 cursor-wait" : ""}`}
         >
           My Books
@@ -59,7 +59,7 @@ export function ManagedPlayerTabs({
             className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
               activePlayerId === mp.userId
                 ? "bg-indigo-100 text-indigo-700"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             } ${isPending ? "opacity-60 cursor-wait" : ""}`}
           >
             {mp.displayName}

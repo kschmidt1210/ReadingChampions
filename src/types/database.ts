@@ -26,6 +26,8 @@ export type BookEntryStatus = "reading" | "completed" | "did_not_finish";
 
 export type ViewMode = "default" | "detail";
 
+export type ThemePreference = "light" | "dark" | "system";
+
 export type ReviewVisibility = "public" | "private";
 
 export interface Profile {
@@ -35,6 +37,7 @@ export interface Profile {
   goodreads_url: string | null;
   storygraph_url: string | null;
   default_view: ViewMode;
+  theme_preference: ThemePreference;
   created_at: string;
 }
 

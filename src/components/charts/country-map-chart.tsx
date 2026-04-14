@@ -90,9 +90,9 @@ export function CountryMapChart({ countryCounts }: CountryMapChartProps) {
         </ComposableMap>
 
         {tooltip && (
-          <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm pointer-events-none">
-            <span className="text-sm font-medium text-gray-900">{tooltip.name}</span>
-            <span className="text-sm text-gray-500 ml-1.5">
+          <div className="absolute top-2 left-2 bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 shadow-sm pointer-events-none">
+            <span className="text-sm font-medium text-foreground">{tooltip.name}</span>
+            <span className="text-sm text-muted-foreground ml-1.5">
               {tooltip.count} {tooltip.count === 1 ? "book" : "books"}
             </span>
           </div>
@@ -101,14 +101,14 @@ export function CountryMapChart({ countryCounts }: CountryMapChartProps) {
 
       {/* Legend */}
       <div className="flex items-center gap-2 px-1">
-        <span className="text-xs text-gray-500 tabular-nums">1</span>
+        <span className="text-xs text-muted-foreground tabular-nums">1</span>
         <div
           className="flex-1 h-2 rounded-full"
           style={{
             background: `linear-gradient(to right, ${interpolateColor(0.1)}, ${interpolateColor(0.5)}, ${interpolateColor(1)})`,
           }}
         />
-        <span className="text-xs text-gray-500 tabular-nums">{maxCount}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{maxCount}</span>
       </div>
     </div>
   );

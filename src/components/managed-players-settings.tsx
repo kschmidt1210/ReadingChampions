@@ -64,10 +64,10 @@ export function ManagedPlayersSettings({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Users className="h-5 w-5 text-gray-500" />
-        <h2 className="text-lg font-semibold text-gray-900">Managed Players</h2>
+        <Users className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-foreground">Managed Players</h2>
       </div>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted-foreground">
         Add child accounts that you manage. You can log and manage books on their behalf.
       </p>
 
@@ -76,7 +76,7 @@ export function ManagedPlayersSettings({
           {players.map((p) => (
             <div
               key={p.managedUserId}
-              className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+              className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
             >
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -84,12 +84,12 @@ export function ManagedPlayersSettings({
                     {p.displayName.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">{p.displayName}</span>
+                <span className="text-sm font-medium text-foreground">{p.displayName}</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-red-500"
+                className="text-muted-foreground hover:text-red-500"
                 onClick={() => handleUnlink(p.managedUserId, p.displayName)}
                 disabled={isPending || unlinkingId === p.managedUserId}
               >
@@ -102,8 +102,8 @@ export function ManagedPlayersSettings({
       )}
 
       {showAddForm ? (
-        <div className="rounded-lg border border-gray-200 p-4 space-y-3">
-          <Label className="text-sm font-medium text-gray-700">Child&apos;s display name</Label>
+        <div className="rounded-lg border border-border p-4 space-y-3">
+          <Label className="text-sm font-medium text-foreground">Child&apos;s display name</Label>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}

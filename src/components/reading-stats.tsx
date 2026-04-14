@@ -27,31 +27,31 @@ export function ReadingStats({
   if (!hasMap && !hasPie && !hasTimeline) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full px-5 py-4 flex items-center gap-2.5 text-left hover:bg-gray-50/60 active:bg-gray-100/40 transition-colors cursor-pointer"
+        className="w-full px-5 py-4 flex items-center gap-2.5 text-left hover:bg-muted/60 active:bg-muted/40 transition-colors cursor-pointer"
       >
         <BarChart3 className="h-4.5 w-4.5 text-indigo-500 shrink-0" />
-        <span className="flex-1 font-semibold text-gray-900">
+        <span className="flex-1 font-semibold text-foreground">
           Reading Insights
         </span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-gray-300 shrink-0 transition-transform duration-200",
-            expanded && "rotate-180 text-gray-500"
+            "h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200",
+            expanded && "rotate-180 text-muted-foreground"
           )}
         />
       </button>
 
       {expanded && (
-        <div className="border-t border-gray-100 divide-y divide-gray-100">
+        <div className="border-t border-border divide-y divide-border">
           {hasMap && (
             <div className="px-5 py-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-violet-500" />
-                <h4 className="text-sm font-semibold text-gray-800">
+                <h4 className="text-sm font-semibold text-foreground">
                   Countries Heatmap
                 </h4>
               </div>
@@ -63,7 +63,7 @@ export function ReadingStats({
             <div className="px-5 py-4 space-y-3">
               <div className="flex items-center gap-2">
                 <PieChart className="h-4 w-4 text-emerald-500" />
-                <h4 className="text-sm font-semibold text-gray-800">
+                <h4 className="text-sm font-semibold text-foreground">
                   Genre Distribution
                 </h4>
               </div>
@@ -75,10 +75,10 @@ export function ReadingStats({
             <div className="px-5 py-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-500" />
-                <h4 className="text-sm font-semibold text-gray-800">
+                <h4 className="text-sm font-semibold text-foreground">
                   Time Travel
                 </h4>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   Publication year by reading order
                 </span>
               </div>

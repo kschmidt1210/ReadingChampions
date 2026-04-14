@@ -180,28 +180,28 @@ export function SeasonManager({
           {activeSeason ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Name</p>
+                <p className="text-sm text-muted-foreground">Name</p>
                 <p className="font-semibold">{activeSeason.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Started</p>
+                <p className="text-sm text-muted-foreground">Started</p>
                 <p className="font-medium">
                   {formatDate(activeSeason.start_date)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Duration</p>
+                <p className="text-sm text-muted-foreground">Duration</p>
                 <p className="font-medium">
                   {getDuration(activeSeason.start_date)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Entries</p>
+                <p className="text-sm text-muted-foreground">Entries</p>
                 <p className="font-medium">{activeEntryCount}</p>
               </div>
             </div>
           ) : (
-            <p className="text-gray-400">
+            <p className="text-muted-foreground">
               No active season. Start a new one to begin tracking books.
             </p>
           )}
@@ -212,7 +212,7 @@ export function SeasonManager({
         <div>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             {showHistory ? (
               <ChevronDown className="h-4 w-4" />
@@ -229,10 +229,10 @@ export function SeasonManager({
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">{season.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {formatDate(season.start_date)}
                         {season.end_date && ` — ${formatDate(season.end_date)}`}
                       </p>

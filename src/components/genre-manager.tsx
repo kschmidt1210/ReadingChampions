@@ -77,20 +77,20 @@ export function GenreManager({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-gray-900">Genre Challenge List</h2>
-      <p className="text-sm text-gray-500">
+      <h2 className="font-semibold text-foreground">Genre Challenge List</h2>
+      <p className="text-sm text-muted-foreground">
         Players earn a bonus for covering all genres. Customize the list for
         your competition.
       </p>
 
-      <div className="bg-white rounded-xl shadow-sm divide-y">
+      <div className="bg-card rounded-xl shadow-sm divide-y divide-border">
         {genres.map((genre, index) => (
           <div
             key={genre.id}
             className="flex items-center gap-2 px-3 py-2.5"
           >
-            <GripVertical className="h-4 w-4 text-gray-300 shrink-0" />
-            <span className="text-sm font-medium text-gray-700 flex-1">
+            <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-medium text-foreground flex-1">
               {genre.name}
             </span>
             <div className="flex items-center gap-0.5">
@@ -115,7 +115,7 @@ export function GenreManager({
                 variant="ghost"
                 onClick={() => handleRemove(genre.id, genre.name)}
                 disabled={isPending}
-                className="text-gray-400 hover:text-red-500"
+                className="text-muted-foreground hover:text-red-500"
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
@@ -123,7 +123,7 @@ export function GenreManager({
           </div>
         ))}
         {genres.length === 0 && (
-          <p className="text-sm text-gray-400 py-4 text-center">
+          <p className="text-sm text-muted-foreground py-4 text-center">
             No genres added yet.
           </p>
         )}

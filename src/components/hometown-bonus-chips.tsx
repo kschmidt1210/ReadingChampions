@@ -31,7 +31,7 @@ export function HometownBonusChips({
                 "inline-flex items-center rounded-full border-2 px-3 py-2 md:py-1 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
                   ? "bg-pink-50 text-pink-700 border-pink-500 shadow-sm"
-                  : "border-transparent ring-1 ring-gray-200 hover:bg-pink-50 hover:ring-pink-300 text-gray-600"
+                  : "border-transparent ring-1 ring-border hover:bg-pink-50 hover:ring-pink-300 text-muted-foreground"
               )}
             >
               {HOMETOWN_BONUS_LABELS[key]}

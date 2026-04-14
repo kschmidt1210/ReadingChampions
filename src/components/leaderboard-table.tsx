@@ -12,14 +12,14 @@ type SortKey = "points" | "books" | "pages" | "countries" | "series";
 type SortDir = "asc" | "desc";
 
 const rankColors: Record<number, string> = {
-  1: "bg-amber-100 text-amber-700 ring-amber-300/50",
-  2: "bg-indigo-100 text-indigo-600 ring-indigo-300/50",
-  3: "bg-orange-100 text-orange-700 ring-orange-300/50",
+  1: "bg-amber-100 text-amber-700 ring-amber-300/50 dark:bg-amber-900/50 dark:text-amber-300 dark:ring-amber-700/50",
+  2: "bg-indigo-100 text-indigo-600 ring-indigo-300/50 dark:bg-indigo-900/50 dark:text-indigo-300 dark:ring-indigo-700/50",
+  3: "bg-orange-100 text-orange-700 ring-orange-300/50 dark:bg-orange-900/50 dark:text-orange-300 dark:ring-orange-700/50",
 };
 
 const challengeBadges: Record<number, { className: string; label: string }> = {
-  1: { className: "bg-amber-100 text-amber-700", label: "1st" },
-  2: { className: "bg-indigo-100 text-indigo-600", label: "2nd" },
+  1: { className: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", label: "1st" },
+  2: { className: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300", label: "2nd" },
 };
 
 function ProgressPip({
@@ -89,13 +89,13 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg bg-gray-50 px-3 py-2.5 min-w-0">
-      <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">
+    <div className="rounded-lg bg-muted px-3 py-2.5 min-w-0">
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
         {label}
       </div>
-      <div className="text-sm font-bold text-gray-800 tabular-nums">{value}</div>
+      <div className="text-sm font-bold text-foreground tabular-nums">{value}</div>
       {sub && (
-        <div className="text-xs text-gray-400 mt-0.5 truncate">{sub}</div>
+        <div className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</div>
       )}
     </div>
   );
@@ -115,13 +115,13 @@ function HighlightRow({
   if (!title) return null;
   return (
     <div className="flex items-start gap-2 min-w-0">
-      <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
+      <span className="text-muted-foreground mt-0.5 shrink-0">{icon}</span>
       <div className="min-w-0">
-        <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {label}
         </span>
-        <div className="text-sm font-medium text-gray-700 truncate">{title}</div>
-        <div className="text-xs text-gray-400">{detail}</div>
+        <div className="text-sm font-medium text-foreground truncate">{title}</div>
+        <div className="text-xs text-muted-foreground">{detail}</div>
       </div>
     </div>
   );
@@ -135,7 +135,7 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
 
   return (
     <div className="px-5 pb-4 pt-1">
-      <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+      <div className="rounded-xl border border-border bg-muted/40 p-4">
         {/* Performance stats & bonuses */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
           <StatCard
@@ -186,7 +186,7 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
 
         {/* Highlights */}
         {hasHighlights && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border">
             <HighlightRow
               icon={<BookOpen className="h-3.5 w-3.5" />}
               label="Longest Book"
@@ -327,25 +327,25 @@ export function LeaderboardTable({
   }, [players, search, sortKey, sortDir]);
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+    <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border">
       {/* Search & View Toggle */}
       <div className="px-4 pt-3 pb-2 space-y-2">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <label htmlFor="leaderboard-search" className="sr-only">Search players</label>
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
               id="leaderboard-search"
               type="text"
               placeholder="Search players..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-gray-200 bg-gray-50/50 placeholder:text-gray-400 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
+              className="w-full h-11 md:h-8 pl-8 pr-8 text-sm rounded-lg border border-border bg-muted/50 placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 active:text-gray-700 p-1.5 rounded-md"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground active:text-foreground p-1.5 rounded-md"
                 aria-label="Clear search"
               >
                 <X className="h-4 w-4" />
@@ -357,11 +357,11 @@ export function LeaderboardTable({
       </div>
 
       {/* Table header */}
-      <div className="flex items-center px-5 py-3 bg-gray-50/80 border-y border-gray-200/80">
-        <span className="w-12 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <div className="flex items-center px-5 py-3 bg-muted/80 border-y border-border/80">
+        <span className="w-12 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Rank
         </span>
-        <span className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <span className="flex-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Player
         </span>
         <button
@@ -370,7 +370,7 @@ export function LeaderboardTable({
             "group/sort w-14 text-center text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-0.5 cursor-pointer transition-colors",
             sortKey === "books"
               ? "text-indigo-600"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-muted-foreground hover:text-muted-foreground"
           )}
         >
           Books
@@ -386,7 +386,7 @@ export function LeaderboardTable({
             "group/sort w-16 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
             sortKey === "pages"
               ? "text-indigo-600"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-muted-foreground hover:text-muted-foreground"
           )}
         >
           Pages
@@ -402,7 +402,7 @@ export function LeaderboardTable({
             "group/sort w-20 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
             sortKey === "countries"
               ? "text-indigo-600"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-muted-foreground hover:text-muted-foreground"
           )}
         >
           Countries
@@ -418,7 +418,7 @@ export function LeaderboardTable({
             "group/sort w-24 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
             sortKey === "series"
               ? "text-indigo-600"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-muted-foreground hover:text-muted-foreground"
           )}
         >
           Series
@@ -434,7 +434,7 @@ export function LeaderboardTable({
             "group/sort w-22 text-xs font-semibold uppercase tracking-wider flex items-center justify-end gap-0.5 cursor-pointer transition-colors",
             sortKey === "points"
               ? "text-indigo-600"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-muted-foreground hover:text-muted-foreground"
           )}
         >
           Points
@@ -450,8 +450,8 @@ export function LeaderboardTable({
       {/* Rows */}
       {displayPlayers.length === 0 ? (
         <div className="py-12 text-center">
-          <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500 font-medium">
+          <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground font-medium">
             No players match &ldquo;{search}&rdquo;
           </p>
           <button
@@ -478,9 +478,9 @@ export function LeaderboardTable({
               key={player.user_id}
               ref={isCurrentUser ? currentUserRef : undefined}
               className={cn(
-                isExpanded && "mb-3 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-200/60",
+                isExpanded && "mb-3 rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60",
                 isCurrentUser && "border-l-4 border-l-indigo-500",
-                isCurrentUser && isExpanded && "ring-indigo-300/50",
+                isCurrentUser && isExpanded && "ring-indigo-300/50 dark:ring-indigo-700/50",
               )}
             >
               <button
@@ -488,11 +488,11 @@ export function LeaderboardTable({
                 onClick={() => toggleExpand(player.user_id)}
                 aria-expanded={isExpanded}
                 className={cn(
-                  "w-full flex items-center px-5 py-4 border-b border-gray-100/80 transition-colors hover:bg-gray-50/60 active:bg-gray-100/60 cursor-pointer text-left",
+                  "w-full flex items-center px-5 py-4 border-b border-border/80 transition-colors hover:bg-muted/60 active:bg-muted/60 cursor-pointer text-left",
                   isCurrentUser &&
-                    "bg-indigo-50/80 hover:bg-indigo-50/90",
-                  isExpanded && !isCurrentUser && "bg-gray-50/40",
-                  isExpanded && isCurrentUser && "bg-indigo-50",
+                    "bg-indigo-50/80 hover:bg-indigo-50/90 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/50",
+                  isExpanded && !isCurrentUser && "bg-muted/40",
+                  isExpanded && isCurrentUser && "bg-indigo-50 dark:bg-indigo-950/50",
                   isExpanded && "sticky top-0 z-10",
                 )}
               >
@@ -507,7 +507,7 @@ export function LeaderboardTable({
                       {player.rank}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center justify-center w-7 h-7 text-sm font-semibold text-gray-400">
+                    <span className="inline-flex items-center justify-center w-7 h-7 text-sm font-semibold text-muted-foreground">
                       {player.rank}
                     </span>
                   )}
@@ -520,7 +520,7 @@ export function LeaderboardTable({
                     onClick={(e) => e.stopPropagation()}
                     className={cn(
                       "font-semibold text-[0.95rem] hover:underline decoration-1 underline-offset-2 block truncate",
-                      isCurrentUser ? "text-indigo-700" : "text-gray-900"
+                      isCurrentUser ? "text-indigo-700 dark:text-indigo-300" : "text-foreground"
                     )}
                   >
                     {isCurrentUser
@@ -536,7 +536,7 @@ export function LeaderboardTable({
                             ? "text-indigo-600"
                             : alphabetHalf
                               ? "text-indigo-500"
-                              : "text-gray-400"
+                              : "text-muted-foreground"
                         )}
                       >
                         A-Z
@@ -550,13 +550,13 @@ export function LeaderboardTable({
                               ? "bg-indigo-500"
                               : "bg-indigo-400/70"
                           }
-                          emptyClass="bg-gray-100"
+                          emptyClass="bg-muted"
                         />
                       </div>
                       <span
                         className={cn(
                           "text-xs font-medium tabular-nums shrink-0",
-                          alphabetComplete ? "text-indigo-600" : "text-gray-400"
+                          alphabetComplete ? "text-indigo-600" : "text-muted-foreground"
                         )}
                       >
                         {player.unique_letters}/26
@@ -567,7 +567,7 @@ export function LeaderboardTable({
                         <span
                           className={cn(
                             "text-xs font-semibold uppercase tracking-wide shrink-0",
-                            genreComplete ? "text-emerald-600" : "text-gray-400"
+                            genreComplete ? "text-emerald-600" : "text-muted-foreground"
                           )}
                         >
                           Genre
@@ -581,13 +581,13 @@ export function LeaderboardTable({
                                 ? "bg-emerald-500"
                                 : "bg-emerald-400/70"
                             }
-                            emptyClass="bg-gray-100"
+                            emptyClass="bg-muted"
                           />
                         </div>
                         <span
                           className={cn(
                             "text-xs font-medium tabular-nums shrink-0",
-                            genreComplete ? "text-emerald-600" : "text-gray-400"
+                            genreComplete ? "text-emerald-600" : "text-muted-foreground"
                           )}
                         >
                           {player.covered_genre_count}/{player.total_genre_count}
@@ -599,7 +599,7 @@ export function LeaderboardTable({
                 <span
                   className={cn(
                     "w-14 text-center text-sm font-medium",
-                    isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
+                    isCurrentUser ? "text-indigo-600/80 dark:text-indigo-400" : "text-muted-foreground"
                   )}
                 >
                   {player.book_count}
@@ -613,7 +613,7 @@ export function LeaderboardTable({
                 <span
                   className={cn(
                     "w-16 text-center text-sm font-medium hidden sm:block",
-                    isCurrentUser ? "text-indigo-600/80" : "text-gray-500"
+                    isCurrentUser ? "text-indigo-600/80 dark:text-indigo-400" : "text-muted-foreground"
                   )}
                 >
                   {player.page_count.toLocaleString()}
@@ -625,10 +625,10 @@ export function LeaderboardTable({
                         className={cn(
                           "text-sm font-semibold tabular-nums",
                           player.country_rank <= 2
-                            ? "text-gray-900"
+                            ? "text-foreground"
                             : isCurrentUser
-                              ? "text-indigo-600/80"
-                              : "text-gray-500"
+                              ? "text-indigo-600/80 dark:text-indigo-400"
+                              : "text-muted-foreground"
                         )}
                       >
                         {player.unique_countries}
@@ -636,7 +636,7 @@ export function LeaderboardTable({
                       <ChallengeBadge rank={player.country_rank} />
                     </div>
                   ) : (
-                    <span className="text-sm text-gray-300">&mdash;</span>
+                    <span className="text-sm text-muted-foreground">&mdash;</span>
                   )}
                 </div>
                 <div className="w-24 text-center hidden sm:block">
@@ -646,18 +646,18 @@ export function LeaderboardTable({
                         className={cn(
                           "text-sm font-semibold tabular-nums",
                           player.series_rank <= 2
-                            ? "text-gray-900"
+                            ? "text-foreground"
                             : isCurrentUser
-                              ? "text-indigo-600/80"
-                              : "text-gray-500"
+                              ? "text-indigo-600/80 dark:text-indigo-400"
+                              : "text-muted-foreground"
                         )}
                       >
                         {player.best_series_pages.toLocaleString()}
-                        <span className="text-xs font-normal text-gray-400 ml-0.5">
+                        <span className="text-xs font-normal text-muted-foreground ml-0.5">
                           pg
                         </span>
                       </span>
-                      <span className="text-xs text-gray-400 truncate max-w-[5.5rem]">
+                      <span className="text-xs text-muted-foreground truncate max-w-[5.5rem]">
                         {player.best_series_name}
                         {player.best_series_count > 0 &&
                           ` (${player.best_series_count})`}
@@ -665,11 +665,11 @@ export function LeaderboardTable({
                       <ChallengeBadge rank={player.series_rank} />
                     </div>
                   ) : (
-                    <span className="text-sm text-gray-300">&mdash;</span>
+                    <span className="text-sm text-muted-foreground">&mdash;</span>
                   )}
                 </div>
                 <span className="w-22 text-right">
-                  <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-sm font-bold text-indigo-700">
+                  <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-0.5 text-sm font-bold text-indigo-700 dark:text-indigo-300">
                     {player.total_points.toFixed(2)}
                   </span>
                   {player.pending_points > 0 && (
@@ -681,8 +681,8 @@ export function LeaderboardTable({
                 <span className="w-6 flex items-center justify-center ml-1">
                   <ChevronDown
                     className={cn(
-                      "h-4 w-4 text-gray-300 transition-transform duration-200",
-                      isExpanded && "rotate-180 text-gray-500"
+                      "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                      isExpanded && "rotate-180 text-muted-foreground"
                     )}
                   />
                 </span>
@@ -690,8 +690,8 @@ export function LeaderboardTable({
               {isExpanded && (
                 <div
                   className={cn(
-                    "border-b border-gray-100/80",
-                    isCurrentUser && "bg-indigo-50/50"
+                    "border-b border-border/80",
+                    isCurrentUser && "bg-indigo-50/50 dark:bg-indigo-950/30"
                   )}
                 >
                   <PlayerDetailPanel player={player} />

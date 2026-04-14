@@ -9,8 +9,9 @@ import {
 import { getManagedPlayers } from "@/lib/actions/managed-players";
 import { OrgProvider } from "@/components/providers";
 import { ViewModeProvider } from "@/components/view-mode-provider";
+import { ThemeSync } from "@/components/theme-sync";
 import { AppShell } from "./app-shell";
-import type { ViewMode } from "@/types/database";
+import type { ViewMode, ThemePreference } from "@/types/database";
 
 export default async function AppLayout({
   children,
@@ -38,7 +39,7 @@ export default async function AppLayout({
     initialOrgId ? getOrgGenres(initialOrgId) : [],
     supabase
       .from("profiles")
-      .select("default_view")
+      .select("default_view, theme_preference")
       .eq("id", user.id)
       .single(),
     initialOrgId ? getManagedPlayers(initialOrgId) : [],
@@ -46,6 +47,9 @@ export default async function AppLayout({
 
   const defaultView: ViewMode =
     profileResult.data?.default_view === "detail" ? "detail" : "default";
+
+  const themePreference: ThemePreference =
+    (profileResult.data?.theme_preference as ThemePreference) ?? "system";
 
   return (
     <OrgProvider
@@ -59,6 +63,7 @@ export default async function AppLayout({
       }))}
     >
       <ViewModeProvider initialMode={defaultView}>
+        <ThemeSync preference={themePreference} />
         <AppShell>{children}</AppShell>
       </ViewModeProvider>
     </OrgProvider>

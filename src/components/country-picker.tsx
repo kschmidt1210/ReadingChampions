@@ -128,7 +128,7 @@ export function CountryPicker({ value, onChange, disabled }: CountryPickerProps)
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -138,7 +138,7 @@ export function CountryPicker({ value, onChange, disabled }: CountryPickerProps)
       {open && !disabled && filtered.length > 0 && (
         <div
           ref={listRef}
-          className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto"
+          className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-card shadow-lg max-h-48 overflow-y-auto"
         >
           {filtered.map((name, i) => (
             <button
@@ -150,10 +150,10 @@ export function CountryPicker({ value, onChange, disabled }: CountryPickerProps)
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
                 i === highlightIndex
                   ? "bg-indigo-50 text-indigo-900"
-                  : "hover:bg-gray-50 text-gray-700"
+                  : "hover:bg-muted text-foreground"
               }`}
             >
-              <Globe className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+              <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="flex-1">{name}</span>
               {name.toLowerCase() === inputValue.trim().toLowerCase() && (
                 <Check className="h-3.5 w-3.5 text-emerald-600" />

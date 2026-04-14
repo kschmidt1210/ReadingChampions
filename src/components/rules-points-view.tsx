@@ -33,8 +33,8 @@ function PointRow({
 }) {
   return (
     <div className={`flex items-center justify-between py-1.5 ${className ?? ""}`}>
-      <span className="text-gray-600">{label}</span>
-      <span className="font-semibold text-gray-900 tabular-nums">{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-foreground tabular-nums">{value}</span>
     </div>
   );
 }
@@ -102,7 +102,7 @@ function NotesSection({
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Add notes about rules, tips, or announcements for players..."
               rows={5}
-              className="w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 resize-y"
+              className="w-full rounded-lg border border-indigo-200 bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 resize-y"
             />
             <div className="flex justify-end gap-2">
               <Button
@@ -121,11 +121,11 @@ function NotesSection({
             </div>
           </div>
         ) : saved ? (
-          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
             {saved}
           </p>
         ) : (
-          <p className="text-sm text-gray-400 italic">
+          <p className="text-sm text-muted-foreground italic">
             No notes yet. Click Edit to add announcements or tips for players.
           </p>
         )}
@@ -169,16 +169,16 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
           <Calculator className="h-4.5 w-4.5 text-indigo-500" />
           Full Scoring Example
         </CardTitle>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           A {pages}-page fiction book from a new country
         </p>
       </CardHeader>
       <CardContent className="text-sm space-y-4">
         <div className="space-y-1.5">
-          <p className="font-medium text-gray-700 text-xs uppercase tracking-wide">
+          <p className="font-medium text-foreground text-xs uppercase tracking-wide">
             With a bonus ({bonusLabel})
           </p>
-          <div className="rounded-lg bg-white/80 px-3 py-2.5 text-xs text-gray-600 space-y-1 border border-gray-100">
+          <div className="rounded-lg bg-card/80 px-3 py-2.5 text-xs text-muted-foreground space-y-1 border border-border">
             <PointRow label="Base (fiction)" value={`${base}`} />
             <PointRow
               label={`Page points (${rounded} pages)`}
@@ -197,7 +197,7 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
               label={`New country (+${(config.bonuses.new_country * 100).toFixed(1)}%)`}
               value={`×${newCountryMult.toFixed(3)}`}
             />
-            <div className="border-t border-gray-200 pt-1.5 mt-1.5">
+            <div className="border-t border-border pt-1.5 mt-1.5">
               <PointRow
                 label="Final score"
                 value={finalWithBonus.toFixed(2)}
@@ -207,15 +207,15 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
           </div>
         </div>
         <div className="space-y-1.5">
-          <p className="font-medium text-gray-700 text-xs uppercase tracking-wide">
+          <p className="font-medium text-foreground text-xs uppercase tracking-wide">
             With a deduction ({deductionLabel})
           </p>
-          <div className="rounded-lg bg-white/80 px-3 py-2.5 text-xs text-gray-600 space-y-1 border border-gray-100">
+          <div className="rounded-lg bg-card/80 px-3 py-2.5 text-xs text-muted-foreground space-y-1 border border-border">
             <PointRow label="Pre-bonus total" value={preBonusTotal.toFixed(2)} />
             <PointRow
               label="Bonuses"
               value="removed"
-              className="text-gray-400 line-through"
+              className="text-muted-foreground line-through"
             />
             <PointRow
               label={`${deductionLabel} (×${deductionMult})`}
@@ -225,7 +225,7 @@ function FullWorkedExample({ config }: { config: ScoringRulesConfig }) {
               label={`New country (+${(config.bonuses.new_country * 100).toFixed(1)}%)`}
               value={`×${newCountryMult.toFixed(3)}`}
             />
-            <div className="border-t border-gray-200 pt-1.5 mt-1.5">
+            <div className="border-t border-border pt-1.5 mt-1.5">
               <PointRow
                 label="Final score"
                 value={finalWithDeduction.toFixed(2)}
@@ -265,11 +265,11 @@ export function RulesPointsView({
             <BookOpen className="h-4.5 w-4.5 text-emerald-500" />
             Base Points
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Awarded for each completed book
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           <PointRow
             label="Fiction"
             value={`${config.base_points.fiction} pts`}
@@ -278,7 +278,7 @@ export function RulesPointsView({
             label="Nonfiction"
             value={`${config.base_points.nonfiction} pts`}
           />
-          <div className="pt-2 text-xs text-gray-400">
+          <div className="pt-2 text-xs text-muted-foreground">
             Incomplete books receive page points only (no base points).
           </div>
         </CardContent>
@@ -291,11 +291,11 @@ export function RulesPointsView({
             <Calculator className="h-4.5 w-4.5 text-blue-500" />
             Page Points
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Pages are rounded to the nearest 50
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           <PointRow
             label="First 100 pages"
             value={`${config.page_points.first_100_rate} pts/page`}
@@ -305,12 +305,12 @@ export function RulesPointsView({
             value={`${config.page_points.beyond_100_rate} pts/page`}
           />
           <div className="pt-3 mt-1">
-            <p className="text-xs font-medium text-gray-500 mb-2">Example</p>
-            <div className="rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600 space-y-1">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Example</p>
+            <div className="rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground space-y-1">
               <p>A 300-page book (rounds to 300):</p>
               <p className="pl-3">
                 100 × {config.page_points.first_100_rate} + 200 × {config.page_points.beyond_100_rate} ={" "}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-foreground">
                   {(100 * config.page_points.first_100_rate + 200 * config.page_points.beyond_100_rate).toFixed(2)} pts
                 </span>
               </p>
@@ -326,11 +326,11 @@ export function RulesPointsView({
             <Star className="h-4.5 w-4.5 text-amber-500" />
             Bonuses
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Each bonus adds a % of your pre-bonus total (base + page points). Up to 3 per book.
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           {regularBonusKeys.map((key) => (
             <PointRow
               key={key}
@@ -338,7 +338,7 @@ export function RulesPointsView({
               value={`+${(config.bonuses[key] * 100).toFixed(1)}%`}
             />
           ))}
-          <div className="pt-2 text-xs text-gray-400">
+          <div className="pt-2 text-xs text-muted-foreground">
             Bonuses do not apply when a deduction is present.
           </div>
         </CardContent>
@@ -351,16 +351,16 @@ export function RulesPointsView({
             <Globe className="h-4.5 w-4.5 text-teal-500" />
             New Country Bonus
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Automatically applied when a book&apos;s country hasn&apos;t been read before this season
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           <PointRow
             label="Unique country"
             value={`+${(config.bonuses.new_country * 100).toFixed(1)}%`}
           />
-          <div className="pt-2 text-xs text-gray-400">
+          <div className="pt-2 text-xs text-muted-foreground">
             Applied after deductions — stacks with deducted entries too.
           </div>
         </CardContent>
@@ -373,11 +373,11 @@ export function RulesPointsView({
             <Home className="h-4.5 w-4.5 text-rose-500" />
             Hometown Bonuses
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Adds a % of your pre-bonus total. Pick one per book.
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           {(Object.keys(config.hometown_bonuses) as HometownBonusKey[]).map(
             (key) => (
               <PointRow
@@ -397,12 +397,12 @@ export function RulesPointsView({
             <TrendingDown className="h-4.5 w-4.5 text-orange-500" />
             Deductions
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Multiplied against your total. When a deduction applies, regular bonuses and
             hometown bonuses are removed.
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           {(Object.keys(config.deductions) as DeductionKey[]).map((key) => (
             <PointRow
               key={key}
@@ -420,11 +420,11 @@ export function RulesPointsView({
             <Trophy className="h-4.5 w-4.5 text-purple-500" />
             Season Bonuses
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             End-of-season bonuses based on % of your total pre-bonus points across all books
           </p>
         </CardHeader>
-        <CardContent className="text-sm divide-y divide-gray-100">
+        <CardContent className="text-sm divide-y divide-border">
           <PointRow
             label="Complete all genres"
             value={`+${(config.season_bonuses.genre_complete_pct * 100).toFixed(0)}%`}
@@ -437,7 +437,7 @@ export function RulesPointsView({
             label="26 unique starting letters (full alphabet)"
             value={`+${(config.season_bonuses.alphabet_26_pct * 100).toFixed(0)}%`}
           />
-          <div className="pt-2 text-xs text-gray-400">
+          <div className="pt-2 text-xs text-muted-foreground">
             Starting letters ignore leading &quot;The&quot;, &quot;A&quot;, and &quot;An&quot;.
           </div>
         </CardContent>
