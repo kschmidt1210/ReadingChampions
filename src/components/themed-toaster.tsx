@@ -1,0 +1,17 @@
+"use client";
+
+import { useTheme } from "next-themes";
+import { Toaster } from "sonner";
+
+export function ThemedToaster() {
+  const { resolvedTheme } = useTheme();
+
+  return (
+    <Toaster
+      richColors
+      closeButton
+      position="top-center"
+      theme={resolvedTheme === "dark" ? "dark" : "light"}
+    />
+  );
+}
