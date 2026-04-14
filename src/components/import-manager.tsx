@@ -312,10 +312,11 @@ export function ImportManager({
               <div className="flex items-end gap-2">
                 <div className="space-y-1.5">
                   <Label>Player</Label>
-                  <Select value={selectedPlayerId || undefined} onValueChange={(v) => setSelectedPlayerId(v ?? "")}>
+                  <Select value={selectedPlayerId} onValueChange={(v) => setSelectedPlayerId(v ?? "")}>
                     <SelectTrigger className="w-52">
                       <SelectValue placeholder="Select player">
                         {(value: string) => {
+                          if (!value) return "Select player";
                           const player = members.find((m) => m.userId === value);
                           return player?.displayName ?? value;
                         }}
