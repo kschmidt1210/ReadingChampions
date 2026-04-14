@@ -2,14 +2,25 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, X, ChevronDown, BookOpen, Trophy, Star, User } from "lucide-react";
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, X, ChevronDown, BookOpen, Trophy, Star, User, SlidersHorizontal } from "lucide-react";
 import type { LeaderboardPlayer } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { useViewMode } from "@/components/view-mode-provider";
 import { ViewModeToggle } from "@/components/view-mode-toggle";
 
-type SortKey = "points" | "books" | "pages" | "countries" | "series";
+type SortKey = "points" | "books" | "pages" | "book_pages" | "countries" | "series";
 type SortDir = "asc" | "desc";
+
+const sortLabels: Record<SortKey, string> = {
+  points: "Points",
+  books: "Books",
+  pages: "Pages",
+  book_pages: "Book-Only Pages",
+  countries: "Countries",
+  series: "Series",
+};
+
+const columnSortKeys = new Set<SortKey>(["points", "books", "pages", "countries", "series"]);
 
 const rankColors: Record<number, string> = {
   1: "bg-amber-100 text-amber-700 ring-amber-300/50 dark:bg-amber-900/50 dark:text-amber-300 dark:ring-amber-700/50",
@@ -20,6 +31,7 @@ const rankColors: Record<number, string> = {
 const challengeBadges: Record<number, { className: string; label: string }> = {
   1: { className: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", label: "1st" },
   2: { className: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300", label: "2nd" },
+  3: { className: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300", label: "3rd" },
 };
 
 function ProgressPip({
@@ -315,6 +327,9 @@ export function LeaderboardTable({
         case "pages":
           cmp = a.page_count - b.page_count;
           break;
+        case "book_pages":
+          cmp = a.book_page_count - b.book_page_count;
+          break;
         case "countries":
           cmp = a.unique_countries - b.unique_countries;
           break;
@@ -328,7 +343,7 @@ export function LeaderboardTable({
 
   return (
     <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border">
-      {/* Search & View Toggle */}
+      {/* Search, Sort & View Toggle */}
       <div className="px-4 pt-3 pb-2 space-y-2">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -351,6 +366,44 @@ export function LeaderboardTable({
                 <X className="h-4 w-4" />
               </button>
             )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="leaderboard-sort" className="sr-only">Sort by</label>
+            <div className="relative">
+              <SlidersHorizontal className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+              <select
+                id="leaderboard-sort"
+                value={sortKey}
+                onChange={(e) => {
+                  const key = e.target.value as SortKey;
+                  setSortKey(key);
+                  setSortDir("desc");
+                }}
+                className={cn(
+                  "text-xs h-11 md:h-8 pl-7 pr-6 rounded-lg border bg-muted/50 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer transition-colors",
+                  !columnSortKeys.has(sortKey)
+                    ? "border-indigo-300 text-indigo-700"
+                    : "border-border text-foreground"
+                )}
+              >
+                {(Object.keys(sortLabels) as SortKey[]).map((key) => (
+                  <option key={key} value={key}>
+                    {sortLabels[key]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+              className="h-11 w-11 md:h-8 md:w-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted active:bg-muted text-muted-foreground transition-colors"
+              aria-label={sortDir === "desc" ? "Sort descending" : "Sort ascending"}
+            >
+              {sortDir === "desc" ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowUp className="h-3.5 w-3.5" />
+              )}
+            </button>
           </div>
           <ViewModeToggle />
         </div>
@@ -617,6 +670,11 @@ export function LeaderboardTable({
                   )}
                 >
                   {player.page_count.toLocaleString()}
+                  {player.pending_page_count > 0 && (
+                    <span className="text-amber-500 text-xs block">
+                      +{player.pending_page_count.toLocaleString()}
+                    </span>
+                  )}
                 </span>
                 <div className="w-20 text-center hidden sm:block">
                   {player.unique_countries > 0 ? (
@@ -624,7 +682,7 @@ export function LeaderboardTable({
                       <span
                         className={cn(
                           "text-sm font-semibold tabular-nums",
-                          player.country_rank <= 2
+                          player.country_rank <= 3
                             ? "text-foreground"
                             : isCurrentUser
                               ? "text-indigo-600/80 dark:text-indigo-400"
@@ -645,7 +703,7 @@ export function LeaderboardTable({
                       <span
                         className={cn(
                           "text-sm font-semibold tabular-nums",
-                          player.series_rank <= 2
+                          player.series_rank <= 3
                             ? "text-foreground"
                             : isCurrentUser
                               ? "text-indigo-600/80 dark:text-indigo-400"

@@ -50,13 +50,7 @@ export interface ScoreBreakdownInfo {
   grandTotal: number;
 }
 
-function getFirstLetter(title: string): string {
-  return title
-    .replace(/^(the|a|an)\s+/i, "")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
-}
+import { getFirstLetter } from "@/lib/title-utils";
 
 type BookSortKey =
   | "recent"
@@ -583,7 +577,7 @@ export function PlayerBooksView({
       .filter((g): g is string => g !== null)
   );
   const coveredLetters = new Set(
-    allCompleted.map((e) => getFirstLetter(e.book?.title ?? ""))
+    allCompleted.map((e) => getFirstLetter(e.book?.title ?? "")).filter(Boolean)
   );
   const countries = [
     ...new Set(

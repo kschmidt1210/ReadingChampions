@@ -180,6 +180,7 @@ export interface LeaderboardPlayer {
   completed_count: number;
   reading_count: number;
   page_count: number;
+  pending_page_count: number;
   book_page_count: number;
   rank: number;
   unique_letters: number;

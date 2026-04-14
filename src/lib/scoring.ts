@@ -1,6 +1,7 @@
 import type { ScoringRulesConfig, BonusKey, HometownBonusKey } from "@/types/database";
 import type { ScoreInput, ScoreBreakdown, SeasonBonusResult } from "./scoring-types";
 import { BONUS_LABELS, DEDUCTION_LABELS } from "./scoring-types";
+import { getFirstLetter } from "./title-utils";
 
 export function calculateBookScore(
   input: ScoreInput,
@@ -77,13 +78,6 @@ export function calculateBookScore(
   };
 }
 
-function getFirstLetter(title: string): string {
-  const stripped = title
-    .replace(/^(the|a|an)\s+/i, "")
-    .trim();
-  return stripped.charAt(0).toUpperCase();
-}
-
 /**
  * Season-level bonuses are a % of the player's total points before
  * season-level bonuses (per spec: "% of player's sum of pre-bonus points").
@@ -111,7 +105,7 @@ export function calculateSeasonBonuses(
 
   // Alphabet challenge
   const letters = new Set(
-    entries.map((e) => getFirstLetter(e.book.title))
+    entries.map((e) => getFirstLetter(e.book.title)).filter(Boolean)
   );
   const uniqueLetters = letters.size;
   let alphabetBonus = 0;

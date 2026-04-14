@@ -1,15 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { calculateSeasonBonuses } from "@/lib/scoring";
 import { isBookEntry } from "@/lib/scoring-types";
+import { getFirstLetter } from "@/lib/title-utils";
 import type { ScoringRulesConfig, LeaderboardPlayer } from "@/types/database";
-
-function getFirstLetter(title: string): string {
-  return title
-    .replace(/^(the|a|an)\s+/i, "")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
-}
 
 export async function getLeaderboardData(
   seasonId: string,
@@ -94,6 +87,11 @@ export async function getLeaderboardData(
       0
     );
 
+    const pendingPageCount = readingEntries.reduce(
+      (sum, e) => sum + ((e as any).book?.pages ?? 0),
+      0
+    );
+
     const bookPageCount = finishedEntries
       .filter((e) => isBookEntry(e.deduction))
       .reduce(
@@ -108,7 +106,7 @@ export async function getLeaderboardData(
     const letters = new Set(
       challengeEntries.map((e) =>
         getFirstLetter((e as any).book?.title ?? "")
-      )
+      ).filter(Boolean)
     );
 
     // Genre progress (completed entries only)
@@ -211,6 +209,7 @@ export async function getLeaderboardData(
       completed_count: challengeEntries.length,
       reading_count: readingEntries.length,
       page_count: pageCount,
+      pending_page_count: pendingPageCount,
       book_page_count: bookPageCount,
       rank: 0,
       unique_letters: letters.size,

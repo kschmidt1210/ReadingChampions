@@ -24,11 +24,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <NavSidebar onAddBook={() => setAddBookOpen(true)} />
       <main className="flex-1 min-w-0 pt-safe-top md:pt-0 pb-safe-bottom md:pb-0 md:ml-64">
         {children}
-        <footer className="px-4 py-6 text-center text-xs text-muted-foreground/70">
+        <footer className="px-4 py-3 text-center text-xs text-muted-foreground/70">
           Made with love by Josh and Kody. This app is provided
           free of charge.{" "}
           <a
-            href="#donate"
+            href="https://venmo.com/u/jaushe"
+            target="_blank"
+            rel="noopener noreferrer"
             className="underline hover:text-muted-foreground transition-colors"
           >
             Donate

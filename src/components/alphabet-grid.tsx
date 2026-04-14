@@ -26,7 +26,7 @@ export function AlphabetGrid({
           <BookA className="h-4.5 w-4.5 text-indigo-500" />
           <h3 className="font-semibold text-foreground">Alphabet Challenge</h3>
         </div>
-        <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+        <span className="text-sm font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full">
           {count}/26
         </span>
       </div>
@@ -67,7 +67,7 @@ export function AlphabetGrid({
                   "absolute -top-1 -right-1 flex items-center justify-center h-3.5 min-w-3.5 rounded-full text-[9px] font-bold leading-none px-0.5",
                   isActive
                     ? "bg-indigo-800 text-white"
-                    : "bg-card text-indigo-700 shadow-sm border border-indigo-200"
+                    : "bg-card text-indigo-700 dark:text-indigo-300 shadow-sm border border-indigo-200 dark:border-indigo-800"
                 )}>
                   {bookCount}
                 </span>
@@ -78,13 +78,13 @@ export function AlphabetGrid({
       </div>
 
       {count >= 26 && (
-        <div className="flex items-center gap-2 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-xl px-3 py-2 border border-indigo-200/60">
+        <div className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl px-3 py-2 border border-indigo-200/60 dark:border-indigo-800/60">
           <PartyPopper className="h-4 w-4" />
           All 26 letters! +14% bonus
         </div>
       )}
       {count >= 13 && count < 26 && (
-        <div className="flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl px-3 py-2 border border-indigo-200/60">
+        <div className="flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl px-3 py-2 border border-indigo-200/60 dark:border-indigo-800/60">
           <PartyPopper className="h-4 w-4" />
           13+ letters! +6% bonus
         </div>
