@@ -63,7 +63,7 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
 
   if (selectedBook) {
     return (
-      <div className="flex items-start gap-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+      <div className="flex items-start gap-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 p-4 border border-indigo-100/60 dark:border-indigo-800/40">
         {selectedBook.cover_url ? (
           <img
             src={selectedBook.cover_url}
@@ -71,14 +71,14 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
             className="w-12 h-[4.25rem] object-cover rounded-lg shadow-sm"
           />
         ) : (
-          <div className="w-12 h-[4.25rem] rounded-lg bg-white/60 flex items-center justify-center">
+          <div className="w-12 h-[4.25rem] rounded-lg bg-card/60 flex items-center justify-center">
             <BookOpen className="h-5 w-5 text-indigo-400" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 leading-tight">{selectedBook.title}</p>
-          <p className="text-sm text-gray-500">{selectedBook.author}</p>
-          <div className="text-xs text-gray-400 mt-0.5">
+          <p className="font-semibold text-foreground leading-tight">{selectedBook.title}</p>
+          <p className="text-sm text-muted-foreground">{selectedBook.author}</p>
+          <div className="text-xs text-muted-foreground mt-0.5">
             {selectedBook.pages > 0 ? `${selectedBook.pages} pages` : "Pages unknown"}
             {selectedBook.year_published ? ` \u00B7 ${selectedBook.year_published}` : ""}
           </div>
@@ -86,7 +86,7 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
         <button
           type="button"
           onClick={handleClear}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-white/60 active:bg-white/80 transition-colors"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-card/60 active:bg-card/80 transition-colors"
         >
           <RefreshCw className="h-3 w-3" />
           Change
@@ -98,7 +98,7 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => handleChange(e.target.value)}
@@ -111,7 +111,7 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
         )}
       </div>
       {results.length > 0 && (
-        <div className="absolute z-50 mt-1 inset-x-0 border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-64 overflow-y-auto shadow-lg bg-white">
+        <div className="absolute z-50 mt-1 inset-x-0 border border-border rounded-xl divide-y divide-border max-h-64 overflow-y-auto shadow-lg bg-card">
           {results.map((book, i) => (
             <button
               key={`${book.isbn}-${i}`}
@@ -120,7 +120,7 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
                 setQuery(book.title);
                 setResults([]);
               }}
-              className="w-full flex items-start gap-3 p-3 text-left hover:bg-indigo-50/50 active:bg-indigo-50 transition-colors"
+              className="w-full flex items-start gap-3 p-3 text-left hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 active:bg-indigo-50 dark:active:bg-indigo-950/50 transition-colors"
             >
               {book.cover_url ? (
                 <img
@@ -129,16 +129,16 @@ export function BookSearch({ onSelect, selectedBook, onClear }: BookSearchProps)
                   className="w-10 h-14 object-cover rounded-lg shadow-sm"
                 />
               ) : (
-                <div className="w-10 h-14 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-14 bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/50 dark:to-violet-900/50 rounded-lg flex items-center justify-center">
                   <BookOpen className="h-4 w-4 text-indigo-400" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate text-gray-900">
+                <div className="font-medium text-sm truncate text-foreground">
                   {book.title}
                 </div>
-                <div className="text-xs text-gray-500">{book.author}</div>
-                <div className="text-xs text-gray-400 mt-0.5">
+                <div className="text-xs text-muted-foreground">{book.author}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
                   {book.pages > 0 ? `${book.pages} pages` : "Pages unknown"}
                   {book.year_published ? ` \u00B7 ${book.year_published}` : ""}
                   {book.series_name && (

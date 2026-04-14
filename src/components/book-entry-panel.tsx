@@ -136,7 +136,7 @@ function ReviewSection({
               Private
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-xs font-medium">
               <Globe className="h-3 w-3" />
               Public
             </span>
@@ -207,7 +207,7 @@ function ReviewSection({
           <MessageSquareText className="h-4 w-4 text-muted-foreground" />
           {hasReview ? "Review" : "Write a review"}
           {hasReview && (
-            <span className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-semibold">
+            <span className="inline-flex items-center rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 text-xs font-semibold">
               {reviewVisibility === "public" ? "Public" : "Private"}
             </span>
           )}
@@ -223,7 +223,7 @@ function ReviewSection({
               placeholder="What did you think of this book?"
               maxLength={5000}
               rows={4}
-              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-colors resize-y min-h-[100px]"
+              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-indigo-300 dark:focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/50 transition-colors resize-y min-h-[100px]"
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
@@ -595,10 +595,10 @@ export function BookEntryPanel({
   const hasSearchResult = !!selectedBook;
 
   const managedPlayerPicker = hasManagedPlayers ? (
-    <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 p-3 space-y-2">
+    <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200/60 dark:border-amber-800/40 p-3 space-y-2">
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-amber-600" />
-        <span className="text-sm font-medium text-amber-800">Logging for</span>
+        <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+        <span className="text-sm font-medium text-amber-800 dark:text-amber-200">Logging for</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         <button
@@ -606,8 +606,8 @@ export function BookEntryPanel({
           onClick={() => setTargetUserId(null)}
           className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
             !targetUserId
-              ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300"
-              : "text-amber-700 hover:bg-card/50"
+              ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300 dark:ring-amber-600"
+              : "text-amber-700 dark:text-amber-300 hover:bg-card/50"
           }`}
         >
           Myself
@@ -619,8 +619,8 @@ export function BookEntryPanel({
             onClick={() => setTargetUserId(mp.userId)}
             className={`rounded-lg px-3 py-2 md:py-1.5 text-sm font-medium transition-all ${
               targetUserId === mp.userId
-                ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300"
-                : "text-amber-700 hover:bg-card/50"
+                ? "bg-card text-foreground shadow-sm ring-1 ring-amber-300 dark:ring-amber-600"
+                : "text-amber-700 dark:text-amber-300 hover:bg-card/50"
             }`}
           >
             {mp.displayName}
@@ -892,37 +892,37 @@ export function BookEntryPanel({
               {managedPlayerPicker}
 
               {isEditMode ? (
-                <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
-                  {entry.book.cover_url ? (
-                    <img
-                      src={entry.book.cover_url}
-                      alt={entry.book.title}
-                      className="w-14 h-20 object-cover rounded-lg shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-14 h-20 rounded-lg bg-card/60 flex items-center justify-center">
-                      <BookOpen className="h-6 w-6 text-indigo-400" />
-                    </div>
-                  )}
-                  <div className="min-w-0 pt-0.5">
-                    <p className="font-semibold text-foreground">{entry.book.title}</p>
-                    <p className="text-sm text-muted-foreground">{entry.book.author}</p>
-                    {entry.book.pages > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">{entry.book.pages} pages</p>
-                    )}
+              <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 p-4 border border-indigo-100/60 dark:border-indigo-800/40">
+                {entry.book.cover_url ? (
+                  <img
+                    src={entry.book.cover_url}
+                    alt={entry.book.title}
+                    className="w-14 h-20 object-cover rounded-lg shadow-sm"
+                  />
+                ) : (
+                  <div className="w-14 h-20 rounded-lg bg-card/60 flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-indigo-400" />
                   </div>
+                )}
+                <div className="min-w-0 pt-0.5">
+                  <p className="font-semibold text-foreground">{entry.book.title}</p>
+                  <p className="text-sm text-muted-foreground">{entry.book.author}</p>
+                  {entry.book.pages > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">{entry.book.pages} pages</p>
+                  )}
                 </div>
-              ) : (
-                <BookSearch
-                  onSelect={handleBookSelect}
-                  selectedBook={selectedBook}
-                  onClear={handleBookClear}
-                />
-              )}
+              </div>
+            ) : (
+              <BookSearch
+                onSelect={handleBookSelect}
+                selectedBook={selectedBook}
+                onClear={handleBookClear}
+              />
+            )}
 
-              {formFields}
+            {formFields}
 
-              <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] border-t border-border">
+            <div className="sticky bottom-0 bg-background pt-3 pb-[env(safe-area-inset-bottom)] border-t border-border">
                 <ScorePreview breakdown={scoreBreakdown} status={status} />
               </div>
             </div>
@@ -943,7 +943,7 @@ export function BookEntryPanel({
             {managedPlayerPicker}
 
             {isEditMode ? (
-              <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 p-4 border border-indigo-100/60">
+              <div className="flex items-start gap-3.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 p-4 border border-indigo-100/60 dark:border-indigo-800/40">
                 {entry.book.cover_url ? (
                   <img
                     src={entry.book.cover_url}

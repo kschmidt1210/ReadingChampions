@@ -13,7 +13,7 @@ export function ScorePreview({
 }) {
   if (!breakdown) {
     return (
-      <div className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400 border border-dashed border-gray-200">
+      <div className="rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground border border-dashed border-border">
         Select a book to see score preview
       </div>
     );
@@ -40,7 +40,7 @@ export function ScorePreview({
   }[status];
 
   return (
-    <div className="rounded-xl overflow-hidden border border-indigo-200/60">
+    <div className="rounded-xl overflow-hidden border border-indigo-200/60 dark:border-indigo-800/40">
       <div className={`px-4 py-3 flex items-baseline justify-between ${headerConfig.bg}`}>
         <span className={`text-sm font-medium ${headerConfig.labelColor}`}>
           {headerConfig.label}
@@ -49,29 +49,29 @@ export function ScorePreview({
           {breakdown.finalScore.toFixed(2)}
         </span>
       </div>
-      <div className="bg-indigo-50/50 px-4 py-3 space-y-1.5">
+      <div className="bg-indigo-50/50 dark:bg-indigo-950/30 px-4 py-3 space-y-1.5">
         {status === "completed" ? (
-          <div className="flex justify-between text-xs text-gray-600">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Completion Bonus ({baseLabel})</span>
             <span className="font-medium">{breakdown.basePoints.toFixed(3)}</span>
           </div>
         ) : status === "reading" ? (
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Completion Bonus ({baseLabel})</span>
             <span className="font-medium italic">+{breakdown.basePoints > 0 ? breakdown.basePoints.toFixed(3) : "on completion"}</span>
           </div>
         ) : (
-          <div className="flex justify-between text-xs text-gray-400 line-through">
+          <div className="flex justify-between text-xs text-muted-foreground line-through">
             <span>Completion Bonus ({baseLabel})</span>
             <span className="font-medium">0.000</span>
           </div>
         )}
-        <div className="flex justify-between text-xs text-gray-600">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>Page points</span>
-          <span className="font-medium text-gray-700">+{breakdown.pagePoints.toFixed(3)}</span>
+          <span className="font-medium text-foreground">+{breakdown.pagePoints.toFixed(3)}</span>
         </div>
         {breakdown.bonusAmounts.map((b) => (
-          <div key={b.key} className="flex items-center justify-between text-xs text-emerald-700">
+          <div key={b.key} className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400">
             <span className="flex items-center gap-1">
               <Plus className="h-3 w-3" />
               {b.label}
@@ -80,7 +80,7 @@ export function ScorePreview({
           </div>
         ))}
         {breakdown.hometownBonusAmount > 0 && (
-          <div className="flex items-center justify-between text-xs text-emerald-700">
+          <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400">
             <span className="flex items-center gap-1">
               <Plus className="h-3 w-3" />
               Hometown bonus
@@ -89,7 +89,7 @@ export function ScorePreview({
           </div>
         )}
         {breakdown.deductionLabel && (
-          <div className="flex items-center justify-between text-xs text-red-600">
+          <div className="flex items-center justify-between text-xs text-red-600 dark:text-red-400">
             <span className="flex items-center gap-1">
               <Minus className="h-3 w-3" />
               {breakdown.deductionLabel}
@@ -98,7 +98,7 @@ export function ScorePreview({
           </div>
         )}
         {breakdown.newCountryMultiplier > 1 && (
-          <div className="flex items-center justify-between text-xs text-emerald-700">
+          <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400">
             <span className="flex items-center gap-1">
               <Plus className="h-3 w-3" />
               New Country
@@ -107,17 +107,17 @@ export function ScorePreview({
           </div>
         )}
         {status === "reading" && (
-          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-200/60">
+          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/60">
             <Clock className="h-3.5 w-3.5 text-amber-500" />
-            <span className="text-xs text-amber-600 font-medium">
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
               Points added to your total when finished
             </span>
           </div>
         )}
         {status === "did_not_finish" && (
-          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-200/60">
-            <XCircle className="h-3.5 w-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500 font-medium">
+          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/60">
+            <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground font-medium">
               No completion bonus for unfinished books
             </span>
           </div>

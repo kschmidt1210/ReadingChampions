@@ -28,8 +28,8 @@ export function DeductionChips({
               className={cn(
                 "inline-flex items-center rounded-full border-2 px-3 py-2 md:py-1 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
-                  ? "bg-rose-50 text-rose-700 border-rose-500 shadow-sm"
-                  : "border-transparent ring-1 ring-border hover:bg-rose-50 hover:ring-rose-300 text-muted-foreground"
+                  ? "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-500 shadow-sm"
+                  : "border-transparent ring-1 ring-border hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:ring-rose-300 dark:hover:ring-rose-700 text-muted-foreground"
               )}
             >
               {DEDUCTION_LABELS[key]}
