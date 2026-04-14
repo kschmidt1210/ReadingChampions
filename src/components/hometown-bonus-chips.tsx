@@ -1,6 +1,5 @@
 "use client";
 
-import { Check } from "lucide-react";
 import type { HometownBonusKey } from "@/types/database";
 import { HOMETOWN_BONUS_LABELS } from "@/lib/scoring-types";
 import { cn } from "@/lib/utils";
@@ -29,13 +28,12 @@ export function HometownBonusChips({
               aria-pressed={isActive}
               onClick={() => onChange(isActive ? null : key)}
               className={cn(
-                "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200",
+                "inline-flex items-center rounded-full border-2 px-3 py-2 md:py-1 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-transparent shadow-sm"
-                  : "border-gray-200 hover:bg-pink-50 hover:border-pink-300 text-gray-600"
+                  ? "bg-pink-50 text-pink-700 border-pink-500 shadow-sm"
+                  : "border-transparent ring-1 ring-gray-200 hover:bg-pink-50 hover:ring-pink-300 text-gray-600"
               )}
             >
-              {isActive && <Check className="h-3 w-3 mr-1" />}
               {HOMETOWN_BONUS_LABELS[key]}
             </button>
           );

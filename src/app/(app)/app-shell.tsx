@@ -5,7 +5,6 @@ import { NavSidebar } from "@/components/nav-sidebar";
 import { NavBottomTabs } from "@/components/nav-bottom-tabs";
 import { NavProgress } from "@/components/nav-progress";
 import { BookEntryPanel } from "@/components/book-entry-panel";
-import { DismissSplash } from "@/components/dismiss-splash";
 import { useOrg } from "@/components/providers";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -14,7 +13,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div data-app-shell className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
-      <DismissSplash />
       <NavProgress />
       <div
         aria-hidden

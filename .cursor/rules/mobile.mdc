@@ -56,11 +56,12 @@ On mobile (`< md`), the leaderboard should prioritize legibility over density:
 
 ### Book Entry Form (Mobile)
 
-Progressive disclosure is critical on mobile:
-1. **Visible:** Book search, fiction toggle, genre, status, live score preview
-2. **Collapsed "Add details":** Bonuses, deduction, hometown, series, rating, date
-3. **Score preview:** Sticky at bottom of panel (always visible while scrolling form)
-4. Use native `<select>` on mobile for date/dropdown pickers instead of custom popovers
+All fields are part of the core experience — show them all in a single scroll, grouped into card sections (Book Details, Classification, Scoring Modifiers, Review):
+1. **Book search** at top, with selected-book card replacing the search input once chosen
+2. **Reading status** toggle (Reading / Completed / DNF)
+3. **All form fields** visible and grouped into card sections
+4. **Score preview:** Sticky at bottom of panel (always visible while scrolling form)
+5. Use native `<select>` on mobile for date/dropdown pickers instead of custom popovers
 
 ### Alphabet Grid
 

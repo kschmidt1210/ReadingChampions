@@ -54,52 +54,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ backgroundColor: "#ffffff" }}
       >
-        <div
-          id="__splash"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 99999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#ffffff",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 100 100"
-            width="80"
-            height="80"
-          >
-            <rect width="100" height="100" rx="20" fill="#4f46e5" />
-            <g
-              transform="translate(50,50)"
-              fill="none"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M-25,21 L-25,-17 C-25,-17 -12,-23 0,-17 C12,-23 25,-17 25,-17 L25,21" />
-              <path d="M0,-17 L0,21" />
-              <path d="M-25,21 C-25,21 -12,15 0,21 C12,15 25,21 25,21" />
-            </g>
-          </svg>
-          <p
-            style={{
-              marginTop: 20,
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              fontSize: 15,
-              fontWeight: 500,
-              color: "#94a3b8",
-              letterSpacing: "0.02em",
-            }}
-          >
-            Super Reader
-          </p>
-        </div>
         <SerwistProvider swUrl="/serwist/sw.js">
           {children}
           <Toaster richColors closeButton position="top-center" />

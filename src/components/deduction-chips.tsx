@@ -1,6 +1,5 @@
 "use client";
 
-import { Check } from "lucide-react";
 import type { DeductionKey } from "@/types/database";
 import { DEDUCTION_LABELS } from "@/lib/scoring-types";
 import { cn } from "@/lib/utils";
@@ -27,13 +26,12 @@ export function DeductionChips({
               aria-pressed={isActive}
               onClick={() => onChange(isActive ? null : key)}
               className={cn(
-                "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200",
+                "inline-flex items-center rounded-full border-2 px-3 py-2 md:py-1 text-xs font-semibold cursor-pointer transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white border-transparent shadow-sm"
-                  : "border-gray-200 hover:bg-rose-50 hover:border-rose-300 text-gray-600"
+                  ? "bg-rose-50 text-rose-700 border-rose-500 shadow-sm"
+                  : "border-transparent ring-1 ring-gray-200 hover:bg-rose-50 hover:ring-rose-300 text-gray-600"
               )}
             >
-              {isActive && <Check className="h-3 w-3 mr-1" />}
               {DEDUCTION_LABELS[key]}
             </button>
           );
