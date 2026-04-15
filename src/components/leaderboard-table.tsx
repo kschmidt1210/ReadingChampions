@@ -101,7 +101,7 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg bg-muted px-3 py-2.5 min-w-0">
+    <div className="rounded-lg bg-card ring-1 ring-border/60 px-3 py-2.5 min-w-0">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
         {label}
       </div>
@@ -118,16 +118,18 @@ function HighlightRow({
   label,
   title,
   detail,
+  iconClass,
 }: {
   icon: React.ReactNode;
   label: string;
   title: string | null;
   detail: string;
+  iconClass?: string;
 }) {
   if (!title) return null;
   return (
-    <div className="flex items-start gap-2 min-w-0">
-      <span className="text-muted-foreground mt-0.5 shrink-0">{icon}</span>
+    <div className="flex items-start gap-2.5 rounded-lg bg-card ring-1 ring-border/60 px-3 py-2.5 min-w-0">
+      <span className={cn("mt-0.5 shrink-0", iconClass ?? "text-muted-foreground")}>{icon}</span>
       <div className="min-w-0">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {label}
@@ -139,7 +141,7 @@ function HighlightRow({
   );
 }
 
-function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
+function PlayerDetailPanel({ player, isCurrentUser }: { player: LeaderboardPlayer; isCurrentUser?: boolean }) {
   const hasHighlights =
     player.longest_book_title ||
     player.highest_point_book_title ||
@@ -147,7 +149,12 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
 
   return (
     <div className="px-5 pb-4 pt-1">
-      <div className="rounded-xl border border-border bg-muted/40 p-4">
+      <div className={cn(
+        "rounded-xl border p-4",
+        isCurrentUser
+          ? "border-indigo-200 bg-indigo-50 dark:border-indigo-800/50 dark:bg-indigo-950/40"
+          : "border-border bg-muted"
+      )}>
         {/* Performance stats & bonuses */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
           <StatCard
@@ -198,21 +205,24 @@ function PlayerDetailPanel({ player }: { player: LeaderboardPlayer }) {
 
         {/* Highlights */}
         {hasHighlights && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
             <HighlightRow
               icon={<BookOpen className="h-3.5 w-3.5" />}
+              iconClass="text-indigo-500 dark:text-indigo-400"
               label="Longest Book"
               title={player.longest_book_title}
               detail={`${player.longest_book_pages.toLocaleString()} pages`}
             />
             <HighlightRow
               icon={<Trophy className="h-3.5 w-3.5" />}
+              iconClass="text-amber-500 dark:text-amber-400"
               label="Top Scoring"
               title={player.highest_point_book_title}
               detail={`${player.highest_point_book_score.toFixed(2)} pts`}
             />
             <HighlightRow
               icon={<Star className="h-3.5 w-3.5" />}
+              iconClass="text-emerald-500 dark:text-emerald-400"
               label="Highest Rated"
               title={player.highest_rated_book_title}
               detail={
@@ -267,6 +277,8 @@ function FindMeButton({
   );
 }
 
+const simpleSortKeys = new Set<SortKey>(["points", "books"]);
+
 export function LeaderboardTable({
   players,
   currentUserId,
@@ -275,6 +287,7 @@ export function LeaderboardTable({
   currentUserId: string;
 }) {
   const { viewMode } = useViewMode();
+  const isSimple = viewMode === "simple";
   const currentUserRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("points");
@@ -290,6 +303,12 @@ export function LeaderboardTable({
       setExpandedRows(new Set());
     }
   }, [viewMode, players]);
+
+  useEffect(() => {
+    if (isSimple && !simpleSortKeys.has(sortKey)) {
+      setSortKey("points");
+    }
+  }, [isSimple, sortKey]);
 
   const toggleExpand = useCallback((userId: string) => {
     setExpandedRows((prev) => {
@@ -386,7 +405,9 @@ export function LeaderboardTable({
                     : "border-border text-foreground"
                 )}
               >
-                {(Object.keys(sortLabels) as SortKey[]).map((key) => (
+                {(Object.keys(sortLabels) as SortKey[]).filter(
+                  (key) => !isSimple || simpleSortKeys.has(key)
+                ).map((key) => (
                   <option key={key} value={key}>
                     {sortLabels[key]}
                   </option>
@@ -433,54 +454,58 @@ export function LeaderboardTable({
             direction={sortDir}
           />
         </button>
-        <button
-          onClick={() => toggleSort("pages")}
-          className={cn(
-            "group/sort w-16 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
-            sortKey === "pages"
-              ? "text-indigo-600"
-              : "text-muted-foreground hover:text-muted-foreground"
-          )}
-        >
-          Pages
-          <SortIndicator
-            columnKey="pages"
-            activeKey={sortKey}
-            direction={sortDir}
-          />
-        </button>
-        <button
-          onClick={() => toggleSort("countries")}
-          className={cn(
-            "group/sort w-20 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
-            sortKey === "countries"
-              ? "text-indigo-600"
-              : "text-muted-foreground hover:text-muted-foreground"
-          )}
-        >
-          Countries
-          <SortIndicator
-            columnKey="countries"
-            activeKey={sortKey}
-            direction={sortDir}
-          />
-        </button>
-        <button
-          onClick={() => toggleSort("series")}
-          className={cn(
-            "group/sort w-24 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
-            sortKey === "series"
-              ? "text-indigo-600"
-              : "text-muted-foreground hover:text-muted-foreground"
-          )}
-        >
-          Series
-          <SortIndicator
-            columnKey="series"
-            activeKey={sortKey}
-            direction={sortDir}
-          />
-        </button>
+        {!isSimple && (
+          <>
+            <button
+              onClick={() => toggleSort("pages")}
+              className={cn(
+                "group/sort w-16 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
+                sortKey === "pages"
+                  ? "text-indigo-600"
+                  : "text-muted-foreground hover:text-muted-foreground"
+              )}
+            >
+              Pages
+              <SortIndicator
+                columnKey="pages"
+                activeKey={sortKey}
+                direction={sortDir}
+              />
+            </button>
+            <button
+              onClick={() => toggleSort("countries")}
+              className={cn(
+                "group/sort w-20 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
+                sortKey === "countries"
+                  ? "text-indigo-600"
+                  : "text-muted-foreground hover:text-muted-foreground"
+              )}
+            >
+              Countries
+              <SortIndicator
+                columnKey="countries"
+                activeKey={sortKey}
+                direction={sortDir}
+              />
+            </button>
+            <button
+              onClick={() => toggleSort("series")}
+              className={cn(
+                "group/sort w-24 text-center text-xs font-semibold uppercase tracking-wider items-center justify-center gap-0.5 cursor-pointer transition-colors hidden sm:flex",
+                sortKey === "series"
+                  ? "text-indigo-600"
+                  : "text-muted-foreground hover:text-muted-foreground"
+              )}
+            >
+              Series
+              <SortIndicator
+                columnKey="series"
+                activeKey={sortKey}
+                direction={sortDir}
+              />
+            </button>
+          </>
+        )}
         <button
           onClick={() => toggleSort("points")}
           className={cn(
@@ -580,59 +605,29 @@ export function LeaderboardTable({
                       ? `You (${player.display_name})`
                       : player.display_name}
                   </Link>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span
-                        className={cn(
-                          "text-xs font-semibold uppercase tracking-wide shrink-0",
-                          alphabetComplete
-                            ? "text-indigo-600"
-                            : alphabetHalf
-                              ? "text-indigo-500"
-                              : "text-muted-foreground"
-                        )}
-                      >
-                        A-Z
-                      </span>
-                      <div className="w-12 sm:w-16">
-                        <ProgressPip
-                          filled={player.unique_letters}
-                          total={26}
-                          filledClass={
-                            alphabetComplete
-                              ? "bg-indigo-500"
-                              : "bg-indigo-400/70"
-                          }
-                          emptyClass="bg-muted"
-                        />
-                      </div>
-                      <span
-                        className={cn(
-                          "text-xs font-medium tabular-nums shrink-0",
-                          alphabetComplete ? "text-indigo-600" : "text-muted-foreground"
-                        )}
-                      >
-                        {player.unique_letters}/26
-                      </span>
-                    </div>
-                    {player.total_genre_count > 0 && (
+                  {!isSimple && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span
                           className={cn(
                             "text-xs font-semibold uppercase tracking-wide shrink-0",
-                            genreComplete ? "text-emerald-600" : "text-muted-foreground"
+                            alphabetComplete
+                              ? "text-indigo-600"
+                              : alphabetHalf
+                                ? "text-indigo-500"
+                                : "text-muted-foreground"
                           )}
                         >
-                          Genre
+                          A-Z
                         </span>
-                        <div className="w-10 sm:w-14">
+                        <div className="w-12 sm:w-16">
                           <ProgressPip
-                            filled={player.covered_genre_count}
-                            total={player.total_genre_count}
+                            filled={player.unique_letters}
+                            total={26}
                             filledClass={
-                              genreComplete
-                                ? "bg-emerald-500"
-                                : "bg-emerald-400/70"
+                              alphabetComplete
+                                ? "bg-indigo-500"
+                                : "bg-indigo-400/70"
                             }
                             emptyClass="bg-muted"
                           />
@@ -640,14 +635,46 @@ export function LeaderboardTable({
                         <span
                           className={cn(
                             "text-xs font-medium tabular-nums shrink-0",
-                            genreComplete ? "text-emerald-600" : "text-muted-foreground"
+                            alphabetComplete ? "text-indigo-600" : "text-muted-foreground"
                           )}
                         >
-                          {player.covered_genre_count}/{player.total_genre_count}
+                          {player.unique_letters}/26
                         </span>
                       </div>
-                    )}
-                  </div>
+                      {player.total_genre_count > 0 && (
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className={cn(
+                              "text-xs font-semibold uppercase tracking-wide shrink-0",
+                              genreComplete ? "text-emerald-600" : "text-muted-foreground"
+                            )}
+                          >
+                            Genre
+                          </span>
+                          <div className="w-10 sm:w-14">
+                            <ProgressPip
+                              filled={player.covered_genre_count}
+                              total={player.total_genre_count}
+                              filledClass={
+                                genreComplete
+                                  ? "bg-emerald-500"
+                                  : "bg-emerald-400/70"
+                              }
+                              emptyClass="bg-muted"
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              "text-xs font-medium tabular-nums shrink-0",
+                              genreComplete ? "text-emerald-600" : "text-muted-foreground"
+                            )}
+                          >
+                            {player.covered_genre_count}/{player.total_genre_count}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <span
                   className={cn(
@@ -663,69 +690,73 @@ export function LeaderboardTable({
                     </span>
                   )}
                 </span>
-                <span
-                  className={cn(
-                    "w-16 text-center text-sm font-medium hidden sm:block",
-                    isCurrentUser ? "text-indigo-600/80 dark:text-indigo-400" : "text-muted-foreground"
-                  )}
-                >
-                  {player.page_count.toLocaleString()}
-                  {player.pending_page_count > 0 && (
-                    <span className="text-amber-500 text-xs block">
-                      +{player.pending_page_count.toLocaleString()}
-                    </span>
-                  )}
-                </span>
-                <div className="w-20 text-center hidden sm:block">
-                  {player.unique_countries > 0 ? (
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span
-                        className={cn(
-                          "text-sm font-semibold tabular-nums",
-                          player.country_rank <= 3
-                            ? "text-foreground"
-                            : isCurrentUser
-                              ? "text-indigo-600/80 dark:text-indigo-400"
-                              : "text-muted-foreground"
-                        )}
-                      >
-                        {player.unique_countries}
-                      </span>
-                      <ChallengeBadge rank={player.country_rank} />
-                    </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">&mdash;</span>
-                  )}
-                </div>
-                <div className="w-24 text-center hidden sm:block">
-                  {player.best_series_pages > 0 ? (
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span
-                        className={cn(
-                          "text-sm font-semibold tabular-nums",
-                          player.series_rank <= 3
-                            ? "text-foreground"
-                            : isCurrentUser
-                              ? "text-indigo-600/80 dark:text-indigo-400"
-                              : "text-muted-foreground"
-                        )}
-                      >
-                        {player.best_series_pages.toLocaleString()}
-                        <span className="text-xs font-normal text-muted-foreground ml-0.5">
-                          pg
+                {!isSimple && (
+                  <>
+                    <span
+                      className={cn(
+                        "w-16 text-center text-sm font-medium hidden sm:block",
+                        isCurrentUser ? "text-indigo-600/80 dark:text-indigo-400" : "text-muted-foreground"
+                      )}
+                    >
+                      {player.page_count.toLocaleString()}
+                      {player.pending_page_count > 0 && (
+                        <span className="text-amber-500 text-xs block">
+                          +{player.pending_page_count.toLocaleString()}
                         </span>
-                      </span>
-                      <span className="text-xs text-muted-foreground truncate max-w-[5.5rem]">
-                        {player.best_series_name}
-                        {player.best_series_count > 0 &&
-                          ` (${player.best_series_count})`}
-                      </span>
-                      <ChallengeBadge rank={player.series_rank} />
+                      )}
+                    </span>
+                    <div className="w-20 text-center hidden sm:block">
+                      {player.unique_countries > 0 ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={cn(
+                              "text-sm font-semibold tabular-nums",
+                              player.country_rank <= 3
+                                ? "text-foreground"
+                                : isCurrentUser
+                                  ? "text-indigo-600/80 dark:text-indigo-400"
+                                  : "text-muted-foreground"
+                            )}
+                          >
+                            {player.unique_countries}
+                          </span>
+                          <ChallengeBadge rank={player.country_rank} />
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">&mdash;</span>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">&mdash;</span>
-                  )}
-                </div>
+                    <div className="w-24 text-center hidden sm:block">
+                      {player.best_series_pages > 0 ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={cn(
+                              "text-sm font-semibold tabular-nums",
+                              player.series_rank <= 3
+                                ? "text-foreground"
+                                : isCurrentUser
+                                  ? "text-indigo-600/80 dark:text-indigo-400"
+                                  : "text-muted-foreground"
+                            )}
+                          >
+                            {player.best_series_pages.toLocaleString()}
+                            <span className="text-xs font-normal text-muted-foreground ml-0.5">
+                              pg
+                            </span>
+                          </span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[5.5rem]">
+                            {player.best_series_name}
+                            {player.best_series_count > 0 &&
+                              ` (${player.best_series_count})`}
+                          </span>
+                          <ChallengeBadge rank={player.series_rank} />
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">&mdash;</span>
+                      )}
+                    </div>
+                  </>
+                )}
                 <span className="w-22 text-right">
                   <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-0.5 text-sm font-bold text-indigo-700 dark:text-indigo-300">
                     {player.total_points.toFixed(2)}
@@ -752,7 +783,7 @@ export function LeaderboardTable({
                     isCurrentUser && "bg-indigo-50/50 dark:bg-indigo-950/30"
                   )}
                 >
-                  <PlayerDetailPanel player={player} />
+                  <PlayerDetailPanel player={player} isCurrentUser={isCurrentUser} />
                 </div>
               )}
             </div>

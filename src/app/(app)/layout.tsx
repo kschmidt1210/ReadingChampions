@@ -45,8 +45,10 @@ export default async function AppLayout({
     initialOrgId ? getManagedPlayers(initialOrgId) : [],
   ]);
 
+  const VALID_VIEW_MODES: ViewMode[] = ["simple", "default", "detail"];
+  const rawView = profileResult.data?.default_view as ViewMode | undefined;
   const defaultView: ViewMode =
-    profileResult.data?.default_view === "detail" ? "detail" : "default";
+    rawView && VALID_VIEW_MODES.includes(rawView) ? rawView : "default";
 
   const themePreference: ThemePreference =
     (profileResult.data?.theme_preference as ThemePreference) ?? "system";

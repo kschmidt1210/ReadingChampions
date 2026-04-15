@@ -68,7 +68,9 @@ export async function updateMyProfile(data: {
   const sg = validateProfileUrl("storygraph_url", data.storygraph_url);
   if (sg.error) return { error: sg.error };
 
-  const view = data.default_view === "detail" ? "detail" : "default";
+  const view: ViewMode = VALID_VIEW_MODES.includes(data.default_view)
+    ? data.default_view
+    : "default";
 
   const { error } = await supabase
     .from("profiles")
@@ -90,7 +92,7 @@ export async function updateMyProfile(data: {
   return { success: true };
 }
 
-const VALID_VIEW_MODES: ViewMode[] = ["default", "detail"];
+const VALID_VIEW_MODES: ViewMode[] = ["simple", "default", "detail"];
 
 export async function updateDefaultView(view: ViewMode) {
   const supabase = await createClient();

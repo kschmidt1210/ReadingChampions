@@ -34,8 +34,10 @@ export default async function SettingsPage() {
     user.email?.split("@")[0] ||
     "";
 
+  const validViewModes: ViewMode[] = ["simple", "default", "detail"];
+  const rawView = profile?.default_view as ViewMode | undefined;
   const defaultView: ViewMode =
-    profile?.default_view === "detail" ? "detail" : "default";
+    rawView && validViewModes.includes(rawView) ? rawView : "default";
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 space-y-8">

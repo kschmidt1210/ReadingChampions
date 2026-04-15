@@ -8,6 +8,12 @@ import type { ViewMode } from "@/types/database";
 
 const TOAST_ID = "view-mode-default";
 
+const VIEW_MODE_LABELS: Record<ViewMode, string> = {
+  simple: "Simple",
+  default: "Default",
+  detail: "Detail",
+};
+
 export function ViewModeToggle() {
   const { viewMode, savedDefault, setViewMode, saveAsDefault } = useViewMode();
   const toastShownForRef = useRef<ViewMode | null>(null);
@@ -17,7 +23,7 @@ export function ViewModeToggle() {
 
     if (mode !== savedDefault && toastShownForRef.current !== mode) {
       toastShownForRef.current = mode;
-      toast(`Switched to ${mode === "detail" ? "Detail" : "Default"} view`, {
+      toast(`Switched to ${VIEW_MODE_LABELS[mode]} view`, {
         id: TOAST_ID,
         action: {
           label: "Set as default",
@@ -39,30 +45,21 @@ export function ViewModeToggle() {
 
   return (
     <div className="inline-flex items-center rounded-lg border border-border overflow-hidden">
-      <button
-        type="button"
-        onClick={() => handleSwitch("default")}
-        className={cn(
-          "px-3 py-2 md:py-1.5 text-xs font-medium transition-colors",
-          viewMode === "default"
-            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-            : "text-muted-foreground hover:bg-muted"
-        )}
-      >
-        Default
-      </button>
-      <button
-        type="button"
-        onClick={() => handleSwitch("detail")}
-        className={cn(
-          "px-3 py-2 md:py-1.5 text-xs font-medium transition-colors",
-          viewMode === "detail"
-            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-            : "text-muted-foreground hover:bg-muted"
-        )}
-      >
-        Detail
-      </button>
+      {(Object.keys(VIEW_MODE_LABELS) as ViewMode[]).map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => handleSwitch(mode)}
+          className={cn(
+            "px-3 py-2 md:py-1.5 text-xs font-medium transition-colors",
+            viewMode === mode
+              ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+              : "text-muted-foreground hover:bg-muted"
+          )}
+        >
+          {VIEW_MODE_LABELS[mode]}
+        </button>
+      ))}
     </div>
   );
 }
