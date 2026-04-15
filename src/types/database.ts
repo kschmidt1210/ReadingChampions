@@ -24,7 +24,7 @@ export type HometownBonusKey = "state_setting" | "state_name" | "city_name";
 
 export type BookEntryStatus = "reading" | "completed" | "did_not_finish";
 
-export type ViewMode = "default" | "detail";
+export type ViewMode = "simple" | "default" | "detail";
 
 export type ThemePreference = "light" | "dark" | "system";
 
