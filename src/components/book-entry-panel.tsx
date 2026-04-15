@@ -745,27 +745,26 @@ export function BookEntryPanel({
         {status !== "reading" && (
           <div className="space-y-1.5">
             <Label>Date Finished</Label>
-            <div className="relative">
-              <button
-                type="button"
-                disabled={readOnly}
-                onClick={() => {
-                  try { dateInputRef.current?.showPicker(); } catch { dateInputRef.current?.focus(); }
-                }}
-                className="flex w-full items-center justify-between min-h-11 md:min-h-8 rounded-lg border border-input bg-transparent px-2.5 py-2 md:py-1 text-base md:text-sm text-left transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 dark:bg-input/30"
+            <div
+              className="relative cursor-pointer"
+              onClick={() => {
+                try { dateInputRef.current?.showPicker(); } catch { dateInputRef.current?.focus(); }
+              }}
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none flex w-full items-center justify-between min-h-11 md:min-h-8 rounded-lg border border-input bg-transparent px-2.5 py-2 md:py-1 text-base md:text-sm text-left transition-colors dark:bg-input/30"
               >
                 <span>{dateFinished ? format(parseISO(dateFinished), "MMM d, yyyy") : "Select date"}</span>
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-              </button>
+              </div>
               <input
                 ref={dateInputRef}
                 type="date"
                 value={dateFinished}
                 onChange={(e) => setDateFinished(e.target.value)}
                 disabled={readOnly}
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:pointer-events-none disabled:cursor-not-allowed"
               />
             </div>
           </div>
