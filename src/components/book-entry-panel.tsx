@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { BookOpen, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff, X, Users } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { BookOpen, Calendar, ChevronDown, Lock, Globe, MessageSquareText, Trash2, EyeOff, X, Users } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
@@ -302,6 +303,7 @@ export function BookEntryPanel({
   const [genreId, setGenreId] = useState<string | null>(null);
   const [genreName, setGenreName] = useState("");
   const [dateFinished, setDateFinished] = useState(new Date().toISOString().split("T")[0]);
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [rating, setRating] = useState<string>("7");
   const [country, setCountry] = useState("");
   const [bonuses, setBonuses] = useState<(BonusKey | null)[]>([null, null, null]);
@@ -741,9 +743,31 @@ export function BookEntryPanel({
           </div>
         )}
         {status !== "reading" && (
-          <div className="space-y-1.5 overflow-hidden">
+          <div className="space-y-1.5">
             <Label>Date Finished</Label>
-            <Input type="date" value={dateFinished} onChange={(e) => setDateFinished(e.target.value)} disabled={readOnly} className="max-w-full" />
+            <div className="relative">
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => {
+                  try { dateInputRef.current?.showPicker(); } catch { dateInputRef.current?.focus(); }
+                }}
+                className="flex w-full items-center justify-between min-h-11 md:min-h-8 rounded-lg border border-input bg-transparent px-2.5 py-2 md:py-1 text-base md:text-sm text-left transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 dark:bg-input/30"
+              >
+                <span>{dateFinished ? format(parseISO(dateFinished), "MMM d, yyyy") : "Select date"}</span>
+                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={dateFinished}
+                onChange={(e) => setDateFinished(e.target.value)}
+                disabled={readOnly}
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden
+              />
+            </div>
           </div>
         )}
         <div className="space-y-1.5">
