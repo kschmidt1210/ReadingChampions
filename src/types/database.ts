@@ -153,6 +153,76 @@ export interface BookReview {
   updated_at: string;
 }
 
+export type CommunityTag =
+  | "recommendation"
+  | "rules"
+  | "leaderboard"
+  | "milestone"
+  | "general";
+
+export type CommunityReactionTarget = "post" | "comment";
+
+export interface CommunityPost {
+  id: string;
+  org_id: string;
+  user_id: string;
+  body: string;
+  tag: CommunityTag | null;
+  image_paths: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommunityComment {
+  id: string;
+  post_id: string;
+  parent_comment_id: string | null;
+  user_id: string;
+  body: string;
+  image_paths: string[];
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommunityReaction {
+  id: string;
+  target_type: CommunityReactionTarget;
+  target_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+}
+
+export interface ReactionSummary {
+  emoji: string;
+  count: number;
+  mine: boolean;
+}
+
+export interface CommunityAuthor {
+  id: string;
+  display_name: string;
+}
+
+export interface CommunityCommentWithAuthor extends CommunityComment {
+  author: CommunityAuthor;
+  reactions: ReactionSummary[];
+  signed_image_urls: string[];
+  children: CommunityCommentWithAuthor[];
+}
+
+export interface CommunityPostWithAuthor extends CommunityPost {
+  author: CommunityAuthor;
+  reactions: ReactionSummary[];
+  comment_count: number;
+  signed_image_urls: string[];
+}
+
+export interface CommunityPostDetail extends CommunityPostWithAuthor {
+  comments: CommunityCommentWithAuthor[];
+}
+
 export interface ManagedPlayer {
   id: string;
   parent_user_id: string;
