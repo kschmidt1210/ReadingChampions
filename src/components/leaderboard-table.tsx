@@ -386,9 +386,9 @@ export function LeaderboardTable({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <label htmlFor="leaderboard-sort" className="sr-only">Sort by</label>
-            <div className="relative">
+            <div className="relative min-w-0">
               <SlidersHorizontal className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
               <select
                 id="leaderboard-sort"
@@ -399,7 +399,7 @@ export function LeaderboardTable({
                   setSortDir("desc");
                 }}
                 className={cn(
-                  "text-xs h-11 md:h-8 pl-7 pr-6 rounded-lg border bg-muted/50 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer transition-colors",
+                  "text-xs h-11 md:h-8 pl-7 pr-6 w-28 rounded-lg border bg-muted/50 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer transition-colors",
                   !columnSortKeys.has(sortKey)
                     ? "border-indigo-300 text-indigo-700"
                     : "border-border text-foreground"
